@@ -117,10 +117,10 @@ beforeEach(() => {
 | Element | Color | Size |
 |---------|-------|------|
 | Command | #3DADFF fill, #007AD2 stroke (blue) | 176×80px |
-| Event (internal) | #F5A623 (orange) | 200×120px |
-| Event (external) | #9B59B6 (purple) | 200×120px |
-| Query | #7ED321 (green) | 200×120px |
-| Actor | #50E3C2 (teal) | 200×120px |
+| Event (internal) | #FF9E42 fill, #EB7500 stroke (orange) | 176×80px |
+| Event (external) | #9B59B6 (purple) | 176×80px |
+| Query | #7ED321 (green) | 176×80px |
+| Actor | #50E3C2 (teal) | 176×80px |
 | Lane | Light gray 5% opacity | Half viewport width × 120px |
 | GWT | - | 400×600px parent, 350×180px children |
 

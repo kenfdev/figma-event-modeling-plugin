@@ -13,15 +13,15 @@ A FigJam plugin for creating Event Modeling diagrams. The plugin provides a pers
 
 All element types are MVP requirements. Elements are created as grouped shapes (not Figma components) and placed at viewport center.
 
-### Core Shapes (200×120px, 16px font)
+### Core Shapes (176×80px, 16px font)
 
 | Element | Color | Shape | Description |
 |---------|-------|-------|-------------|
 | Command | Blue (#4A90D9) | Rectangle | User intent/action that triggers state changes |
-| Event (internal) | Orange (#F5A623) | Rectangle | Immutable fact that something happened within the system |
+| Event (internal) | Orange (#FF9E42) | Rectangle | Immutable fact that something happened within the system |
 | Event (external) | Purple (#9B59B6) | Rectangle | Immutable fact from external systems |
 | Query | Green (#7ED321) | Rectangle | Request for data/view |
-| Actor | Teal (#50E3C2) | Rectangle (200×120px) | User persona (Admin, Customer, etc.) |
+| Actor | Teal (#50E3C2) | Rectangle (176×80px) | User persona (Admin, Customer, etc.) |
 
 ### Structural Elements
 
@@ -58,7 +58,7 @@ Command, Event, and Query elements support custom fields:
 ### Event Internal/External Toggle
 
 Event elements have a toggle to mark them as internal or external:
-- Internal: Orange (#F5A623)
+- Internal: Orange (#FF9E42)
 - External: Purple (#9B59B6)
 
 ### Custom Fields Visibility Toggle
@@ -331,7 +331,7 @@ gwt:
 | Element | Hex Code |
 |---------|----------|
 | Command | #4A90D9 |
-| Event (internal) | #F5A623 |
+| Event (internal) | #FF9E42 |
 | Event (external) | #9B59B6 |
 | Query | #7ED321 |
 | Actor | #50E3C2 |
@@ -344,7 +344,7 @@ gwt:
 
 | Element | Dimensions |
 |---------|------------|
-| Core shapes (Command, Event, Query, Actor) | 200×120px |
+| Core shapes (Command, Event, Query, Actor) | 176×80px |
 | Lane | Half viewport width × 120px height |
 | Chapter | 200px width (FigJam connector) |
 | GWT parent section | 400×600px |

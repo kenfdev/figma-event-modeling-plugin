@@ -72,10 +72,39 @@ describe('Panel', () => {
     expect(onCreateElement).toHaveBeenCalledWith('command')
   })
 
+  it('renders Event button as enabled', () => {
+    render(<Panel />)
+    const eventButton = screen.getByRole('button', { name: 'Event' })
+    expect(eventButton).not.toBeDisabled()
+  })
+
+  it('sends create-event message to sandbox when Event button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<Panel />)
+
+    const eventButton = screen.getByRole('button', { name: 'Event' })
+    await user.click(eventButton)
+
+    expect(parent.postMessage).toHaveBeenCalledWith(
+      { pluginMessage: { type: 'create-event' } },
+      '*'
+    )
+  })
+
+  it('calls onCreateElement with "event" when Event button is clicked and callback provided', async () => {
+    const user = userEvent.setup()
+    const onCreateElement = vi.fn()
+    render(<Panel onCreateElement={onCreateElement} />)
+
+    const eventButton = screen.getByRole('button', { name: 'Event' })
+    await user.click(eventButton)
+
+    expect(onCreateElement).toHaveBeenCalledWith('event')
+  })
+
   it('keeps other element buttons disabled', () => {
     render(<Panel />)
     // Other buttons should still be disabled until their handlers are implemented
-    expect(screen.getByRole('button', { name: 'Event' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Query' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Actor' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Lane' })).toBeDisabled()
