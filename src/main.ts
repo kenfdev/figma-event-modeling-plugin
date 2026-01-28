@@ -1,5 +1,8 @@
 // Plugin sandbox code - runs in Figma's main thread with access to the Figma API
 
+import { createMessageRouter } from './features/open-plugin-panel/sandbox'
+import type { PluginMessage } from './shared/types/plugin'
+
 export default function main() {
   // Check if running in FigJam
   if (figma.editorType !== 'figjam') {
@@ -14,14 +17,11 @@ export default function main() {
     title: 'Event Modeling',
   })
 
+  // Create message router with Figma context
+  const handleMessage = createMessageRouter({ figma })
+
   // Handle messages from the UI
-  figma.ui.onmessage = (msg: { type: string; payload?: unknown }) => {
-    switch (msg.type) {
-      case 'close':
-        figma.closePlugin()
-        break
-      default:
-        console.log('Unknown message type:', msg.type)
-    }
+  figma.ui.onmessage = (msg: PluginMessage) => {
+    handleMessage(msg)
   }
 }

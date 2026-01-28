@@ -13,6 +13,8 @@ body {
 
 .container {
   padding: 16px;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 h1 {
@@ -54,31 +56,65 @@ h2 {
   transition: opacity 0.2s;
 }
 
+.button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
 .button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.button-event {
-  background: #FF9500;
-  color: white;
-}
-
+/* Element type colors */
 .button-command {
-  background: #007AFF;
+  background: #4A90D9;
   color: white;
 }
 
-.button-view {
-  background: #34C759;
+.button-event {
+  background: #F5A623;
   color: white;
 }
 
-.placeholder-text {
-  color: #999;
-  font-style: italic;
+.button-query {
+  background: #7ED321;
+  color: white;
+}
+
+.button-actor {
+  background: #50E3C2;
+  color: white;
+}
+
+/* Structural type colors */
+.button-lane,
+.button-chapter,
+.button-processor,
+.button-screen {
+  background: #9B9B9B;
+  color: white;
+}
+
+/* Section type colors */
+.button-slice,
+.button-gwt {
+  background: #BD10E0;
+  color: white;
+}
+
+.help-link {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
   text-align: center;
-  padding: 24px;
-  background: #f5f5f5;
-  border-radius: 8px;
+}
+
+.help-link a {
+  color: #4A90D9;
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.help-link a:hover {
+  text-decoration: underline;
 }
