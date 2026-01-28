@@ -5,6 +5,7 @@ export interface SelectedElement {
   id: string
   type: ElementType
   name: string
+  customFields?: string
 }
 
 export interface ElementEditorProps {
@@ -19,14 +20,18 @@ const typeLabels: Record<ElementType, string> = {
   actor: 'Actor',
 }
 
+const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
+
 export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
   const [name, setName] = useState('')
+  const [customFields, setCustomFields] = useState('')
 
   useEffect(() => {
     if (selectedElement) {
       setName(selectedElement.name)
+      setCustomFields(selectedElement.customFields ?? '')
     }
-  }, [selectedElement?.id, selectedElement?.name])
+  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields])
 
   if (multipleSelected) {
     return (
@@ -56,6 +61,22 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     )
   }
 
+  const handleCustomFieldsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newCustomFields = e.target.value
+    setCustomFields(newCustomFields)
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'update-custom-fields',
+          payload: { id: selectedElement.id, customFields: newCustomFields },
+        },
+      },
+      '*'
+    )
+  }
+
+  const showCustomFields = typesWithCustomFields.includes(selectedElement.type)
+
   return (
     <section className="element-editor" aria-label="Element Editor">
       <h2>Selected Element</h2>
@@ -81,6 +102,20 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             aria-label="Element name"
           />
         </div>
+        {showCustomFields && (
+          <div className="element-editor-row">
+            <label htmlFor="custom-fields" className="element-editor-label">
+              Custom Fields
+            </label>
+            <textarea
+              id="custom-fields"
+              className="element-editor-textarea"
+              value={customFields}
+              onChange={handleCustomFieldsChange}
+              aria-label="Custom fields"
+            />
+          </div>
+        )}
       </div>
     </section>
   )
