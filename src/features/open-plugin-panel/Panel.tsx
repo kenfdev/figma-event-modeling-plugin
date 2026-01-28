@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
+import { ElementEditor, type SelectedElement } from '../view-selected-element'
 
 type EditorType = 'figma' | 'figjam' | null
 
@@ -61,12 +62,16 @@ export interface PanelProps {
 
 export function Panel({ onCreateElement }: PanelProps) {
   const [editorType, setEditorType] = useState<EditorType>(null)
+  const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const message = event.data?.pluginMessage
       if (message?.type === 'platform-detected') {
         setEditorType(message.payload?.editorType)
+      }
+      if (message?.type === 'selection-changed') {
+        setSelectedElement(message.payload)
       }
     }
 
@@ -131,6 +136,8 @@ export function Panel({ onCreateElement }: PanelProps) {
             onCreateElement={handleCreateElement}
             enabledTypes={enabledTypes}
           />
+
+          <ElementEditor selectedElement={selectedElement} />
 
           <div className="help-link">
             <a

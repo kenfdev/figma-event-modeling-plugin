@@ -130,3 +130,68 @@ h2 {
   line-height: 1.5;
   margin-top: 8px;
 }
+
+/* Element Editor */
+.element-editor {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.element-editor-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.element-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.element-editor-label {
+  font-size: 11px;
+  color: #666;
+  min-width: 40px;
+}
+
+.element-editor-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.element-editor-input:focus {
+  outline: none;
+  border-color: #4A90D9;
+}
+
+/* Type badges */
+.type-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: white;
+}
+
+.type-command {
+  background: #3DADFF;
+}
+
+.type-event {
+  background: #FF9E42;
+}
+
+.type-query {
+  background: #7ED321;
+}
+
+.type-actor {
+  background: #50E3C2;
+}
