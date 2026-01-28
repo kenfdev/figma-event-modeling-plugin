@@ -83,6 +83,7 @@ export function Panel({ onCreateElement }: PanelProps) {
     const messageTypeMap: Partial<Record<ElementType | StructuralType | SectionType, string>> = {
       command: 'create-command',
       event: 'create-event',
+      query: 'create-query',
     }
 
     const messageType = messageTypeMap[type]
@@ -92,7 +93,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   }
 
   // Types with implemented handlers
-  const enabledTypes = new Set<string>(['command', 'event'])
+  const enabledTypes = new Set<string>(['command', 'event', 'query'])
   const isFigmaDesign = editorType === 'figma'
 
   return (

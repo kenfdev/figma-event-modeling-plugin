@@ -102,10 +102,39 @@ describe('Panel', () => {
     expect(onCreateElement).toHaveBeenCalledWith('event')
   })
 
+  it('renders Query button as enabled', () => {
+    render(<Panel />)
+    const queryButton = screen.getByRole('button', { name: 'Query' })
+    expect(queryButton).not.toBeDisabled()
+  })
+
+  it('sends create-query message to sandbox when Query button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<Panel />)
+
+    const queryButton = screen.getByRole('button', { name: 'Query' })
+    await user.click(queryButton)
+
+    expect(parent.postMessage).toHaveBeenCalledWith(
+      { pluginMessage: { type: 'create-query' } },
+      '*'
+    )
+  })
+
+  it('calls onCreateElement with "query" when Query button is clicked and callback provided', async () => {
+    const user = userEvent.setup()
+    const onCreateElement = vi.fn()
+    render(<Panel onCreateElement={onCreateElement} />)
+
+    const queryButton = screen.getByRole('button', { name: 'Query' })
+    await user.click(queryButton)
+
+    expect(onCreateElement).toHaveBeenCalledWith('query')
+  })
+
   it('keeps other element buttons disabled', () => {
     render(<Panel />)
     // Other buttons should still be disabled until their handlers are implemented
-    expect(screen.getByRole('button', { name: 'Query' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Actor' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Lane' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Chapter' })).toBeDisabled()
