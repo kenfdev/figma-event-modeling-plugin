@@ -4,15 +4,16 @@ const COMMAND_WIDTH = 200
 const COMMAND_HEIGHT = 120
 const COMMAND_COLOR = { r: 74 / 255, g: 144 / 255, b: 217 / 255 }
 
-export function handleCreateCommand(
+export async function handleCreateCommand(
   _payload: unknown,
   { figma }: MessageHandlerContext
-): void {
+): Promise<void> {
   const shape = figma.createShapeWithText()
 
   shape.shapeType = 'ROUNDED_RECTANGLE'
   shape.resize(COMMAND_WIDTH, COMMAND_HEIGHT)
   shape.fills = [{ type: 'SOLID', color: COMMAND_COLOR }]
+  await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
   shape.text.characters = 'Command'
   shape.setPluginData('type', 'command')
 

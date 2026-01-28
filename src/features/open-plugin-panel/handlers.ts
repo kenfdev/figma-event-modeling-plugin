@@ -16,10 +16,10 @@ const handlers: Record<string, MessageHandler> = {
 }
 
 export function createMessageRouter(context: MessageHandlerContext) {
-  return (msg: PluginMessage) => {
+  return async (msg: PluginMessage) => {
     const handler = handlers[msg.type]
     if (handler) {
-      handler(msg.payload, context)
+      await handler(msg.payload, context)
     } else {
       console.log('Unknown message type:', msg.type)
     }

@@ -19,6 +19,7 @@ export interface FigmaMock {
   createShapeWithText: ReturnType<typeof vi.fn>
   createSection: ReturnType<typeof vi.fn>
   createConnector: ReturnType<typeof vi.fn>
+  loadFontAsync: ReturnType<typeof vi.fn>
   getNodeById: ReturnType<typeof vi.fn>
   notify: ReturnType<typeof vi.fn>
 }
@@ -66,6 +67,7 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
       connectorStart: { endpointNodeId: '', magnet: 'AUTO' },
       connectorEnd: { endpointNodeId: '', magnet: 'AUTO' },
     })),
+    loadFontAsync: vi.fn(() => Promise.resolve()),
     getNodeById: vi.fn(),
     notify: vi.fn(),
     ...overrides,
