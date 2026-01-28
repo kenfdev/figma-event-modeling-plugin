@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import type { ElementType } from '../../shared/types/plugin'
 
 export interface SelectedElement {
@@ -19,6 +20,14 @@ const typeLabels: Record<ElementType, string> = {
 }
 
 export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
+  const [name, setName] = useState('')
+
+  useEffect(() => {
+    if (selectedElement) {
+      setName(selectedElement.name)
+    }
+  }, [selectedElement?.id, selectedElement?.name])
+
   if (multipleSelected) {
     return (
       <section className="element-editor" aria-label="Element Editor">
@@ -32,6 +41,20 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
   }
 
   const typeLabel = typeLabels[selectedElement.type]
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value
+    setName(newName)
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'update-element-name',
+          payload: { id: selectedElement.id, name: newName },
+        },
+      },
+      '*'
+    )
+  }
 
   return (
     <section className="element-editor" aria-label="Element Editor">
@@ -53,9 +76,9 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             id="element-name"
             type="text"
             className="element-editor-input"
-            value={selectedElement.name}
+            value={name}
+            onChange={handleNameChange}
             aria-label="Element name"
-            readOnly
           />
         </div>
       </div>
