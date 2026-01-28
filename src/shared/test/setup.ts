@@ -9,3 +9,11 @@ globalThis.figma = createFigmaMock()
 globalThis.parent = {
   postMessage: vi.fn(),
 } as unknown as Window
+
+// Mock __html__ global variable (provided by Figma plugin bundler)
+// This is the HTML content that gets passed to figma.showUI()
+declare global {
+  // eslint-disable-next-line no-var
+  var __html__: string
+}
+globalThis.__html__ = '<html><body></body></html>'
