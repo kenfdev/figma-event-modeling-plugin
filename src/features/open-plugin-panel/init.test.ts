@@ -87,4 +87,45 @@ describe('Plugin Initialization', () => {
       expect(figmaMock.closePlugin).toHaveBeenCalled()
     })
   })
+
+  describe('Platform detection', () => {
+    it('sends platform-detected message to UI after showUI when in FigJam', () => {
+      figmaMock.editorType = 'figjam'
+
+      initializePlugin({ figma: figmaMock as unknown as typeof figma })
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+        type: 'platform-detected',
+        payload: { editorType: 'figjam' },
+      })
+    })
+
+    it('does not send platform-detected message when not in FigJam (plugin closes)', () => {
+      figmaMock.editorType = 'figma'
+
+      initializePlugin({ figma: figmaMock as unknown as typeof figma })
+
+      expect(figmaMock.ui.postMessage).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'platform-detected' })
+      )
+    })
+
+    it('sends platform-detected message after showUI is called', () => {
+      figmaMock.editorType = 'figjam'
+      let showUICallOrder = 0
+      let postMessageCallOrder = 0
+      let callCounter = 0
+
+      figmaMock.showUI = vi.fn(() => {
+        showUICallOrder = ++callCounter
+      })
+      figmaMock.ui.postMessage = vi.fn(() => {
+        postMessageCallOrder = ++callCounter
+      })
+
+      initializePlugin({ figma: figmaMock as unknown as typeof figma })
+
+      expect(showUICallOrder).toBeLessThan(postMessageCallOrder)
+    })
+  })
 })

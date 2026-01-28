@@ -20,6 +20,12 @@ export function initializePlugin({ figma }: InitializePluginContext): void {
     themeColors: true,
   })
 
+  // Notify UI of the detected platform
+  figma.ui.postMessage({
+    type: 'platform-detected',
+    payload: { editorType: figma.editorType },
+  })
+
   // Create message router with Figma context
   const handleMessage = createMessageRouter({ figma })
 
