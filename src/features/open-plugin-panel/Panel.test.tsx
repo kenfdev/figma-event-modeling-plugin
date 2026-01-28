@@ -132,10 +132,39 @@ describe('Panel', () => {
     expect(onCreateElement).toHaveBeenCalledWith('query')
   })
 
+  it('renders Actor button as enabled', () => {
+    render(<Panel />)
+    const actorButton = screen.getByRole('button', { name: 'Actor' })
+    expect(actorButton).not.toBeDisabled()
+  })
+
+  it('sends create-actor message to sandbox when Actor button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<Panel />)
+
+    const actorButton = screen.getByRole('button', { name: 'Actor' })
+    await user.click(actorButton)
+
+    expect(parent.postMessage).toHaveBeenCalledWith(
+      { pluginMessage: { type: 'create-actor' } },
+      '*'
+    )
+  })
+
+  it('calls onCreateElement with "actor" when Actor button is clicked and callback provided', async () => {
+    const user = userEvent.setup()
+    const onCreateElement = vi.fn()
+    render(<Panel onCreateElement={onCreateElement} />)
+
+    const actorButton = screen.getByRole('button', { name: 'Actor' })
+    await user.click(actorButton)
+
+    expect(onCreateElement).toHaveBeenCalledWith('actor')
+  })
+
   it('keeps other element buttons disabled', () => {
     render(<Panel />)
     // Other buttons should still be disabled until their handlers are implemented
-    expect(screen.getByRole('button', { name: 'Actor' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Lane' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Chapter' })).toBeDisabled()
   })

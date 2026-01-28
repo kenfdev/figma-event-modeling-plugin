@@ -84,6 +84,7 @@ export function Panel({ onCreateElement }: PanelProps) {
       command: 'create-command',
       event: 'create-event',
       query: 'create-query',
+      actor: 'create-actor',
     }
 
     const messageType = messageTypeMap[type]
@@ -93,7 +94,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   }
 
   // Types with implemented handlers
-  const enabledTypes = new Set<string>(['command', 'event', 'query'])
+  const enabledTypes = new Set<string>(['command', 'event', 'query', 'actor'])
   const isFigmaDesign = editorType === 'figma'
 
   return (
