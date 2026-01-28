@@ -118,3 +118,14 @@ h2 {
 .help-link a:hover {
   text-decoration: underline;
 }
+
+/* Error message */
+.error-message {
+  background: #FFEBE9;
+  border: 1px solid #F85149;
+  border-radius: 6px;
+  padding: 12px;
+  color: #CF222E;
+  line-height: 1.5;
+  margin-top: 8px;
+}

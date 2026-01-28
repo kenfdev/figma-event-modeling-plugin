@@ -11,25 +11,23 @@ describe('Plugin Initialization', () => {
     figmaMock = createFigmaMock()
   })
 
-  describe('FigJam-only restriction', () => {
-    it('closes plugin with error message when not in FigJam', () => {
+  describe('Platform handling', () => {
+    it('shows UI when in Figma Design (error displayed in UI)', () => {
       figmaMock.editorType = 'figma'
 
       initializePlugin({ figma: figmaMock as unknown as typeof figma })
 
-      expect(figmaMock.closePlugin).toHaveBeenCalledWith(
-        'This plugin only works in FigJam files.'
-      )
-      expect(figmaMock.showUI).not.toHaveBeenCalled()
+      expect(figmaMock.showUI).toHaveBeenCalled()
+      expect(figmaMock.closePlugin).not.toHaveBeenCalled()
     })
 
-    it('continues initialization when in FigJam', () => {
+    it('shows UI when in FigJam', () => {
       figmaMock.editorType = 'figjam'
 
       initializePlugin({ figma: figmaMock as unknown as typeof figma })
 
-      expect(figmaMock.closePlugin).not.toHaveBeenCalled()
       expect(figmaMock.showUI).toHaveBeenCalled()
+      expect(figmaMock.closePlugin).not.toHaveBeenCalled()
     })
   })
 
@@ -100,14 +98,15 @@ describe('Plugin Initialization', () => {
       })
     })
 
-    it('does not send platform-detected message when not in FigJam (plugin closes)', () => {
+    it('sends platform-detected message with figma when in Figma Design', () => {
       figmaMock.editorType = 'figma'
 
       initializePlugin({ figma: figmaMock as unknown as typeof figma })
 
-      expect(figmaMock.ui.postMessage).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'platform-detected' })
-      )
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+        type: 'platform-detected',
+        payload: { editorType: 'figma' },
+      })
     })
 
     it('sends platform-detected message after showUI is called', () => {

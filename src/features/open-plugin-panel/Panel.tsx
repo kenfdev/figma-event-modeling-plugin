@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
+
+type EditorType = 'figma' | 'figjam' | null
 
 interface ButtonConfig {
   type: ElementType | StructuralType | SectionType
@@ -57,6 +60,20 @@ export interface PanelProps {
 }
 
 export function Panel({ onCreateElement }: PanelProps) {
+  const [editorType, setEditorType] = useState<EditorType>(null)
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const message = event.data?.pluginMessage
+      if (message?.type === 'platform-detected') {
+        setEditorType(message.payload?.editorType)
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
+
   const handleCreateElement = (type: ElementType | StructuralType | SectionType) => {
     if (onCreateElement) {
       onCreateElement(type)
@@ -71,44 +88,54 @@ export function Panel({ onCreateElement }: PanelProps) {
 
   // TODO: Enable buttons when element creation is implemented
   const disabled = true
+  const isFigmaDesign = editorType === 'figma'
 
   return (
     <div className="container">
       <h1>Event Modeling</h1>
-      <p className="description">
-        Create Event Modeling diagrams in FigJam.
-      </p>
 
-      <ButtonGroup
-        title="Core Shapes"
-        buttons={coreShapes}
-        onCreateElement={handleCreateElement}
-        disabled={disabled}
-      />
+      {isFigmaDesign ? (
+        <div role="alert" className="error-message">
+          This plugin only works in FigJam. Please open a FigJam file to use this plugin.
+        </div>
+      ) : (
+        <>
+          <p className="description">
+            Create Event Modeling diagrams in FigJam.
+          </p>
 
-      <ButtonGroup
-        title="Structural"
-        buttons={structural}
-        onCreateElement={handleCreateElement}
-        disabled={disabled}
-      />
+          <ButtonGroup
+            title="Core Shapes"
+            buttons={coreShapes}
+            onCreateElement={handleCreateElement}
+            disabled={disabled}
+          />
 
-      <ButtonGroup
-        title="Sections"
-        buttons={sections}
-        onCreateElement={handleCreateElement}
-        disabled={disabled}
-      />
+          <ButtonGroup
+            title="Structural"
+            buttons={structural}
+            onCreateElement={handleCreateElement}
+            disabled={disabled}
+          />
 
-      <div className="help-link">
-        <a
-          href="https://eventmodeling.org/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn about Event Modeling
-        </a>
-      </div>
+          <ButtonGroup
+            title="Sections"
+            buttons={sections}
+            onCreateElement={handleCreateElement}
+            disabled={disabled}
+          />
+
+          <div className="help-link">
+            <a
+              href="https://eventmodeling.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Learn about Event Modeling
+            </a>
+          </div>
+        </>
+      )}
     </div>
   )
 }

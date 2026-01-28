@@ -6,12 +6,6 @@ export interface InitializePluginContext {
 }
 
 export function initializePlugin({ figma }: InitializePluginContext): void {
-  // Check if running in FigJam
-  if (figma.editorType !== 'figjam') {
-    figma.closePlugin('This plugin only works in FigJam files.')
-    return
-  }
-
   // Show the UI panel
   figma.showUI(__html__, {
     width: 300,
@@ -20,7 +14,7 @@ export function initializePlugin({ figma }: InitializePluginContext): void {
     themeColors: true,
   })
 
-  // Notify UI of the detected platform
+  // Notify UI of the detected platform (let UI handle the error display)
   figma.ui.postMessage({
     type: 'platform-detected',
     payload: { editorType: figma.editorType },
