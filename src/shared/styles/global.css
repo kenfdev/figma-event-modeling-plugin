@@ -67,7 +67,8 @@ h2 {
 
 /* Element type colors */
 .button-command {
-  background: #4A90D9;
+  background: #3DADFF;
+  border: 2px solid #007AD2;
   color: white;
 }
 
