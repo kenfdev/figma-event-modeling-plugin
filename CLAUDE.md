@@ -116,7 +116,7 @@ beforeEach(() => {
 
 | Element | Color | Size |
 |---------|-------|------|
-| Command | #4A90D9 (blue) | 200×120px |
+| Command | #3DADFF fill, #007AD2 stroke (blue) | 176×80px |
 | Event (internal) | #F5A623 (orange) | 200×120px |
 | Event (external) | #9B59B6 (purple) | 200×120px |
 | Query | #7ED321 (green) | 200×120px |
@@ -133,3 +133,7 @@ beforeEach(() => {
 
 - **UI Console**: Figma → Plugins → Development → Open console
 - **Main Console**: `console.log` in `main.ts` appears in Figma's plugin console
+
+## Claude Code Rules
+
+When creating or modifying React components in `src/features/*/` that have visual UI elements, use the `frontend-design` skill to ensure high-quality, polished design.

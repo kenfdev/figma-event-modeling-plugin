@@ -36,33 +36,57 @@ describe('handleCreateCommand', () => {
     expect(mockShape.shapeType).toBe('ROUNDED_RECTANGLE')
   })
 
-  it('resizes the element to 200x120', async () => {
+  it('resizes the element to 176x80', async () => {
     const mockShape = figmaMock.createShapeWithText()
     figmaMock.createShapeWithText.mockReturnValue(mockShape)
 
     await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
 
-    expect(mockShape.resize).toHaveBeenCalledWith(200, 120)
+    expect(mockShape.resize).toHaveBeenCalledWith(176, 80)
   })
 
-  it('sets fill color to blue (#4A90D9)', async () => {
+  it('sets corner radius to 6', async () => {
+    const mockShape = figmaMock.createShapeWithText()
+    figmaMock.createShapeWithText.mockReturnValue(mockShape)
+
+    await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockShape.cornerRadius).toBe(6)
+  })
+
+  it('sets fill color to #3DADFF', async () => {
     const mockShape = figmaMock.createShapeWithText()
     figmaMock.createShapeWithText.mockReturnValue(mockShape)
 
     await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(mockShape.fills).toEqual([
-      { type: 'SOLID', color: { r: 74 / 255, g: 144 / 255, b: 217 / 255 } },
+      { type: 'SOLID', color: { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 } },
     ])
   })
 
-  it('sets the text label to "Command"', async () => {
+  it('sets stroke color to #007AD2', async () => {
+    const mockShape = figmaMock.createShapeWithText()
+    figmaMock.createShapeWithText.mockReturnValue(mockShape)
+
+    await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockShape.strokes).toEqual([
+      { type: 'SOLID', color: { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 } },
+    ])
+    expect(mockShape.strokeWeight).toBe(2)
+  })
+
+  it('sets the text label to "Command" with white color', async () => {
     const mockShape = figmaMock.createShapeWithText()
     figmaMock.createShapeWithText.mockReturnValue(mockShape)
 
     await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(mockShape.text.characters).toBe('Command')
+    expect(mockShape.text.fills).toEqual([
+      { type: 'SOLID', color: { r: 1, g: 1, b: 1 } },
+    ])
   })
 
   it('stores type "command" in plugin data', async () => {
@@ -81,9 +105,9 @@ describe('handleCreateCommand', () => {
 
     await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
 
-    // Centered: x = 500 - 200/2 = 400, y = 300 - 120/2 = 240
-    expect(mockShape.x).toBe(400)
-    expect(mockShape.y).toBe(240)
+    // Centered: x = 500 - 176/2 = 412, y = 300 - 80/2 = 260
+    expect(mockShape.x).toBe(412)
+    expect(mockShape.y).toBe(260)
   })
 
   it('appends the element to the current page', async () => {
