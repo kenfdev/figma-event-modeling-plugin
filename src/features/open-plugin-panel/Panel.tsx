@@ -82,6 +82,7 @@ export function Panel({ onCreateElement }: PanelProps) {
     // Send type-specific message to plugin sandbox
     const messageTypeMap: Partial<Record<ElementType | StructuralType | SectionType, string>> = {
       command: 'create-command',
+      event: 'create-event',
     }
 
     const messageType = messageTypeMap[type]
@@ -91,7 +92,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   }
 
   // Types with implemented handlers
-  const enabledTypes = new Set<string>(['command'])
+  const enabledTypes = new Set<string>(['command', 'event'])
   const isFigmaDesign = editorType === 'figma'
 
   return (
