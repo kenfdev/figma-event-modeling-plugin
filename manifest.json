@@ -1,0 +1,12 @@
+{
+  "name": "Event Modeling Plugin",
+  "id": "1234567890123456789",
+  "api": "1.0.0",
+  "main": "src/main.ts",
+  "ui": "src/ui/main.tsx",
+  "editorType": ["figjam"],
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "devAllowedDomains": ["*"]
+  }
+}
