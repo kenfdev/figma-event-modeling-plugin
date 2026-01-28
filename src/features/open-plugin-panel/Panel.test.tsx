@@ -42,26 +42,43 @@ describe('Panel', () => {
     expect(link).toHaveAttribute('target', '_blank')
   })
 
-  it('calls onCreateElement when button is clicked', async () => {
-    const user = userEvent.setup()
-    const onCreateElement = vi.fn()
-
-    // Re-render with enabled buttons by providing onCreateElement
-    // Note: buttons are disabled by default until element creation is implemented
-    render(<Panel onCreateElement={onCreateElement} />)
-
-    // Buttons are disabled by default, so we can't click them
-    // This test documents the expected behavior when enabled
+  it('renders Command button as enabled', () => {
+    render(<Panel />)
     const commandButton = screen.getByRole('button', { name: 'Command' })
-    expect(commandButton).toBeDisabled()
+    expect(commandButton).not.toBeDisabled()
   })
 
-  it('sends postMessage when no onCreateElement provided and button clicked', async () => {
-    // This test verifies the default messaging behavior
-    // Currently buttons are disabled, so this is a placeholder for when enabled
+  it('sends create-command message to sandbox when Command button is clicked', async () => {
+    const user = userEvent.setup()
     render(<Panel />)
 
     const commandButton = screen.getByRole('button', { name: 'Command' })
-    expect(commandButton).toBeDisabled()
+    await user.click(commandButton)
+
+    expect(parent.postMessage).toHaveBeenCalledWith(
+      { pluginMessage: { type: 'create-command' } },
+      '*'
+    )
+  })
+
+  it('calls onCreateElement with "command" when Command button is clicked and callback provided', async () => {
+    const user = userEvent.setup()
+    const onCreateElement = vi.fn()
+    render(<Panel onCreateElement={onCreateElement} />)
+
+    const commandButton = screen.getByRole('button', { name: 'Command' })
+    await user.click(commandButton)
+
+    expect(onCreateElement).toHaveBeenCalledWith('command')
+  })
+
+  it('keeps other element buttons disabled', () => {
+    render(<Panel />)
+    // Other buttons should still be disabled until their handlers are implemented
+    expect(screen.getByRole('button', { name: 'Event' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Query' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Actor' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Lane' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Chapter' })).toBeDisabled()
   })
 })

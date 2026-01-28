@@ -32,10 +32,10 @@ interface ButtonGroupProps {
   title: string
   buttons: ButtonConfig[]
   onCreateElement: (type: ElementType | StructuralType | SectionType) => void
-  disabled?: boolean
+  enabledTypes: Set<string>
 }
 
-function ButtonGroup({ title, buttons, onCreateElement, disabled = false }: ButtonGroupProps) {
+function ButtonGroup({ title, buttons, onCreateElement, enabledTypes }: ButtonGroupProps) {
   return (
     <div className="section">
       <h2>{title}</h2>
@@ -45,7 +45,7 @@ function ButtonGroup({ title, buttons, onCreateElement, disabled = false }: Butt
             key={btn.type}
             className={`button ${btn.className}`}
             onClick={() => onCreateElement(btn.type)}
-            disabled={disabled}
+            disabled={!enabledTypes.has(btn.type)}
           >
             {btn.label}
           </button>
@@ -77,17 +77,21 @@ export function Panel({ onCreateElement }: PanelProps) {
   const handleCreateElement = (type: ElementType | StructuralType | SectionType) => {
     if (onCreateElement) {
       onCreateElement(type)
-    } else {
-      // Default: send message to plugin sandbox
-      parent.postMessage(
-        { pluginMessage: { type: 'create-element', payload: { elementType: type } } },
-        '*'
-      )
+    }
+
+    // Send type-specific message to plugin sandbox
+    const messageTypeMap: Partial<Record<ElementType | StructuralType | SectionType, string>> = {
+      command: 'create-command',
+    }
+
+    const messageType = messageTypeMap[type]
+    if (messageType) {
+      parent.postMessage({ pluginMessage: { type: messageType } }, '*')
     }
   }
 
-  // TODO: Enable buttons when element creation is implemented
-  const disabled = true
+  // Types with implemented handlers
+  const enabledTypes = new Set<string>(['command'])
   const isFigmaDesign = editorType === 'figma'
 
   return (
@@ -108,21 +112,21 @@ export function Panel({ onCreateElement }: PanelProps) {
             title="Core Shapes"
             buttons={coreShapes}
             onCreateElement={handleCreateElement}
-            disabled={disabled}
+            enabledTypes={enabledTypes}
           />
 
           <ButtonGroup
             title="Structural"
             buttons={structural}
             onCreateElement={handleCreateElement}
-            disabled={disabled}
+            enabledTypes={enabledTypes}
           />
 
           <ButtonGroup
             title="Sections"
             buttons={sections}
             onCreateElement={handleCreateElement}
-            disabled={disabled}
+            enabledTypes={enabledTypes}
           />
 
           <div className="help-link">
