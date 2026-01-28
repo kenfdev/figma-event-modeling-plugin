@@ -19,6 +19,19 @@ describe('ElementEditor', () => {
     ...overrides,
   })
 
+  describe('when multiple elements are selected', () => {
+    it('shows "Multiple elements selected" message', () => {
+      render(<ElementEditor selectedElement={null} multipleSelected={true} />)
+      expect(screen.getByText(/multiple elements selected/i)).toBeInTheDocument()
+    })
+
+    it('does not show editable fields', () => {
+      render(<ElementEditor selectedElement={null} multipleSelected={true} />)
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    })
+  })
+
   describe('when no element is selected', () => {
     it('renders nothing when selectedElement is null', () => {
       const { container } = render(<ElementEditor selectedElement={null} />)

@@ -8,6 +8,7 @@ export interface SelectedElement {
 
 export interface ElementEditorProps {
   selectedElement: SelectedElement | null
+  multipleSelected?: boolean
 }
 
 const typeLabels: Record<ElementType, string> = {
@@ -17,7 +18,15 @@ const typeLabels: Record<ElementType, string> = {
   actor: 'Actor',
 }
 
-export function ElementEditor({ selectedElement }: ElementEditorProps) {
+export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
+  if (multipleSelected) {
+    return (
+      <section className="element-editor" aria-label="Element Editor">
+        <p className="multiple-selected-message">Multiple elements selected</p>
+      </section>
+    )
+  }
+
   if (!selectedElement) {
     return null
   }

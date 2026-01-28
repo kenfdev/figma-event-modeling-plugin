@@ -63,6 +63,7 @@ export interface PanelProps {
 export function Panel({ onCreateElement }: PanelProps) {
   const [editorType, setEditorType] = useState<EditorType>(null)
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
+  const [multipleSelected, setMultipleSelected] = useState(false)
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -71,7 +72,13 @@ export function Panel({ onCreateElement }: PanelProps) {
         setEditorType(message.payload?.editorType)
       }
       if (message?.type === 'selection-changed') {
-        setSelectedElement(message.payload)
+        if (message.payload?.multiple) {
+          setMultipleSelected(true)
+          setSelectedElement(null)
+        } else {
+          setMultipleSelected(false)
+          setSelectedElement(message.payload)
+        }
       }
     }
 
@@ -137,7 +144,7 @@ export function Panel({ onCreateElement }: PanelProps) {
             enabledTypes={enabledTypes}
           />
 
-          <ElementEditor selectedElement={selectedElement} />
+          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
 
           <div className="help-link">
             <a

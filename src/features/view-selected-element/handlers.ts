@@ -20,6 +20,14 @@ export function handleSelectionChange({
     return
   }
 
+  if (selection.length > 1) {
+    figma.ui.postMessage({
+      type: 'selection-changed',
+      payload: { multiple: true },
+    })
+    return
+  }
+
   const node = selection[0]
   const elementType = node.getPluginData('type')
 

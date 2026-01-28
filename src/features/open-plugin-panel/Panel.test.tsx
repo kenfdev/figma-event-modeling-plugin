@@ -162,6 +162,65 @@ describe('Panel', () => {
     expect(onCreateElement).toHaveBeenCalledWith('actor')
   })
 
+  it('shows multiple selection message when multiple elements are selected', async () => {
+    render(<Panel />)
+
+    // Simulate receiving a multiple-selection message from the sandbox
+    const messageEvent = new MessageEvent('message', {
+      data: {
+        pluginMessage: {
+          type: 'selection-changed',
+          payload: { multiple: true },
+        },
+      },
+    })
+    window.dispatchEvent(messageEvent)
+
+    expect(await screen.findByText(/multiple elements selected/i)).toBeInTheDocument()
+  })
+
+  it('keeps creation buttons visible when multiple elements are selected', async () => {
+    render(<Panel />)
+
+    const messageEvent = new MessageEvent('message', {
+      data: {
+        pluginMessage: {
+          type: 'selection-changed',
+          payload: { multiple: true },
+        },
+      },
+    })
+    window.dispatchEvent(messageEvent)
+
+    // Wait for state update
+    await screen.findByText(/multiple elements selected/i)
+
+    // Creation buttons should still be present and functional
+    expect(screen.getByRole('button', { name: 'Command' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Event' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Query' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Actor' })).toBeInTheDocument()
+  })
+
+  it('does not show element editor fields when multiple elements are selected', async () => {
+    render(<Panel />)
+
+    const messageEvent = new MessageEvent('message', {
+      data: {
+        pluginMessage: {
+          type: 'selection-changed',
+          payload: { multiple: true },
+        },
+      },
+    })
+    window.dispatchEvent(messageEvent)
+
+    await screen.findByText(/multiple elements selected/i)
+
+    // No editable fields should be shown
+    expect(screen.queryByRole('textbox', { name: /element name/i })).not.toBeInTheDocument()
+  })
+
   it('keeps other element buttons disabled', () => {
     render(<Panel />)
     // Other buttons should still be disabled until their handlers are implemented

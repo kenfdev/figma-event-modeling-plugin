@@ -131,7 +131,7 @@ describe('handleSelectionChange', () => {
     })
   })
 
-  it('uses first node when multiple nodes are selected', () => {
+  it('sends multiple-selected payload when multiple plugin elements are selected', () => {
     const mockNode1 = {
       id: 'node-1',
       name: 'First Command',
@@ -154,11 +154,31 @@ describe('handleSelectionChange', () => {
 
     expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
       type: 'selection-changed',
-      payload: {
-        id: 'node-1',
-        type: 'command',
-        name: 'First Command',
-      },
+      payload: { multiple: true },
+    })
+  })
+
+  it('sends single element data when only one of multiple selected nodes is a plugin element', () => {
+    const pluginNode = {
+      id: 'node-1',
+      name: 'My Command',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        return ''
+      }),
+    }
+    const nonPluginNode = {
+      id: 'node-2',
+      name: 'Plain Shape',
+      getPluginData: vi.fn(() => ''),
+    }
+    figmaMock.currentPage.selection = [pluginNode, nonPluginNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: { multiple: true },
     })
   })
 })
