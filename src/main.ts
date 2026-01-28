@@ -5,8 +5,10 @@ import {
   registerHandler,
 } from './features/open-plugin-panel/sandbox'
 import { handleCreateCommand } from './features/create-command/sandbox'
+import { handleCreateEvent } from './features/create-event/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
+registerHandler('create-event', handleCreateEvent)
 
 export default function main() {
   initializePlugin({ figma })
