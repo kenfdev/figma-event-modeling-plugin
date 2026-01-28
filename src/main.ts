@@ -8,6 +8,7 @@ import { handleCreateCommand } from './features/create-command/sandbox'
 import { handleCreateEvent } from './features/create-event/sandbox'
 import { handleCreateQuery } from './features/create-query/sandbox'
 import { handleCreateActor } from './features/create-actor/sandbox'
+import { registerSelectionChangeListener } from './features/view-selected-element/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -16,4 +17,5 @@ registerHandler('create-actor', handleCreateActor)
 
 export default function main() {
   initializePlugin({ figma })
+  registerSelectionChangeListener({ figma })
 }

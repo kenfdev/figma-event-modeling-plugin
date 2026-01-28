@@ -4,6 +4,7 @@ export interface FigmaMock {
   editorType: 'figjam' | 'figma'
   showUI: ReturnType<typeof vi.fn>
   closePlugin: ReturnType<typeof vi.fn>
+  on: ReturnType<typeof vi.fn>
   ui: {
     postMessage: ReturnType<typeof vi.fn>
     onmessage: ((msg: unknown) => void) | null
@@ -11,6 +12,7 @@ export interface FigmaMock {
   currentPage: {
     appendChild: ReturnType<typeof vi.fn>
     children: unknown[]
+    selection: unknown[]
   }
   viewport: {
     center: { x: number; y: number }
@@ -29,6 +31,7 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
     editorType: 'figjam',
     showUI: vi.fn(),
     closePlugin: vi.fn(),
+    on: vi.fn(),
     ui: {
       postMessage: vi.fn(),
       onmessage: null,
@@ -36,6 +39,7 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
     currentPage: {
       appendChild: vi.fn(),
       children: [],
+      selection: [],
     },
     viewport: {
       center: { x: 0, y: 0 },
