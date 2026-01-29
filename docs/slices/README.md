@@ -20,7 +20,7 @@ This directory contains feature slices for the FigJam Event Modeling Plugin. Eac
 | 3 | F3.3 | Command | UpdateNotes | Edit notes for Command/Event/Query | Done |
 | 3 | F3.4 | Command | ToggleEventType | Toggle Event internal/external | |
 | 3 | F3.5 | Command | ToggleFieldsVisibility | Show/hide custom fields on element | Done |
-| 4 | F4.1 | Command | CreateLane | Create gray swimlane | |
+| 4 | F4.1 | Command | CreateLane | Create gray swimlane | Done |
 | 4 | F4.2 | Command | CreateChapter | Create cyan FigJam connector | |
 | 4 | F4.3 | Command | CreateProcessor | Create gear icon with label | |
 | 4 | F4.4 | Command | CreateScreen | Create image placeholder | |
