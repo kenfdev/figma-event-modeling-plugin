@@ -2,3 +2,4 @@
 // Sandbox exports (message handlers) - import in src/main.ts only
 
 export { handleCreateScreen } from './handlers'
+export { handleImagePasteIntoScreen } from './paste-handler'

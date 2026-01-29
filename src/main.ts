@@ -17,7 +17,10 @@ import { handleToggleFieldsVisibility } from './features/toggle-fields-visibilit
 import { handleCreateLane } from './features/create-lane/sandbox'
 import { handleCreateChapter } from './features/create-chapter/sandbox'
 import { handleCreateProcessor } from './features/create-processor/sandbox'
-import { handleCreateScreen } from './features/create-screen/sandbox'
+import {
+  handleCreateScreen,
+  handleImagePasteIntoScreen,
+} from './features/create-screen/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -36,4 +39,7 @@ registerHandler('create-screen', handleCreateScreen)
 export default function main() {
   initializePlugin({ figma })
   registerSelectionChangeListener({ figma })
+  figma.on('documentchange', (event) => {
+    handleImagePasteIntoScreen(event, { figma })
+  })
 }
