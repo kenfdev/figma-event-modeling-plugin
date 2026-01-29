@@ -45,13 +45,13 @@ describe('handleCreateActor', () => {
     expect(mockShape.resize).toHaveBeenCalledWith(176, 80)
   })
 
-  it('sets corner radius to 6', async () => {
+  it('sets corner radius to 0', async () => {
     const mockShape = figmaMock.createShapeWithText()
     figmaMock.createShapeWithText.mockReturnValue(mockShape)
 
     await handleCreateActor(undefined, { figma: figmaMock as unknown as typeof figma })
 
-    expect(mockShape.cornerRadius).toBe(6)
+    expect(mockShape.cornerRadius).toBe(0)
   })
 
   it('sets fill color to #50E3C2 (teal)', async () => {
@@ -96,6 +96,15 @@ describe('handleCreateActor', () => {
     await handleCreateActor(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(mockShape.setPluginData).toHaveBeenCalledWith('type', 'actor')
+  })
+
+  it('stores label "Actor" in plugin data', async () => {
+    const mockShape = figmaMock.createShapeWithText()
+    figmaMock.createShapeWithText.mockReturnValue(mockShape)
+
+    await handleCreateActor(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockShape.setPluginData).toHaveBeenCalledWith('label', 'Actor')
   })
 
   it('positions element at viewport center', async () => {

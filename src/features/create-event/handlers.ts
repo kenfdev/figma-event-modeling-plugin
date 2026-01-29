@@ -4,7 +4,7 @@ const EVENT_WIDTH = 176
 const EVENT_HEIGHT = 80
 const EVENT_FILL_COLOR = { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 }
 const EVENT_STROKE_COLOR = { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 }
-const EVENT_CORNER_RADIUS = 6
+const EVENT_CORNER_RADIUS = 0
 const EVENT_TEXT_COLOR = { r: 0, g: 0, b: 0 }
 
 export async function handleCreateEvent(
@@ -23,6 +23,7 @@ export async function handleCreateEvent(
   shape.text.characters = 'Event'
   shape.text.fills = [{ type: 'SOLID', color: EVENT_TEXT_COLOR }]
   shape.setPluginData('type', 'event')
+  shape.setPluginData('label', 'Event')
   shape.setPluginData('external', 'false')
 
   const center = figma.viewport.center

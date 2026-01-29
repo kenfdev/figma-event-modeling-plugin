@@ -36,6 +36,15 @@ describe('handleCreateEvent', () => {
     expect(mockShape.shapeType).toBe('ROUNDED_RECTANGLE')
   })
 
+  it('sets corner radius to 0', async () => {
+    const mockShape = figmaMock.createShapeWithText()
+    figmaMock.createShapeWithText.mockReturnValue(mockShape)
+
+    await handleCreateEvent(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockShape.cornerRadius).toBe(0)
+  })
+
   it('resizes the element to 176x80', async () => {
     const mockShape = figmaMock.createShapeWithText()
     figmaMock.createShapeWithText.mockReturnValue(mockShape)
@@ -87,6 +96,15 @@ describe('handleCreateEvent', () => {
     await handleCreateEvent(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(mockShape.setPluginData).toHaveBeenCalledWith('type', 'event')
+  })
+
+  it('stores label "Event" in plugin data', async () => {
+    const mockShape = figmaMock.createShapeWithText()
+    figmaMock.createShapeWithText.mockReturnValue(mockShape)
+
+    await handleCreateEvent(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockShape.setPluginData).toHaveBeenCalledWith('label', 'Event')
   })
 
   it('stores external "false" in plugin data (internal by default)', async () => {

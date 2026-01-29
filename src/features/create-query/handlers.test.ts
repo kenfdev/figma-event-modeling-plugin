@@ -45,13 +45,13 @@ describe('handleCreateQuery', () => {
     expect(mockShape.resize).toHaveBeenCalledWith(176, 80)
   })
 
-  it('sets corner radius to 6', async () => {
+  it('sets corner radius to 0', async () => {
     const mockShape = figmaMock.createShapeWithText()
     figmaMock.createShapeWithText.mockReturnValue(mockShape)
 
     await handleCreateQuery(undefined, { figma: figmaMock as unknown as typeof figma })
 
-    expect(mockShape.cornerRadius).toBe(6)
+    expect(mockShape.cornerRadius).toBe(0)
   })
 
   it('sets fill color to #7ED321 (green)', async () => {
@@ -96,6 +96,15 @@ describe('handleCreateQuery', () => {
     await handleCreateQuery(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(mockShape.setPluginData).toHaveBeenCalledWith('type', 'query')
+  })
+
+  it('stores label "Query" in plugin data', async () => {
+    const mockShape = figmaMock.createShapeWithText()
+    figmaMock.createShapeWithText.mockReturnValue(mockShape)
+
+    await handleCreateQuery(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockShape.setPluginData).toHaveBeenCalledWith('label', 'Query')
   })
 
   it('positions element at viewport center', async () => {

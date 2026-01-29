@@ -4,7 +4,7 @@ const COMMAND_WIDTH = 176
 const COMMAND_HEIGHT = 80
 const COMMAND_FILL_COLOR = { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 }
 const COMMAND_STROKE_COLOR = { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 }
-const COMMAND_CORNER_RADIUS = 6
+const COMMAND_CORNER_RADIUS = 0
 const COMMAND_TEXT_COLOR = { r: 1, g: 1, b: 1 }
 
 export async function handleCreateCommand(
@@ -23,6 +23,7 @@ export async function handleCreateCommand(
   shape.text.characters = 'Command'
   shape.text.fills = [{ type: 'SOLID', color: COMMAND_TEXT_COLOR }]
   shape.setPluginData('type', 'command')
+  shape.setPluginData('label', 'Command')
 
   const center = figma.viewport.center
   shape.x = center.x - COMMAND_WIDTH / 2
