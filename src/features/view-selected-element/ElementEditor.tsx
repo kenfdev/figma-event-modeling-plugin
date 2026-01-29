@@ -7,6 +7,7 @@ export interface SelectedElement {
   name: string
   customFields?: string
   notes?: string
+  external?: boolean
 }
 
 export interface ElementEditorProps {
@@ -27,14 +28,16 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
   const [name, setName] = useState('')
   const [customFields, setCustomFields] = useState('')
   const [notes, setNotes] = useState('')
+  const [external, setExternal] = useState(false)
 
   useEffect(() => {
     if (selectedElement) {
       setName(selectedElement.name)
       setCustomFields(selectedElement.customFields ?? '')
       setNotes(selectedElement.notes ?? '')
+      setExternal(selectedElement.external ?? false)
     }
-  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes])
+  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external])
 
   if (multipleSelected) {
     return (
@@ -92,6 +95,20 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     )
   }
 
+  const handleExternalToggle = () => {
+    const newExternal = !external
+    setExternal(newExternal)
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'toggle-event-type',
+          payload: { id: selectedElement.id, external: newExternal },
+        },
+      },
+      '*'
+    )
+  }
+
   const showCustomFields = typesWithCustomFields.includes(selectedElement.type)
 
   return (
@@ -106,6 +123,19 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             {typeLabel}
           </span>
         </div>
+        {selectedElement.type === 'event' && (
+          <div className="element-editor-row">
+            <label className="element-editor-label">
+              <input
+                type="checkbox"
+                checked={external}
+                onChange={handleExternalToggle}
+                aria-label="External"
+              />
+              {' '}External
+            </label>
+          </div>
+        )}
         <div className="element-editor-row">
           <label htmlFor="element-name" className="element-editor-label">
             Name
