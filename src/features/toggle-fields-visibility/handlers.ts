@@ -25,16 +25,33 @@ export async function handleToggleFieldsVisibility(
   node.setPluginData('fieldsVisible', newValue)
 
   if ('resize' in node) {
-    const resizableNode = node as SceneNode & { resize: (w: number, h: number) => void }
+    const resizableNode = node as SceneNode & {
+      resize: (w: number, h: number) => void
+      text: { characters: string }
+    }
+    const label = node.getPluginData('label')
+    const customFields = node.getPluginData('customFields')
+    const lines = customFields ? customFields.split('\n').filter((l) => l.length > 0) : []
+
+    const hasText = 'text' in resizableNode && resizableNode.text != null
+
+    if (hasText) {
+      await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
+    }
 
     if (newValue === 'true') {
-      const customFields = node.getPluginData('customFields')
-      const lines = customFields ? customFields.split('\n').filter((l) => l.length > 0) : []
       const expandedHeight =
         lines.length > 0 ? BASE_HEIGHT + lines.length * LINE_HEIGHT : BASE_HEIGHT
       resizableNode.resize(BASE_WIDTH, expandedHeight)
+      if (hasText) {
+        resizableNode.text.characters =
+          lines.length > 0 ? label + '\n' + customFields : label
+      }
     } else {
       resizableNode.resize(BASE_WIDTH, BASE_HEIGHT)
+      if (hasText) {
+        resizableNode.text.characters = label
+      }
     }
   }
 }
