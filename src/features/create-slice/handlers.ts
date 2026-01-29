@@ -8,10 +8,11 @@ export async function handleCreateSlice(
 
   section.name = 'Slice'
   section.setPluginData('type', 'slice')
+  section.setPluginData('label', 'Slice')
 
   const center = figma.viewport.center
-  section.x = center.x
-  section.y = center.y
+  section.x = center.x - section.width / 2
+  section.y = center.y - section.height / 2
 
   figma.currentPage.appendChild(section)
 }

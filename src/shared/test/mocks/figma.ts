@@ -21,6 +21,10 @@ export interface FigmaMock {
   createShapeWithText: ReturnType<typeof vi.fn>
   createSection: ReturnType<typeof vi.fn>
   createConnector: ReturnType<typeof vi.fn>
+  createRectangle: ReturnType<typeof vi.fn>
+  createNodeFromSvg: ReturnType<typeof vi.fn>
+  createText: ReturnType<typeof vi.fn>
+  group: ReturnType<typeof vi.fn>
   loadFontAsync: ReturnType<typeof vi.fn>
   getNodeById: ReturnType<typeof vi.fn>
   notify: ReturnType<typeof vi.fn>
@@ -64,6 +68,8 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
       name: '',
       x: 0,
       y: 0,
+      width: 280,
+      height: 40,
       resizeWithoutConstraints: vi.fn(),
       fills: [],
       setPluginData: vi.fn(),
@@ -73,6 +79,53 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
       id: 'mock-connector-id',
       connectorStart: { endpointNodeId: '', magnet: 'AUTO' },
       connectorEnd: { endpointNodeId: '', magnet: 'AUTO' },
+      text: { characters: '', fills: [] },
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn(() => ''),
+    })),
+    createRectangle: vi.fn(() => ({
+      id: 'mock-rect-id',
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      fills: [],
+      cornerRadius: 0,
+      resize: vi.fn(),
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn(() => ''),
+    })),
+    createNodeFromSvg: vi.fn(() => ({
+      id: 'mock-svg-id',
+      x: 0,
+      y: 0,
+      width: 48,
+      height: 48,
+      resize: vi.fn(),
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn(() => ''),
+    })),
+    createText: vi.fn(() => ({
+      id: 'mock-text-id',
+      characters: '',
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      fontSize: 12,
+      fills: [],
+      resize: vi.fn(),
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn(() => ''),
+    })),
+    group: vi.fn(() => ({
+      id: 'mock-group-id',
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn(() => ''),
     })),
     loadFontAsync: vi.fn(() => Promise.resolve()),
     getNodeById: vi.fn(),

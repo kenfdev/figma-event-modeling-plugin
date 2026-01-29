@@ -33,15 +33,24 @@ describe('handleCreateSlice', () => {
     expect(mockSection.setPluginData).toHaveBeenCalledWith('type', 'slice')
   })
 
-  it('positions element at viewport center', async () => {
+  it('stores label "Slice" in plugin data', async () => {
+    const mockSection = figmaMock.createSection()
+    figmaMock.createSection.mockReturnValue(mockSection)
+
+    await handleCreateSlice(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockSection.setPluginData).toHaveBeenCalledWith('label', 'Slice')
+  })
+
+  it('positions element centered at viewport center', async () => {
     figmaMock.viewport.center = { x: 500, y: 300 }
     const mockSection = figmaMock.createSection()
     figmaMock.createSection.mockReturnValue(mockSection)
 
     await handleCreateSlice(undefined, { figma: figmaMock as unknown as typeof figma })
 
-    expect(mockSection.x).toBeDefined()
-    expect(mockSection.y).toBeDefined()
+    expect(mockSection.x).toBe(500 - mockSection.width / 2)
+    expect(mockSection.y).toBe(300 - mockSection.height / 2)
   })
 
   it('appends the section to the current page', async () => {
