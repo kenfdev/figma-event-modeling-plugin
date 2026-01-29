@@ -22,6 +22,7 @@ import {
   handleImagePasteIntoScreen,
 } from './features/create-screen/sandbox'
 import { handleCreateSlice } from './features/create-slice/sandbox'
+import { handleCreateGWT } from './features/create-gwt/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -37,6 +38,7 @@ registerHandler('create-chapter', handleCreateChapter)
 registerHandler('create-processor', handleCreateProcessor)
 registerHandler('create-screen', handleCreateScreen)
 registerHandler('create-slice', handleCreateSlice)
+registerHandler('create-gwt', handleCreateGWT)
 
 export default function main() {
   initializePlugin({ figma })
