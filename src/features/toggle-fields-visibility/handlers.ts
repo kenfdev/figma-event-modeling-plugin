@@ -22,8 +22,6 @@ export async function handleToggleFieldsVisibility(
   const currentValue = node.getPluginData('fieldsVisible')
   const newValue = currentValue === 'true' ? 'false' : 'true'
 
-  node.setPluginData('fieldsVisible', newValue)
-
   if ('resize' in node) {
     const resizableNode = node as SceneNode & {
       resize: (w: number, h: number) => void
@@ -45,7 +43,7 @@ export async function handleToggleFieldsVisibility(
       resizableNode.resize(BASE_WIDTH, expandedHeight)
       if (hasText) {
         resizableNode.text.characters =
-          lines.length > 0 ? label + '\n' + customFields : label
+          lines.length > 0 ? label + '\n' + lines.join('\n') : label
       }
     } else {
       resizableNode.resize(BASE_WIDTH, BASE_HEIGHT)
@@ -54,4 +52,6 @@ export async function handleToggleFieldsVisibility(
       }
     }
   }
+
+  node.setPluginData('fieldsVisible', newValue)
 }
