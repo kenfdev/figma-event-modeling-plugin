@@ -60,6 +60,8 @@ describe('handleSelectionChange', () => {
         name: 'My Command',
         customFields: '',
         notes: '',
+        external: false,
+        fieldsVisible: false,
       },
     })
   })
@@ -85,6 +87,8 @@ describe('handleSelectionChange', () => {
         name: 'My Event',
         customFields: '',
         notes: '',
+        external: false,
+        fieldsVisible: false,
       },
     })
   })
@@ -110,6 +114,8 @@ describe('handleSelectionChange', () => {
         name: 'My Query',
         customFields: '',
         notes: '',
+        external: false,
+        fieldsVisible: false,
       },
     })
   })
@@ -135,6 +141,8 @@ describe('handleSelectionChange', () => {
         name: 'My Actor',
         customFields: '',
         notes: '',
+        external: false,
+        fieldsVisible: false,
       },
     })
   })
@@ -188,6 +196,8 @@ describe('handleSelectionChange', () => {
         name: 'My Command',
         customFields: 'field1: value1\nfield2: value2',
         notes: '',
+        external: false,
+        fieldsVisible: false,
       },
     })
   })
@@ -213,11 +223,13 @@ describe('handleSelectionChange', () => {
         name: 'My Command',
         customFields: '',
         notes: '',
+        external: false,
+        fieldsVisible: false,
       },
     })
   })
 
-  it('sends single element data when only one of multiple selected nodes is a plugin element', () => {
+  it('sends multiple-selected payload when only one of multiple selected nodes is a plugin element', () => {
     const pluginNode = {
       id: 'node-1',
       name: 'My Command',
@@ -239,6 +251,142 @@ describe('handleSelectionChange', () => {
       type: 'selection-changed',
       payload: { multiple: true },
     })
+  })
+
+  it('includes external=true when event element has external plugin data set to "true"', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'OrderPlaced',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'event'
+        if (key === 'external') return 'true'
+        if (key === 'customFields') return ''
+        if (key === 'notes') return ''
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          id: 'node-1',
+          type: 'event',
+          external: true,
+        }),
+      })
+    )
+  })
+
+  it('includes external=false when event element has external plugin data set to "false"', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'OrderPlaced',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'event'
+        if (key === 'external') return 'false'
+        if (key === 'customFields') return ''
+        if (key === 'notes') return ''
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          id: 'node-1',
+          type: 'event',
+          external: false,
+        }),
+      })
+    )
+  })
+
+  it('includes external=false when event element has no external plugin data', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'OrderPlaced',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'event'
+        if (key === 'customFields') return ''
+        if (key === 'notes') return ''
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          id: 'node-1',
+          type: 'event',
+          external: false,
+        }),
+      })
+    )
+  })
+
+  it('includes fieldsVisible=true when plugin data is "true"', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'CreateOrder',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        if (key === 'fieldsVisible') return 'true'
+        if (key === 'customFields') return ''
+        if (key === 'notes') return ''
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          id: 'node-1',
+          fieldsVisible: true,
+        }),
+      })
+    )
+  })
+
+  it('includes fieldsVisible=false when plugin data is unset (default)', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'CreateOrder',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        if (key === 'customFields') return ''
+        if (key === 'notes') return ''
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          id: 'node-1',
+          fieldsVisible: false,
+        }),
+      })
+    )
   })
 })
 
