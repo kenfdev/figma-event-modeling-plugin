@@ -17,6 +17,7 @@ import { handleToggleFieldsVisibility } from './features/toggle-fields-visibilit
 import { handleCreateLane } from './features/create-lane/sandbox'
 import { handleCreateChapter } from './features/create-chapter/sandbox'
 import { handleCreateProcessor } from './features/create-processor/sandbox'
+import { handleCreateScreen } from './features/create-screen/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -30,6 +31,7 @@ registerHandler('toggle-fields-visibility', handleToggleFieldsVisibility)
 registerHandler('create-lane', handleCreateLane)
 registerHandler('create-chapter', handleCreateChapter)
 registerHandler('create-processor', handleCreateProcessor)
+registerHandler('create-screen', handleCreateScreen)
 
 export default function main() {
   initializePlugin({ figma })
