@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { ElementEditor } from './ElementEditor'
 import type { ElementType } from '../../shared/types/plugin'
 
@@ -7,9 +8,20 @@ interface SelectedElement {
   id: string
   type: ElementType
   name: string
+  customFields?: string
+  notes?: string
+  external?: boolean
+  fieldsVisible?: boolean
 }
 
 describe('ElementEditor', () => {
+  const postMessageSpy = vi.fn()
+
+  beforeEach(() => {
+    postMessageSpy.mockClear()
+    vi.stubGlobal('parent', { postMessage: postMessageSpy })
+  })
+
   const createSelectedElement = (
     overrides: Partial<SelectedElement> = {}
   ): SelectedElement => ({
@@ -78,6 +90,298 @@ describe('ElementEditor', () => {
       const badge = screen.getByRole('status')
       expect(badge).toHaveTextContent('Actor')
       expect(badge).toHaveClass('type-actor')
+    })
+
+    it('allows editing the name field', async () => {
+      const user = userEvent.setup()
+      render(<ElementEditor selectedElement={createSelectedElement({ name: 'Original' })} />)
+      const input = screen.getByRole('textbox', { name: /element name/i })
+
+      await user.clear(input)
+      await user.type(input, 'Updated Name')
+
+      expect(input).toHaveValue('Updated Name')
+    })
+
+    it('sends update-element-name message to sandbox when name changes', async () => {
+      const user = userEvent.setup()
+      render(<ElementEditor selectedElement={createSelectedElement({ id: 'node-42', name: 'Original' })} />)
+      const input = screen.getByRole('textbox', { name: /element name/i })
+
+      await user.clear(input)
+      await user.type(input, 'New Name')
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'update-element-name',
+            payload: { id: 'node-42', name: 'New Name' },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  describe('custom fields textarea', () => {
+    it('shows custom fields textarea for command elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
+    })
+
+    it('shows custom fields textarea for event elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
+    })
+
+    it('shows custom fields textarea for query elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
+    })
+
+    it('does NOT show custom fields textarea for actor elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      expect(screen.queryByRole('textbox', { name: /custom fields/i })).not.toBeInTheDocument()
+    })
+
+    it('accepts free-form text input', async () => {
+      const user = userEvent.setup()
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      const textarea = screen.getByRole('textbox', { name: /custom fields/i })
+
+      await user.type(textarea, 'userId: string\namount: number')
+
+      expect(textarea).toHaveValue('userId: string\namount: number')
+    })
+
+    it('displays existing custom fields from selected element', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({
+            type: 'event',
+            customFields: 'orderId: string\nstatus: string',
+          })}
+        />
+      )
+      const textarea = screen.getByRole('textbox', { name: /custom fields/i })
+      expect(textarea).toHaveValue('orderId: string\nstatus: string')
+    })
+
+    it('sends update-custom-fields message to sandbox when custom fields change', async () => {
+      const user = userEvent.setup()
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-99', type: 'command' })}
+        />
+      )
+      const textarea = screen.getByRole('textbox', { name: /custom fields/i })
+
+      await user.type(textarea, 'name: string')
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'update-custom-fields',
+            payload: { id: 'node-99', customFields: 'name: string' },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  describe('notes textarea', () => {
+    it('shows notes textarea for command elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      expect(screen.getByRole('textbox', { name: /notes/i })).toBeInTheDocument()
+    })
+
+    it('shows notes textarea for event elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      expect(screen.getByRole('textbox', { name: /notes/i })).toBeInTheDocument()
+    })
+
+    it('shows notes textarea for query elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      expect(screen.getByRole('textbox', { name: /notes/i })).toBeInTheDocument()
+    })
+
+    it('does NOT show notes textarea for actor elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      expect(screen.queryByRole('textbox', { name: /^notes$/i })).not.toBeInTheDocument()
+    })
+
+    it('displays existing notes from selected element', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({
+            type: 'event',
+            notes: 'Important note about this event',
+          })}
+        />
+      )
+      const textarea = screen.getByRole('textbox', { name: /notes/i })
+      expect(textarea).toHaveValue('Important note about this event')
+    })
+
+    it('sends update-notes message to sandbox when notes change', async () => {
+      const user = userEvent.setup()
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-55', type: 'command' })}
+        />
+      )
+      const textarea = screen.getByRole('textbox', { name: /^notes$/i })
+
+      await user.type(textarea, 'A note')
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'update-notes',
+            payload: { id: 'node-55', notes: 'A note' },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  describe('event type toggle', () => {
+    it('shows toggle only for event elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      expect(screen.getByRole('checkbox', { name: /external/i })).toBeInTheDocument()
+    })
+
+    it('does NOT show toggle for command elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      expect(screen.queryByRole('checkbox', { name: /external/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT show toggle for query elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      expect(screen.queryByRole('checkbox', { name: /external/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT show toggle for actor elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      expect(screen.queryByRole('checkbox', { name: /external/i })).not.toBeInTheDocument()
+    })
+
+    it('toggle is unchecked when external is false (internal)', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'event', external: false })}
+        />
+      )
+      const toggle = screen.getByRole('checkbox', { name: /external/i })
+      expect(toggle).not.toBeChecked()
+    })
+
+    it('toggle is checked when external is true', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'event', external: true })}
+        />
+      )
+      const toggle = screen.getByRole('checkbox', { name: /external/i })
+      expect(toggle).toBeChecked()
+    })
+
+    it('sends toggle-event-type message to sandbox when toggled', async () => {
+      const user = userEvent.setup()
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-77', type: 'event', external: false })}
+        />
+      )
+      const toggle = screen.getByRole('checkbox', { name: /external/i })
+
+      await user.click(toggle)
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'toggle-event-type',
+            payload: { id: 'node-77', external: true },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  describe('fields visibility toggle', () => {
+    it('shows toggle for command elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
+    })
+
+    it('shows toggle for event elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
+    })
+
+    it('shows toggle for query elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
+    })
+
+    it('does NOT show toggle for actor elements', () => {
+      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      expect(screen.queryByRole('checkbox', { name: /show fields/i })).not.toBeInTheDocument()
+    })
+
+    it('toggle is unchecked when fieldsVisible is false', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'command', fieldsVisible: false })}
+        />
+      )
+      const toggle = screen.getByRole('checkbox', { name: /show fields/i })
+      expect(toggle).not.toBeChecked()
+    })
+
+    it('toggle is checked when fieldsVisible is true', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'command', fieldsVisible: true })}
+        />
+      )
+      const toggle = screen.getByRole('checkbox', { name: /show fields/i })
+      expect(toggle).toBeChecked()
+    })
+
+    it('toggle defaults to unchecked when fieldsVisible is undefined', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'command' })}
+        />
+      )
+      const toggle = screen.getByRole('checkbox', { name: /show fields/i })
+      expect(toggle).not.toBeChecked()
+    })
+
+    it('sends toggle-fields-visibility message to sandbox when toggled', async () => {
+      const user = userEvent.setup()
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-88', type: 'command', fieldsVisible: false })}
+        />
+      )
+      const toggle = screen.getByRole('checkbox', { name: /show fields/i })
+
+      await user.click(toggle)
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'toggle-fields-visibility',
+            payload: { id: 'node-88' },
+          },
+        },
+        '*'
+      )
     })
   })
 })

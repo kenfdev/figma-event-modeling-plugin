@@ -8,6 +8,7 @@ export interface SelectedElement {
   customFields?: string
   notes?: string
   external?: boolean
+  fieldsVisible?: boolean
 }
 
 export interface ElementEditorProps {
@@ -29,6 +30,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
   const [customFields, setCustomFields] = useState('')
   const [notes, setNotes] = useState('')
   const [external, setExternal] = useState(false)
+  const [fieldsVisible, setFieldsVisible] = useState(false)
 
   useEffect(() => {
     if (selectedElement) {
@@ -36,8 +38,9 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
       setCustomFields(selectedElement.customFields ?? '')
       setNotes(selectedElement.notes ?? '')
       setExternal(selectedElement.external ?? false)
+      setFieldsVisible(selectedElement.fieldsVisible ?? false)
     }
-  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external])
+  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external, selectedElement?.fieldsVisible])
 
   if (multipleSelected) {
     return (
@@ -103,6 +106,19 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
         pluginMessage: {
           type: 'toggle-event-type',
           payload: { id: selectedElement.id, external: newExternal },
+        },
+      },
+      '*'
+    )
+  }
+
+  const handleFieldsVisibilityToggle = () => {
+    setFieldsVisible(!fieldsVisible)
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'toggle-fields-visibility',
+          payload: { id: selectedElement.id },
         },
       },
       '*'
@@ -175,6 +191,19 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
               onChange={handleNotesChange}
               aria-label="Notes"
             />
+          </div>
+        )}
+        {showCustomFields && (
+          <div className="element-editor-row">
+            <label className="element-editor-label">
+              <input
+                type="checkbox"
+                checked={fieldsVisible}
+                onChange={handleFieldsVisibilityToggle}
+                aria-label="Show Fields"
+              />
+              {' '}Show Fields
+            </label>
           </div>
         )}
       </div>
