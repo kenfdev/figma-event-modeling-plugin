@@ -26,7 +26,7 @@ This directory contains feature slices for the FigJam Event Modeling Plugin. Eac
 | 4 | F4.4 | Command | CreateScreen | Create image placeholder | Done |
 | 5 | F5.1 | Command | CreateSlice | Create FigJam section | Done |
 | 5 | F5.2 | Command | CreateGWT | Create Given/When/Then section | Done |
-| 6 | F6.1 | Command | UpdateSliceIssueUrl | Edit Issue URL for Slice | |
+| 6 | F6.1 | Command | UpdateSliceIssueUrl | Edit Issue URL for Slice | Done |
 | 6 | F6.2 | Query | ViewSliceIssueMarker | Show link icon when URL exists | |
 | 6 | F6.3 | Command | OpenSliceIssueUrl | Open URL in browser | |
 | 7 | F7.1 | Infrastructure | KeyboardShortcuts | Cmd/Ctrl+Shift+Letter shortcuts | |
