@@ -58,6 +58,7 @@ describe('handleSelectionChange', () => {
         id: 'node-1',
         type: 'command',
         name: 'My Command',
+        customFields: '',
       },
     })
   })
@@ -81,6 +82,7 @@ describe('handleSelectionChange', () => {
         id: 'node-1',
         type: 'event',
         name: 'My Event',
+        customFields: '',
       },
     })
   })
@@ -104,6 +106,7 @@ describe('handleSelectionChange', () => {
         id: 'node-1',
         type: 'query',
         name: 'My Query',
+        customFields: '',
       },
     })
   })
@@ -127,6 +130,7 @@ describe('handleSelectionChange', () => {
         id: 'node-1',
         type: 'actor',
         name: 'My Actor',
+        customFields: '',
       },
     })
   })
@@ -155,6 +159,55 @@ describe('handleSelectionChange', () => {
     expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
       type: 'selection-changed',
       payload: { multiple: true },
+    })
+  })
+
+  it('includes customFields in payload when element has custom fields stored', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Command',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        if (key === 'customFields') return 'field1: value1\nfield2: value2'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: {
+        id: 'node-1',
+        type: 'command',
+        name: 'My Command',
+        customFields: 'field1: value1\nfield2: value2',
+      },
+    })
+  })
+
+  it('sends empty string for customFields when no custom fields are stored', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Command',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: {
+        id: 'node-1',
+        type: 'command',
+        name: 'My Command',
+        customFields: '',
+      },
     })
   })
 

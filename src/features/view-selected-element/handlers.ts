@@ -45,6 +45,7 @@ export function handleSelectionChange({
       id: node.id,
       type: elementType as ElementType,
       name: node.name,
+      customFields: node.getPluginData('customFields') || '',
     },
   })
 }
