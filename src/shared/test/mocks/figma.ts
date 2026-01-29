@@ -105,19 +105,22 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     })),
-    createText: vi.fn(() => ({
-      id: 'mock-text-id',
-      characters: '',
-      x: 0,
-      y: 0,
-      width: 0,
-      height: 0,
-      fontSize: 12,
-      fills: [],
-      resize: vi.fn(),
-      setPluginData: vi.fn(),
-      getPluginData: vi.fn(() => ''),
-    })),
+    createText: (() => {
+      const textNode = {
+        id: 'mock-text-id',
+        characters: '',
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        fontSize: 12,
+        fills: [],
+        resize: vi.fn(),
+        setPluginData: vi.fn(),
+        getPluginData: vi.fn(() => ''),
+      }
+      return vi.fn(() => textNode)
+    })(),
     group: vi.fn(() => ({
       id: 'mock-group-id',
       x: 0,
