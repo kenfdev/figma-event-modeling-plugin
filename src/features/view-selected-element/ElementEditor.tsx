@@ -6,6 +6,7 @@ export interface SelectedElement {
   type: ElementType
   name: string
   customFields?: string
+  notes?: string
 }
 
 export interface ElementEditorProps {
@@ -25,13 +26,15 @@ const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
 export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
   const [name, setName] = useState('')
   const [customFields, setCustomFields] = useState('')
+  const [notes, setNotes] = useState('')
 
   useEffect(() => {
     if (selectedElement) {
       setName(selectedElement.name)
       setCustomFields(selectedElement.customFields ?? '')
+      setNotes(selectedElement.notes ?? '')
     }
-  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields])
+  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes])
 
   if (multipleSelected) {
     return (
@@ -69,6 +72,20 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
         pluginMessage: {
           type: 'update-custom-fields',
           payload: { id: selectedElement.id, customFields: newCustomFields },
+        },
+      },
+      '*'
+    )
+  }
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newNotes = e.target.value
+    setNotes(newNotes)
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'update-notes',
+          payload: { id: selectedElement.id, notes: newNotes },
         },
       },
       '*'
@@ -113,6 +130,20 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
               value={customFields}
               onChange={handleCustomFieldsChange}
               aria-label="Custom fields"
+            />
+          </div>
+        )}
+        {showCustomFields && (
+          <div className="element-editor-row">
+            <label htmlFor="notes" className="element-editor-label">
+              Notes
+            </label>
+            <textarea
+              id="notes"
+              className="element-editor-textarea"
+              value={notes}
+              onChange={handleNotesChange}
+              aria-label="Notes"
             />
           </div>
         )}
