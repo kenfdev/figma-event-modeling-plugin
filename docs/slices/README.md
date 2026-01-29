@@ -4,36 +4,36 @@ This directory contains feature slices for the FigJam Event Modeling Plugin. Eac
 
 ## Overview
 
-| Phase | ID | Type | Feature | Description |
-|-------|-----|------|---------|-------------|
-| 0 | F0.1 | Infrastructure | OpenPluginPanel | Plugin opens and displays persistent panel |
-| 0 | F0.2 | Query | DetectPlatform | Check if running in FigJam; show error if Figma Design |
-| 1 | F1.1 | Command | CreateCommand | Create blue Command element |
-| 1 | F1.2 | Command | CreateEvent | Create orange Event element |
-| 1 | F1.3 | Command | CreateQuery | Create green Query element |
-| 1 | F1.4 | Command | CreateActor | Create teal Actor element |
-| 2 | F2.1 | Query | ViewSelectedElement | Show selected element details in panel |
-| 2 | F2.2 | Query | ViewMultipleSelected | Show message for multiple selection |
-| 2 | F2.3 | Query | ViewNoSelection | Show only buttons when nothing selected |
-| 3 | F3.1 | Command | UpdateElementName | Edit element name in panel |
-| 3 | F3.2 | Command | UpdateCustomFields | Edit custom fields for Command/Event/Query |
-| 3 | F3.3 | Command | UpdateNotes | Edit notes for Command/Event/Query |
-| 3 | F3.4 | Command | ToggleEventType | Toggle Event internal/external |
-| 3 | F3.5 | Command | ToggleFieldsVisibility | Show/hide custom fields on element |
-| 4 | F4.1 | Command | CreateLane | Create gray swimlane |
-| 4 | F4.2 | Command | CreateChapter | Create cyan FigJam connector |
-| 4 | F4.3 | Command | CreateProcessor | Create gear icon with label |
-| 4 | F4.4 | Command | CreateScreen | Create image placeholder |
-| 5 | F5.1 | Command | CreateSlice | Create FigJam section |
-| 5 | F5.2 | Command | CreateGWT | Create Given/When/Then section |
-| 6 | F6.1 | Command | UpdateSliceIssueUrl | Edit Issue URL for Slice |
-| 6 | F6.2 | Query | ViewSliceIssueMarker | Show link icon when URL exists |
-| 6 | F6.3 | Command | OpenSliceIssueUrl | Open URL in browser |
-| 7 | F7.1 | Infrastructure | KeyboardShortcuts | Cmd/Ctrl+Shift+Letter shortcuts |
-| 8 | F8.1 | Command | DuplicateElement | Duplicate element with all data |
-| 9 | F9.1 | Query | ShowExportButton | Show Export when Slice selected |
-| 9 | F9.2 | Command | ExportSliceToMarkdown | Export Slice to Markdown clipboard |
-| 10 | F10.1 | Command | ImportFromYaml | Import from YAML clipboard |
+| Phase | ID | Type | Feature | Description | Status |
+|-------|-----|------|---------|-------------|--------|
+| 0 | F0.1 | Infrastructure | OpenPluginPanel | Plugin opens and displays persistent panel | Done |
+| 0 | F0.2 | Query | DetectPlatform | Check if running in FigJam; show error if Figma Design | Done |
+| 1 | F1.1 | Command | CreateCommand | Create blue Command element | Done |
+| 1 | F1.2 | Command | CreateEvent | Create orange Event element | Done |
+| 1 | F1.3 | Command | CreateQuery | Create green Query element | Done |
+| 1 | F1.4 | Command | CreateActor | Create teal Actor element | Done |
+| 2 | F2.1 | Query | ViewSelectedElement | Show selected element details in panel | Done |
+| 2 | F2.2 | Query | ViewMultipleSelected | Show message for multiple selection | Done |
+| 2 | F2.3 | Query | ViewNoSelection | Show only buttons when nothing selected | Done |
+| 3 | F3.1 | Command | UpdateElementName | Edit element name in panel | Done |
+| 3 | F3.2 | Command | UpdateCustomFields | Edit custom fields for Command/Event/Query | Done |
+| 3 | F3.3 | Command | UpdateNotes | Edit notes for Command/Event/Query | Done |
+| 3 | F3.4 | Command | ToggleEventType | Toggle Event internal/external | |
+| 3 | F3.5 | Command | ToggleFieldsVisibility | Show/hide custom fields on element | Done |
+| 4 | F4.1 | Command | CreateLane | Create gray swimlane | |
+| 4 | F4.2 | Command | CreateChapter | Create cyan FigJam connector | |
+| 4 | F4.3 | Command | CreateProcessor | Create gear icon with label | |
+| 4 | F4.4 | Command | CreateScreen | Create image placeholder | |
+| 5 | F5.1 | Command | CreateSlice | Create FigJam section | |
+| 5 | F5.2 | Command | CreateGWT | Create Given/When/Then section | |
+| 6 | F6.1 | Command | UpdateSliceIssueUrl | Edit Issue URL for Slice | |
+| 6 | F6.2 | Query | ViewSliceIssueMarker | Show link icon when URL exists | |
+| 6 | F6.3 | Command | OpenSliceIssueUrl | Open URL in browser | |
+| 7 | F7.1 | Infrastructure | KeyboardShortcuts | Cmd/Ctrl+Shift+Letter shortcuts | |
+| 8 | F8.1 | Command | DuplicateElement | Duplicate element with all data | |
+| 9 | F9.1 | Query | ShowExportButton | Show Export when Slice selected | |
+| 9 | F9.2 | Command | ExportSliceToMarkdown | Export Slice to Markdown clipboard | |
+| 10 | F10.1 | Command | ImportFromYaml | Import from YAML clipboard | |
 
 ## Dependency Graph
 
