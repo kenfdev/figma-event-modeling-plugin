@@ -11,6 +11,7 @@ import { handleCreateActor } from './features/create-actor/sandbox'
 import { registerSelectionChangeListener } from './features/view-selected-element/sandbox'
 import { handleUpdateElementName } from './features/update-element-name/sandbox'
 import { handleUpdateCustomFields } from './features/update-custom-fields/sandbox'
+import { handleUpdateNotes } from './features/update-notes/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -18,6 +19,7 @@ registerHandler('create-query', handleCreateQuery)
 registerHandler('create-actor', handleCreateActor)
 registerHandler('update-element-name', handleUpdateElementName)
 registerHandler('update-custom-fields', handleUpdateCustomFields)
+registerHandler('update-notes', handleUpdateNotes)
 
 export default function main() {
   initializePlugin({ figma })

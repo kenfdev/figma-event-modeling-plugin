@@ -59,6 +59,7 @@ describe('handleSelectionChange', () => {
         type: 'command',
         name: 'My Command',
         customFields: '',
+        notes: '',
       },
     })
   })
@@ -83,6 +84,7 @@ describe('handleSelectionChange', () => {
         type: 'event',
         name: 'My Event',
         customFields: '',
+        notes: '',
       },
     })
   })
@@ -107,6 +109,7 @@ describe('handleSelectionChange', () => {
         type: 'query',
         name: 'My Query',
         customFields: '',
+        notes: '',
       },
     })
   })
@@ -131,6 +134,7 @@ describe('handleSelectionChange', () => {
         type: 'actor',
         name: 'My Actor',
         customFields: '',
+        notes: '',
       },
     })
   })
@@ -183,6 +187,7 @@ describe('handleSelectionChange', () => {
         type: 'command',
         name: 'My Command',
         customFields: 'field1: value1\nfield2: value2',
+        notes: '',
       },
     })
   })
@@ -207,6 +212,7 @@ describe('handleSelectionChange', () => {
         type: 'command',
         name: 'My Command',
         customFields: '',
+        notes: '',
       },
     })
   })

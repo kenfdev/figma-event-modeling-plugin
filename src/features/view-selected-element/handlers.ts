@@ -46,6 +46,7 @@ export function handleSelectionChange({
       type: elementType as ElementType,
       name: node.name,
       customFields: node.getPluginData('customFields') || '',
+      notes: node.getPluginData('notes') || '',
     },
   })
 }
