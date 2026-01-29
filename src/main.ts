@@ -14,6 +14,7 @@ import { handleUpdateCustomFields } from './features/update-custom-fields/sandbo
 import { handleUpdateNotes } from './features/update-notes/sandbox'
 import { handleToggleEventType } from './features/toggle-event-type/sandbox'
 import { handleToggleFieldsVisibility } from './features/toggle-fields-visibility/sandbox'
+import { handleCreateLane } from './features/create-lane/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -24,6 +25,7 @@ registerHandler('update-custom-fields', handleUpdateCustomFields)
 registerHandler('update-notes', handleUpdateNotes)
 registerHandler('toggle-event-type', handleToggleEventType)
 registerHandler('toggle-fields-visibility', handleToggleFieldsVisibility)
+registerHandler('create-lane', handleCreateLane)
 
 export default function main() {
   initializePlugin({ figma })

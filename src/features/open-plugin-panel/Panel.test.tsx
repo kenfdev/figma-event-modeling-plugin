@@ -162,6 +162,24 @@ describe('Panel', () => {
     expect(onCreateElement).toHaveBeenCalledWith('actor')
   })
 
+  it('renders Lane button as enabled', () => {
+    render(<Panel />)
+    expect(screen.getByRole('button', { name: 'Lane' })).toBeEnabled()
+  })
+
+  it('sends create-lane message to sandbox when Lane button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<Panel />)
+
+    const laneButton = screen.getByRole('button', { name: 'Lane' })
+    await user.click(laneButton)
+
+    expect(parent.postMessage).toHaveBeenCalledWith(
+      { pluginMessage: { type: 'create-lane' } },
+      '*'
+    )
+  })
+
   it('shows multiple selection message when multiple elements are selected', async () => {
     render(<Panel />)
 
@@ -224,7 +242,7 @@ describe('Panel', () => {
   it('keeps other element buttons disabled', () => {
     render(<Panel />)
     // Other buttons should still be disabled until their handlers are implemented
-    expect(screen.getByRole('button', { name: 'Lane' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Lane' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Chapter' })).toBeDisabled()
   })
 })
