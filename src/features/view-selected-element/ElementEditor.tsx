@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
-import type { ElementType } from '../../shared/types/plugin'
+import type { ElementType, SectionType } from '../../shared/types/plugin'
 
 export interface SelectedElement {
   id: string
-  type: ElementType
+  type: ElementType | SectionType
   name: string
   customFields?: string
   notes?: string
   external?: boolean
   fieldsVisible?: boolean
+  issueUrl?: string
 }
 
 export interface ElementEditorProps {
@@ -16,11 +17,13 @@ export interface ElementEditorProps {
   multipleSelected?: boolean
 }
 
-const typeLabels: Record<ElementType, string> = {
+const typeLabels: Record<string, string> = {
   command: 'Command',
   event: 'Event',
   query: 'Query',
   actor: 'Actor',
+  slice: 'Slice',
+  gwt: 'GWT',
 }
 
 const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
@@ -31,6 +34,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
   const [notes, setNotes] = useState('')
   const [external, setExternal] = useState(false)
   const [fieldsVisible, setFieldsVisible] = useState(false)
+  const [issueUrl, setIssueUrl] = useState('')
 
   useEffect(() => {
     if (selectedElement) {
@@ -39,8 +43,9 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
       setNotes(selectedElement.notes ?? '')
       setExternal(selectedElement.external ?? false)
       setFieldsVisible(selectedElement.fieldsVisible ?? false)
+      setIssueUrl(selectedElement.issueUrl ?? '')
     }
-  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external, selectedElement?.fieldsVisible])
+  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external, selectedElement?.fieldsVisible, selectedElement?.issueUrl])
 
   if (multipleSelected) {
     return (
@@ -125,7 +130,21 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     )
   }
 
-  const showCustomFields = typesWithCustomFields.includes(selectedElement.type)
+  const handleIssueUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newIssueUrl = e.target.value
+    setIssueUrl(newIssueUrl)
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'update-slice-issue-url',
+          payload: { id: selectedElement.id, issueUrl: newIssueUrl },
+        },
+      },
+      '*'
+    )
+  }
+
+  const showCustomFields = typesWithCustomFields.includes(selectedElement.type as ElementType)
 
   return (
     <section className="element-editor" aria-label="Element Editor">
@@ -204,6 +223,21 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
               />
               {' '}Show Fields
             </label>
+          </div>
+        )}
+        {selectedElement.type === 'slice' && (
+          <div className="element-editor-row">
+            <label htmlFor="issue-url" className="element-editor-label">
+              Issue URL
+            </label>
+            <input
+              id="issue-url"
+              type="text"
+              className="element-editor-input"
+              value={issueUrl}
+              onChange={handleIssueUrlChange}
+              aria-label="Issue URL"
+            />
           </div>
         )}
       </div>

@@ -2,16 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ElementEditor } from './ElementEditor'
-import type { ElementType } from '../../shared/types/plugin'
+import type { ElementType, SectionType } from '../../shared/types/plugin'
 
 interface SelectedElement {
   id: string
-  type: ElementType
+  type: ElementType | SectionType
   name: string
   customFields?: string
   notes?: string
   external?: boolean
   fieldsVisible?: boolean
+  issueUrl?: string
 }
 
 describe('ElementEditor', () => {
@@ -304,6 +305,100 @@ describe('ElementEditor', () => {
           pluginMessage: {
             type: 'toggle-event-type',
             payload: { id: 'node-77', external: true },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  describe('issue URL field', () => {
+    it('shows issue URL field when slice is selected', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'slice' as ElementType })}
+        />
+      )
+      expect(screen.getByRole('textbox', { name: /issue url/i })).toBeInTheDocument()
+    })
+
+    it('does NOT show issue URL field for command elements', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'command' })}
+        />
+      )
+      expect(screen.queryByRole('textbox', { name: /issue url/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT show issue URL field for event elements', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'event' })}
+        />
+      )
+      expect(screen.queryByRole('textbox', { name: /issue url/i })).not.toBeInTheDocument()
+    })
+
+    it('displays existing issue URL from selected element', () => {
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({
+            type: 'slice' as ElementType,
+            issueUrl: 'https://github.com/issues/456',
+          })}
+        />
+      )
+      const input = screen.getByRole('textbox', { name: /issue url/i })
+      expect(input).toHaveValue('https://github.com/issues/456')
+    })
+
+    it('sends update-slice-issue-url message to sandbox when issue URL changes', async () => {
+      const user = userEvent.setup()
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({
+            id: 'node-slice-1',
+            type: 'slice' as ElementType,
+          })}
+        />
+      )
+      const input = screen.getByRole('textbox', { name: /issue url/i })
+
+      await user.type(input, 'https://jira.com/PROJ-1')
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'update-slice-issue-url',
+            payload: { id: 'node-slice-1', issueUrl: 'https://jira.com/PROJ-1' },
+          },
+        },
+        '*'
+      )
+    })
+
+    it('allows clearing the issue URL', async () => {
+      const user = userEvent.setup()
+      render(
+        <ElementEditor
+          selectedElement={createSelectedElement({
+            id: 'node-slice-2',
+            type: 'slice' as ElementType,
+            issueUrl: 'https://github.com/issues/123',
+          })}
+        />
+      )
+      const input = screen.getByRole('textbox', { name: /issue url/i })
+
+      await user.clear(input)
+
+      expect(input).toHaveValue('')
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'update-slice-issue-url',
+            payload: { id: 'node-slice-2', issueUrl: '' },
           },
         },
         '*'

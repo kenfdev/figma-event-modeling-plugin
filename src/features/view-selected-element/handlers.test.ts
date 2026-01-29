@@ -62,6 +62,7 @@ describe('handleSelectionChange', () => {
         notes: '',
         external: false,
         fieldsVisible: false,
+        issueUrl: '',
       },
     })
   })
@@ -89,6 +90,7 @@ describe('handleSelectionChange', () => {
         notes: '',
         external: false,
         fieldsVisible: false,
+        issueUrl: '',
       },
     })
   })
@@ -116,6 +118,7 @@ describe('handleSelectionChange', () => {
         notes: '',
         external: false,
         fieldsVisible: false,
+        issueUrl: '',
       },
     })
   })
@@ -143,6 +146,7 @@ describe('handleSelectionChange', () => {
         notes: '',
         external: false,
         fieldsVisible: false,
+        issueUrl: '',
       },
     })
   })
@@ -198,6 +202,7 @@ describe('handleSelectionChange', () => {
         notes: '',
         external: false,
         fieldsVisible: false,
+        issueUrl: '',
       },
     })
   })
@@ -225,6 +230,7 @@ describe('handleSelectionChange', () => {
         notes: '',
         external: false,
         fieldsVisible: false,
+        issueUrl: '',
       },
     })
   })
@@ -358,6 +364,57 @@ describe('handleSelectionChange', () => {
         payload: expect.objectContaining({
           id: 'node-1',
           fieldsVisible: true,
+        }),
+      })
+    )
+  })
+
+  it('includes issueUrl in payload when slice element has issueUrl stored', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Slice',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'slice'
+        if (key === 'issueUrl') return 'https://github.com/issues/789'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          id: 'node-1',
+          type: 'slice',
+          issueUrl: 'https://github.com/issues/789',
+        }),
+      })
+    )
+  })
+
+  it('includes empty issueUrl when slice element has no issueUrl stored', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Slice',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'slice'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          id: 'node-1',
+          type: 'slice',
+          issueUrl: '',
         }),
       })
     )
