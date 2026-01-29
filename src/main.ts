@@ -21,6 +21,7 @@ import {
   handleCreateScreen,
   handleImagePasteIntoScreen,
 } from './features/create-screen/sandbox'
+import { handleCreateSlice } from './features/create-slice/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -35,6 +36,7 @@ registerHandler('create-lane', handleCreateLane)
 registerHandler('create-chapter', handleCreateChapter)
 registerHandler('create-processor', handleCreateProcessor)
 registerHandler('create-screen', handleCreateScreen)
+registerHandler('create-slice', handleCreateSlice)
 
 export default function main() {
   initializePlugin({ figma })
