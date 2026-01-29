@@ -15,6 +15,7 @@ import { handleUpdateNotes } from './features/update-notes/sandbox'
 import { handleToggleEventType } from './features/toggle-event-type/sandbox'
 import { handleToggleFieldsVisibility } from './features/toggle-fields-visibility/sandbox'
 import { handleCreateLane } from './features/create-lane/sandbox'
+import { handleCreateChapter } from './features/create-chapter/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -26,6 +27,7 @@ registerHandler('update-notes', handleUpdateNotes)
 registerHandler('toggle-event-type', handleToggleEventType)
 registerHandler('toggle-fields-visibility', handleToggleFieldsVisibility)
 registerHandler('create-lane', handleCreateLane)
+registerHandler('create-chapter', handleCreateChapter)
 
 export default function main() {
   initializePlugin({ figma })

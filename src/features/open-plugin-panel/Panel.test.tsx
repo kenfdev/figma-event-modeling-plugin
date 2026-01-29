@@ -243,6 +243,6 @@ describe('Panel', () => {
     render(<Panel />)
     // Other buttons should still be disabled until their handlers are implemented
     expect(screen.getByRole('button', { name: 'Lane' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Chapter' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Chapter' })).toBeEnabled()
   })
 })
