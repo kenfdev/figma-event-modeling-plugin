@@ -18,9 +18,9 @@ export async function handleCreateProcessor(
   await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
 
   const textNode = figma.createText()
-  textNode.characters = 'Processor'
-  textNode.fontSize = 14
   textNode.fontName = { family: 'Inter', style: 'Medium' }
+  textNode.fontSize = 14
+  textNode.characters = 'Processor'
   textNode.fills = [{ type: 'SOLID', color: TEXT_COLOR }]
 
   textNode.y = ICON_SIZE + LABEL_GAP
@@ -33,6 +33,4 @@ export async function handleCreateProcessor(
   const center = figma.viewport.center
   group.x = center.x - group.width / 2
   group.y = center.y - group.height / 2
-
-  figma.currentPage.appendChild(group)
 }
