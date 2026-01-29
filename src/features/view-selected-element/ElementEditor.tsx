@@ -130,6 +130,19 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     )
   }
 
+  const handleOpenIssueUrl = () => {
+    if (!issueUrl) return
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'open-slice-issue-url',
+          payload: { url: issueUrl },
+        },
+      },
+      '*'
+    )
+  }
+
   const handleIssueUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newIssueUrl = e.target.value
     setIssueUrl(newIssueUrl)
@@ -230,14 +243,27 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             <label htmlFor="issue-url" className="element-editor-label">
               Issue URL
             </label>
-            <input
-              id="issue-url"
-              type="text"
-              className="element-editor-input"
-              value={issueUrl}
-              onChange={handleIssueUrlChange}
-              aria-label="Issue URL"
-            />
+            <div className="element-editor-url-row">
+              <input
+                id="issue-url"
+                type="text"
+                className="element-editor-input"
+                value={issueUrl}
+                onChange={handleIssueUrlChange}
+                aria-label="Issue URL"
+              />
+              {issueUrl && (
+                <button
+                  type="button"
+                  className="element-editor-open-url-button"
+                  onClick={handleOpenIssueUrl}
+                  aria-label="Open Issue URL"
+                  title="Open in browser"
+                >
+                  🔗
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

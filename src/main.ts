@@ -24,6 +24,7 @@ import {
 import { handleCreateSlice } from './features/create-slice/sandbox'
 import { handleCreateGWT } from './features/create-gwt/sandbox'
 import { handleUpdateSliceIssueUrl } from './features/update-slice-issue-url/sandbox'
+import { handleOpenSliceIssueUrl } from './features/open-slice-issue-url/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -41,6 +42,7 @@ registerHandler('create-screen', handleCreateScreen)
 registerHandler('create-slice', handleCreateSlice)
 registerHandler('create-gwt', handleCreateGWT)
 registerHandler('update-slice-issue-url', handleUpdateSliceIssueUrl)
+registerHandler('open-slice-issue-url', handleOpenSliceIssueUrl)
 
 export default function main() {
   initializePlugin({ figma })

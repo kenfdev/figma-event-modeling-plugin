@@ -89,11 +89,15 @@ h2 {
 
 /* Structural type colors */
 .button-lane,
-.button-chapter,
 .button-processor,
 .button-screen {
   background: #9B9B9B;
   color: white;
+}
+
+.button-chapter {
+  background: #00FFFF;
+  color: #333;
 }
 
 /* Section type colors */
@@ -168,6 +172,30 @@ h2 {
 .element-editor-input:focus {
   outline: none;
   border-color: #4A90D9;
+}
+
+.element-editor-url-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.element-editor-url-row .element-editor-input {
+  flex: 1;
+}
+
+.element-editor-open-url-button {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.element-editor-open-url-button:hover {
+  background: #f0f0f0;
 }
 
 /* Type badges */
