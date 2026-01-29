@@ -40,7 +40,9 @@ export async function handleUpdateSliceIssueUrl(
       marker.x = 8
       marker.y = 8
       marker.setPluginData('isIssueMarker', 'true')
-      node.appendChild!(marker)
+      if (node.appendChild) {
+        node.appendChild(marker)
+      }
     }
   } else {
     if (existingMarker) {
