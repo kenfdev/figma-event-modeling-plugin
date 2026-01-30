@@ -223,3 +223,36 @@ h2 {
 .type-actor {
   background: #50E3C2;
 }
+
+/* Resize handle */
+.resize-handle {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 1000;
+}
+
+.resize-handle::before,
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  border-right: 2px solid #ccc;
+  border-bottom: 2px solid #ccc;
+}
+
+.resize-handle::before {
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+}
+
+.resize-handle::after {
+  bottom: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+}
