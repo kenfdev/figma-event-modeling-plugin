@@ -48,7 +48,7 @@ export async function handleImportFromYaml(
   if (isImportData(payload)) {
     data = payload
   } else {
-    const raw = payload as { yamlContent?: string }
+    const raw = (payload ?? {}) as { yamlContent?: string }
     const result = parseImportYaml(raw.yamlContent ?? '')
     if (!result.success) {
       figma.ui.postMessage({
@@ -112,7 +112,7 @@ export async function handleImportFromYaml(
         }
         shape.x = commandColumnX
         shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
-        figma.currentPage.appendChild(shape)
+        slice.appendChild(shape)
       })
     }
 
@@ -141,7 +141,7 @@ export async function handleImportFromYaml(
         }
         shape.x = eventColumnX
         shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
-        figma.currentPage.appendChild(shape)
+        slice.appendChild(shape)
       })
     }
 
@@ -167,7 +167,7 @@ export async function handleImportFromYaml(
         }
         shape.x = queryColumnX
         shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
-        figma.currentPage.appendChild(shape)
+        slice.appendChild(shape)
       })
     }
 
@@ -206,7 +206,7 @@ export async function handleImportFromYaml(
           parent.appendChild(child)
         }
 
-        figma.currentPage.appendChild(parent)
+        slice.appendChild(parent)
       })
     }
 
