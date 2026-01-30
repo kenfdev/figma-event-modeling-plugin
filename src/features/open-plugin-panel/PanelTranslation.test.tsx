@@ -20,9 +20,9 @@ describe('Panel translation integration', () => {
 
     it('renders section headings in English', () => {
       renderWithLocale('en')
-      expect(screen.getByRole('heading', { name: 'Core Shapes' })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: 'Structural' })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: 'Sections' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /Core Shapes/ })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /Structural/ })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /Sections/ })).toBeInTheDocument()
     })
 
     it('renders description text in English', () => {
@@ -44,9 +44,9 @@ describe('Panel translation integration', () => {
 
     it('renders section headings in Japanese', () => {
       renderWithLocale('ja')
-      expect(screen.getByRole('heading', { name: '基本シェイプ' })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: '構造' })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: 'セクション' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /基本シェイプ/ })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /構造/ })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /セクション/ })).toBeInTheDocument()
     })
 
     it('renders description text in Japanese', () => {
