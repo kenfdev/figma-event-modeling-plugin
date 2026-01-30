@@ -75,7 +75,7 @@ export async function handleImportFromYaml(
     slice.resizeWithoutConstraints(SLICE_WIDTH, SLICE_HEIGHT)
     figma.currentPage.appendChild(slice)
 
-    const sliceChildren: Array<{ x: number; y: number; width: number; height: number }> = []
+    const sliceChildren: Array<{ node: { x: number; y: number }; x: number; y: number; width: number; height: number }> = []
 
     const needsFont =
       (data.commands && data.commands.length > 0) ||
@@ -140,7 +140,7 @@ export async function handleImportFromYaml(
         shape.x = topRowStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
         shape.y = topRowY
         slice.appendChild(shape)
-        sliceChildren.push({ x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
+        sliceChildren.push({ node: shape, x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
       })
     }
 
@@ -170,7 +170,7 @@ export async function handleImportFromYaml(
         shape.x = bottomRowStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
         shape.y = topRowItemCount > 0 ? bottomRowY : topRowY
         slice.appendChild(shape)
-        sliceChildren.push({ x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
+        sliceChildren.push({ node: shape, x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
       })
     }
 
@@ -202,7 +202,7 @@ export async function handleImportFromYaml(
         shape.x = queryStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
         shape.y = topRowY
         slice.appendChild(shape)
-        sliceChildren.push({ x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
+        sliceChildren.push({ node: shape, x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
       })
     }
 
@@ -237,7 +237,7 @@ export async function handleImportFromYaml(
           const child = figma.createSection()
           const items = gwtItems[i]
           if (items && items.length > 0) {
-            child.name = `${GWT_CHILD_NAMES[i]}\n${items.join('\n')}`
+            child.name = `${GWT_CHILD_NAMES[i]}\n${items.map(item => item.name).join('\n')}`
           } else {
             child.name = GWT_CHILD_NAMES[i]
           }
@@ -248,7 +248,7 @@ export async function handleImportFromYaml(
         }
 
         slice.appendChild(parent)
-        sliceChildren.push({ x: parent.x, y: parent.y, width: GWT_PARENT_WIDTH, height: GWT_PARENT_HEIGHT })
+        sliceChildren.push({ node: parent, x: parent.x, y: parent.y, width: GWT_PARENT_WIDTH, height: GWT_PARENT_HEIGHT })
       })
     }
 
@@ -276,6 +276,12 @@ export async function handleImportFromYaml(
       slice.x = minX - SLICE_PADDING
       slice.y = minY - SLICE_PADDING
       slice.resizeWithoutConstraints(finalWidth, finalHeight)
+
+      // Convert children from absolute to section-relative coordinates
+      for (const child of sliceChildren) {
+        child.node.x = child.x - slice.x
+        child.node.y = child.y - slice.y
+      }
     }
 
     // Select the slice after import
