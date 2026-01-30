@@ -39,267 +39,30 @@ All element types are MVP requirements. Elements are created as grouped shapes (
 | Slice | FigJam section representing a vertical slice; can contain Issue URL |
 | GWT | FigJam section (400×600px) with 3 auto-created nested sections (350×180px each) arranged vertically: Given, When, Then |
 
-## Element Data Model
+## Color Reference
 
-Each plugin-created element stores a `type` field in plugin data to identify its element type.
-
-### Default Naming
-
-Newly created elements use their type as the default name (e.g., "Command", "Event", "Query").
-
-### Custom Fields
-
-Command, Event, and Query elements support custom fields:
-
-- **Input format**: Free-form text (e.g., `userId: string`, `amount: number`) - no validation or structure enforcement
-- **Storage**: Plugin data only (not visible outside plugin UI)
-- **Notes**: Free-form text area for additional context (unlimited character length)
-
-### Event Internal/External Toggle
-
-Event elements have a toggle to mark them as internal or external:
-- Internal: Orange (#FF9E42)
-- External: Purple (#9B59B6)
-
-### Custom Fields Visibility Toggle
-
-- **Scope**: Selected elements only (not global)
-- **Location**: Toggle/checkbox in the element's edit section within the panel
-- **Behavior**: Show/hide the custom fields section on selected elements
-- **Data retention**: Fields data is retained when hidden (only visibility changes)
-- **Sizing**: Elements shrink when fields hidden, expand when shown
-
-## User Interface
-
-### Plugin Panel
-
-- **Type**: Persistent panel (stays open while in use)
-- **Layout**: Single scrollable view with:
-  - Element creation buttons at top (grouped visually: Core Shapes | Structural | Sections)
-  - Selected element editor below
-  - Export button (shown only when a Slice is selected)
-  - Minimal help link at bottom
-- **Selection behavior**:
-  - **Single element selected**: Panel shows full editor with all editable fields for that element type
-  - **Multiple elements selected**: Panel shows "Multiple elements selected" message with no editable fields
-  - **No plugin element selected**: Panel shows only creation buttons
-
-### Element Editor Fields
-
-Shown when a single plugin element is selected:
-
-- **All elements**: Element name (editable via panel only, not on canvas)
-- **Command/Event/Query**: Custom fields textarea, Notes textarea, Show/Hide fields toggle
-- **Event only**: Internal/External toggle
-- **Slice only**: Issue URL field
-- **Elements with custom fields**: Duplicate button
-
-### Element Placement
-
-- Elements placed at **viewport center** on creation
-- No overlap detection or offset; elements may overlap
-- User moves elements manually after placement
-
-## Keyboard Shortcuts
-
-Keyboard shortcuts work only when the FigJam canvas is focused (disabled when typing in text inputs).
-
-Modifier pattern: **Cmd/Ctrl + Shift + Letter**
-
-| Element | Shortcut |
+| Element | Hex Code |
 |---------|----------|
-| Command | Cmd+Shift+C |
-| Event | Cmd+Shift+E |
-| Query | Cmd+Shift+Q |
-| Actor | Cmd+Shift+A |
-| Lane | Cmd+Shift+L |
-| Chapter | Cmd+Shift+H |
-| Processor | Cmd+Shift+P |
-| Screen | Cmd+Shift+S |
-| Slice | Cmd+Shift+I |
-| GWT | Cmd+Shift+G |
+| Command | #4A90D9 |
+| Event (internal) | #FF9E42 |
+| Event (external) | #9B59B6 |
+| Query | #7ED321 |
+| Actor | #50E3C2 |
+| Lane | Light gray, 5% opacity fill |
+| Chapter | Cyan (FigJam connector default) |
+| Processor | Black (gear icon) |
+| Screen placeholder | Gray |
 
-## Slice Features
+## Sizing Reference
 
-### Issue URL
-
-- Slices can contain an Issue URL linking to external issue trackers
-- **Format**: Any text accepted (no URL validation)
-- **Editing**: URL field shown in plugin panel when Slice is selected
-- **Marker**: Small link icon in corner of Slice section (hidden if URL is empty)
-- **Interaction**: Clicking the marker opens URL directly in default browser
-
-## GWT (Given-When-Then) Features
-
-### Auto-creation
-
-When user creates a GWT element:
-1. Parent GWT section is created (400×600px)
-2. Three nested sections are automatically created inside, arranged vertically (each 350×180px):
-   - "Given" section
-   - "When" section
-   - "Then" section
-
-### Content
-
-Users place Event Modeling elements and/or text content inside each sub-section.
-
-### Recovery
-
-If a user deletes the Given/When/Then sub-sections but keeps the parent GWT section, the plugin does not auto-regenerate them (respects user's deletion).
-
-## Copy/Paste Behavior
-
-When plugin elements are copied and pasted:
-- **All plugin data is preserved**: type, custom fields, notes, and other metadata are cloned to the pasted element
-
-## Duplicate Feature
-
-- **Location**: Duplicate button in the element editor section of the panel
-- **Behavior**: Creates a copy of the selected element with all plugin data, offset from the original
-
-## Export
-
-### Trigger
-
-- Export button appears in the panel only when a Slice is selected
-- Export operates on elements within the selected FigJam Section (Slice)
-
-### Output Format
-
-- **Format**: Markdown text
-- **Delivery**: Copy to clipboard
-- **Feedback**: Toast notification "Copied to clipboard!"
-- **Validation**: None (exports whatever is present, including empty slices)
-
-### Header
-
-Export includes only the slice name as the top-level heading:
-```markdown
-# SliceName
-```
-
-### Handling Unknown Elements
-
-When exporting a Slice containing non-plugin elements (user-drawn shapes, images, etc.):
-- Attempt to describe unknown elements (e.g., "Rectangle", "Image", "Connector")
-- Include these descriptions in the relevant section
-
-### Structure
-
-Grouped by element type:
-
-```markdown
-# Order Processing Slice
-
-## Commands
-- CreateOrder
-  - userId: string
-  - items: array
-  - Notes: Initiated by customer from checkout
-
-## Events
-- OrderCreated
-  - orderId: string
-  - timestamp: date
-
-## Queries
-- GetOrderStatus
-  - orderId: string
-
-## GWT: [GWT Section Name]
-### Given
-- [Events in Given section]
-- [Text content in Given section]
-
-### When
-- [Commands in When section]
-- [Text content in When section]
-
-### Then
-- [Queries in Then section]
-- [Text content in Then section]
-```
-
-### Detail Level
-
-Full details exported:
-- Element names
-- Custom fields (if present)
-- Notes (if present)
-- GWT sub-section content (element names + text)
-
-## Import (MVP)
-
-### Trigger
-
-- "Import from Clipboard" button in the panel
-- Reads YAML from system clipboard
-
-### YAML Schema
-
-```yaml
-slice: Order Processing Slice
-
-commands:
-  - name: CreateOrder
-    fields: |
-      userId: string
-      items: array
-    notes: Customer checkout flow
-
-events:
-  - name: OrderCreated
-    external: false
-    fields: |
-      orderId: string
-      timestamp: date
-
-queries:
-  - name: GetOrderStatus
-    fields: |
-      orderId: string
-
-gwt:
-  - name: Order Creation Scenario
-    given:
-      - OrderSubmitted event
-      - User logged in
-    when:
-      - CreateOrder command
-    then:
-      - OrderCreated event
-```
-
-### Field Descriptions
-
-- **slice** (required): Name of the Slice section to create
-- **commands**: Array of Command elements
-  - `name` (required): Element name
-  - `fields` (optional): Free-form text for custom fields
-  - `notes` (optional): Notes text
-- **events**: Array of Event elements
-  - `name` (required): Element name
-  - `external` (optional): Boolean, defaults to false (internal)
-  - `fields` (optional): Free-form text for custom fields
-  - `notes` (optional): Notes text
-- **queries**: Array of Query elements
-  - `name` (required): Element name
-  - `fields` (optional): Free-form text for custom fields
-  - `notes` (optional): Notes text
-- **gwt**: Array of GWT sections
-  - `name` (required): GWT section name
-  - `given` (optional): Array of text strings for Given section
-  - `when` (optional): Array of text strings for When section
-  - `then` (optional): Array of text strings for Then section
-
-### Import Behavior
-
-- **Validation**: Validate YAML structure and report specific errors for invalid content
-- **Layout**: Elements arranged in vertical lanes by type (Commands | Events | Queries columns)
-- **GWT handling**: Given/when/then items are created as text labels (not linked to other elements)
-- **Post-import**: The newly created Slice is automatically selected
-- **Placement**: Elements placed at viewport center
+| Element | Dimensions |
+|---------|------------|
+| Core shapes (Command, Event, Query, Actor) | 176×80px |
+| Lane | Half viewport width × 120px height |
+| Chapter | 200px width (FigJam connector) |
+| GWT parent section | 400×600px |
+| GWT child sections (Given/When/Then) | 350×180px each |
+| Processor | Based on icon + label |
 
 ## Technical Behavior
 
@@ -326,30 +89,51 @@ gwt:
 - Plugin creates Lane elements but does **not** manage swimlane layout
 - Users position and organize swimlanes manually
 
-## Color Reference
+## Feature Index
 
-| Element | Hex Code |
-|---------|----------|
-| Command | #4A90D9 |
-| Event (internal) | #FF9E42 |
-| Event (external) | #9B59B6 |
-| Query | #7ED321 |
-| Actor | #50E3C2 |
-| Lane | Light gray, 5% opacity fill |
-| Chapter | Cyan (FigJam connector default) |
-| Processor | Black (gear icon) |
-| Screen placeholder | Gray |
+Each feature has a detailed SPEC.md file colocated with its source code.
 
-## Sizing Reference
+| ID | Feature | Status | Spec |
+|----|---------|--------|------|
+| F0.1 | OpenPluginPanel | Done | `src/features/open-plugin-panel/SPEC.md` |
+| F0.2 | DetectPlatform | Done | `src/features/open-plugin-panel/SPEC.md` |
+| F1.1 | CreateCommand | Done | `src/features/create-command/SPEC.md` |
+| F1.2 | CreateEvent | Done | `src/features/create-event/SPEC.md` |
+| F1.3 | CreateQuery | Done | `src/features/create-query/SPEC.md` |
+| F1.4 | CreateActor | Done | `src/features/create-actor/SPEC.md` |
+| F2.1 | ViewSelectedElement | Done | `src/features/view-selected-element/SPEC.md` |
+| F2.2 | ViewMultipleSelected | Done | `src/features/view-selected-element/SPEC.md` |
+| F2.3 | ViewNoSelection | Done | `src/features/view-selected-element/SPEC.md` |
+| F3.1 | UpdateElementName | Done | `src/features/update-element-name/SPEC.md` |
+| F3.2 | UpdateCustomFields | Done | `src/features/update-custom-fields/SPEC.md` |
+| F3.3 | UpdateNotes | Done | `src/features/update-notes/SPEC.md` |
+| F3.4 | ToggleEventType | | `src/features/toggle-event-type/SPEC.md` |
+| F3.5 | ToggleFieldsVisibility | Done | `src/features/toggle-fields-visibility/SPEC.md` |
+| F4.1 | CreateLane | Done | `src/features/create-lane/SPEC.md` |
+| F4.2 | CreateChapter | Done | `src/features/create-chapter/SPEC.md` |
+| F4.3 | CreateProcessor | Done | `src/features/create-processor/SPEC.md` |
+| F4.4 | CreateScreen | Done | `src/features/create-screen/SPEC.md` |
+| F5.1 | CreateSlice | Done | `src/features/create-slice/SPEC.md` |
+| F5.2 | CreateGWT | Done | `src/features/create-gwt/SPEC.md` |
+| F6.1 | UpdateSliceIssueUrl | Done | `src/features/update-slice-issue-url/SPEC.md` |
+| F6.2 | ViewSliceIssueMarker | Done | `src/features/view-slice-issue-marker/SPEC.md` |
+| F6.3 | OpenSliceIssueUrl | Done | `src/features/open-slice-issue-url/SPEC.md` |
+| F8.1 | DuplicateElement | Done | `src/features/duplicate-element/SPEC.md` |
+| F9.1 | ShowExportButton | Done | `src/features/export-slice-to-markdown/SPEC.md` |
+| F9.2 | ExportSliceToMarkdown | Done | `src/features/export-slice-to-markdown/SPEC.md` |
+| F10.1 | ImportFromYaml | Done | `src/features/import-from-yaml/SPEC.md` |
 
-| Element | Dimensions |
-|---------|------------|
-| Core shapes (Command, Event, Query, Actor) | 176×80px |
-| Lane | Half viewport width × 120px height |
-| Chapter | 200px width (FigJam connector) |
-| GWT parent section | 400×600px |
-| GWT child sections (Given/When/Then) | 350×180px each |
-| Processor | Based on icon + label |
+## Feature Backlog
+
+Ideas under consideration. When ready to implement, flesh out via discussion, then create `src/features/<name>/SPEC.md` and add a row to the Feature Index table above.
+
+- improve the plugin panel. it isn't intuitive. the "Core shapes" look nice. but all the other stuff aren't intuitive at all. the ux should be improved
+- when an element is selected, the panel should show the type of the element. This is already implemented for Command, event, query, and actor.
+- command, event, query should be able to change their 
+- all the core shapes should be locked by default. this will prevend users who do not have the plugin installed easily edit the contents of the shape. when the plugin is active and the shape is selected, the lock is unlocked. Whenever the user attempts to edit the content directly, an error indicator should notify the user not to directly edit the shape content and edit via plugin.
+- the plugin should support i18n. English as default, but also Japanese.
+- there should be an `raw` toggle, which shows the raw json properties of the shape. it's editable, but validates the json. if invalid, it gives feedback to the user and will not accept the change. 
+
 
 ## Future Considerations (Post-MVP)
 
