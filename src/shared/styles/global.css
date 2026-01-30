@@ -48,7 +48,7 @@ h2 {
 
 .button {
   padding: 8px 16px;
-  border: none;
+  border: 1.5px solid transparent;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
@@ -90,21 +90,19 @@ h2 {
 /* Structural type colors */
 .button-lane,
 .button-processor,
-.button-screen {
-  background: #9B9B9B;
-  color: white;
-}
-
+.button-screen,
 .button-chapter {
-  background: #00FFFF;
+  background: transparent;
+  border: 1.5px solid #555;
   color: #333;
 }
 
 /* Section type colors */
 .button-slice,
 .button-gwt {
-  background: #BD10E0;
-  color: white;
+  background: transparent;
+  border: 1.5px solid #555;
+  color: #333;
 }
 
 .help-link {
@@ -382,24 +380,3 @@ h2 {
   z-index: 1000;
 }
 
-.resize-handle::before,
-.resize-handle::after {
-  content: '';
-  position: absolute;
-  border-right: 2px solid #ccc;
-  border-bottom: 2px solid #ccc;
-}
-
-.resize-handle::before {
-  bottom: 2px;
-  right: 2px;
-  width: 10px;
-  height: 10px;
-}
-
-.resize-handle::after {
-  bottom: 2px;
-  right: 2px;
-  width: 5px;
-  height: 5px;
-}
