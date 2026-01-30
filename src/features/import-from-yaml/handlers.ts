@@ -24,6 +24,12 @@ const GWT_CHILD_HEIGHT = 180
 const GWT_CHILD_GAP = 15
 const GWT_CHILD_NAMES = ['Given', 'When', 'Then'] as const
 
+const COLUMN_GAP = 40
+const VERTICAL_GAP = 20
+const SLICE_WIDTH = 400
+const SLICE_HEIGHT = 120
+const GWT_VERTICAL_OFFSET = 40
+
 function isImportData(payload: unknown): payload is ImportData {
   return (
     typeof payload === 'object' &&
@@ -55,11 +61,21 @@ export async function handleImportFromYaml(
   }
 
   try {
+    const center = figma.viewport.center
+
+    // Calculate column X positions: Commands (left) | Events (center) | Queries (right)
+    const eventColumnX = center.x - ELEMENT_WIDTH / 2
+    const commandColumnX = eventColumnX - ELEMENT_WIDTH - COLUMN_GAP
+    const queryColumnX = eventColumnX + ELEMENT_WIDTH + COLUMN_GAP
+
     // Create slice section
     const slice = figma.createSection()
     slice.name = data.slice
     slice.setPluginData('type', 'slice')
     slice.setPluginData('label', data.slice)
+    slice.x = center.x - SLICE_WIDTH / 2
+    slice.y = center.y - SLICE_HEIGHT / 2
+    slice.resizeWithoutConstraints(SLICE_WIDTH, SLICE_HEIGHT)
     figma.currentPage.appendChild(slice)
 
     const needsFont =
@@ -71,9 +87,12 @@ export async function handleImportFromYaml(
       await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
     }
 
+    // Starting Y position for element columns (below the slice)
+    const elementsStartY = center.y + SLICE_HEIGHT / 2 + COLUMN_GAP
+
     // Create commands
     if (data.commands) {
-      for (const cmd of data.commands) {
+      data.commands.forEach((cmd, index) => {
         const shape = figma.createShapeWithText()
         shape.shapeType = 'ROUNDED_RECTANGLE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
@@ -91,13 +110,15 @@ export async function handleImportFromYaml(
         if (cmd.notes) {
           shape.setPluginData('notes', cmd.notes)
         }
+        shape.x = commandColumnX
+        shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
         figma.currentPage.appendChild(shape)
-      }
+      })
     }
 
     // Create events
     if (data.events) {
-      for (const evt of data.events) {
+      data.events.forEach((evt, index) => {
         const shape = figma.createShapeWithText()
         shape.shapeType = 'ROUNDED_RECTANGLE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
@@ -118,13 +139,15 @@ export async function handleImportFromYaml(
         if (evt.notes) {
           shape.setPluginData('notes', evt.notes)
         }
+        shape.x = eventColumnX
+        shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
         figma.currentPage.appendChild(shape)
-      }
+      })
     }
 
     // Create queries
     if (data.queries) {
-      for (const qry of data.queries) {
+      data.queries.forEach((qry, index) => {
         const shape = figma.createShapeWithText()
         shape.shapeType = 'ROUNDED_RECTANGLE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
@@ -142,17 +165,31 @@ export async function handleImportFromYaml(
         if (qry.notes) {
           shape.setPluginData('notes', qry.notes)
         }
+        shape.x = queryColumnX
+        shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
         figma.currentPage.appendChild(shape)
-      }
+      })
     }
 
     // Create GWT sections
     if (data.gwt) {
-      for (const gwtEntry of data.gwt) {
+      // Position GWT sections below element columns
+      const maxElementRows = Math.max(
+        data.commands?.length ?? 0,
+        data.events?.length ?? 0,
+        data.queries?.length ?? 0
+      )
+      const gwtStartY = maxElementRows > 0
+        ? elementsStartY + maxElementRows * (ELEMENT_HEIGHT + VERTICAL_GAP) + GWT_VERTICAL_OFFSET
+        : elementsStartY
+
+      data.gwt.forEach((gwtEntry, gwtIndex) => {
         const parent = figma.createSection()
         parent.name = gwtEntry.name
         parent.setPluginData('type', 'gwt')
         parent.resizeWithoutConstraints(GWT_PARENT_WIDTH, GWT_PARENT_HEIGHT)
+        parent.x = center.x - GWT_PARENT_WIDTH / 2 + gwtIndex * (GWT_PARENT_WIDTH + COLUMN_GAP)
+        parent.y = gwtStartY
 
         const gwtItems = [gwtEntry.given, gwtEntry.when, gwtEntry.then]
         for (let i = 0; i < GWT_CHILD_NAMES.length; i++) {
@@ -170,8 +207,11 @@ export async function handleImportFromYaml(
         }
 
         figma.currentPage.appendChild(parent)
-      }
+      })
     }
+
+    // Select the slice after import
+    figma.currentPage.selection = [slice]
   } catch (error) {
     figma.ui.postMessage({
       type: 'import-from-yaml-error',
