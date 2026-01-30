@@ -294,6 +294,17 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             <button
               type="button"
               aria-label="Export to Markdown"
+              onClick={() => {
+                parent.postMessage(
+                  {
+                    pluginMessage: {
+                      type: 'export-slice-to-markdown',
+                      payload: { id: selectedElement.id },
+                    },
+                  },
+                  '*'
+                )
+              }}
             >
               Export to Markdown
             </button>

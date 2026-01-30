@@ -64,6 +64,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [editorType, setEditorType] = useState<EditorType>(null)
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
   const [multipleSelected, setMultipleSelected] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -78,6 +79,14 @@ export function Panel({ onCreateElement }: PanelProps) {
         } else {
           setMultipleSelected(false)
           setSelectedElement(message.payload)
+        }
+      }
+      if (message?.type === 'export-slice-to-markdown-result') {
+        const markdown = message.payload?.markdown
+        if (markdown) {
+          navigator.clipboard.writeText(markdown).then(() => {
+            setToastMessage('Copied to clipboard!')
+          })
         }
       }
     }
@@ -151,6 +160,10 @@ export function Panel({ onCreateElement }: PanelProps) {
           />
 
           <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
+
+          {toastMessage && (
+            <div className="toast">{toastMessage}</div>
+          )}
 
           <div className="help-link">
             <a

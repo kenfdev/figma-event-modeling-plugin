@@ -26,6 +26,7 @@ import { handleCreateGWT } from './features/create-gwt/sandbox'
 import { handleUpdateSliceIssueUrl } from './features/update-slice-issue-url/sandbox'
 import { handleOpenSliceIssueUrl } from './features/open-slice-issue-url/sandbox'
 import { handleDuplicateElement } from './features/duplicate-element/sandbox'
+import { handleExportSliceToMarkdown } from './features/export-slice-to-markdown/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -45,6 +46,7 @@ registerHandler('create-gwt', handleCreateGWT)
 registerHandler('update-slice-issue-url', handleUpdateSliceIssueUrl)
 registerHandler('open-slice-issue-url', handleOpenSliceIssueUrl)
 registerHandler('duplicate-element', handleDuplicateElement)
+registerHandler('export-slice-to-markdown', handleExportSliceToMarkdown)
 
 export default function main() {
   initializePlugin({ figma })
