@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 import { ElementEditor, type SelectedElement } from '../view-selected-element'
 
@@ -56,6 +56,75 @@ function ButtonGroup({ title, buttons, onCreateElement, enabledTypes }: ButtonGr
   )
 }
 
+function copyToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text)
+  }
+  // Fallback for environments where Clipboard API is unavailable (e.g. Figma plugin iframe)
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  document.body.appendChild(textarea)
+  textarea.select()
+  try {
+    document.execCommand('copy')
+    return Promise.resolve()
+  } catch {
+    return Promise.reject(new Error('Copy failed'))
+  } finally {
+    document.body.removeChild(textarea)
+  }
+}
+
+const MIN_WIDTH = 240
+const MIN_HEIGHT = 300
+
+function ResizeHandle() {
+  const dragging = useRef<{ startX: number; startY: number; initW: number; initH: number } | null>(null)
+
+  const onPointerMove = useCallback((e: PointerEvent) => {
+    if (!dragging.current) return
+    const { startX, startY, initW, initH } = dragging.current
+    const width = Math.max(MIN_WIDTH, initW + (e.clientX - startX))
+    const height = Math.max(MIN_HEIGHT, initH + (e.clientY - startY))
+    parent.postMessage({ pluginMessage: { type: 'resize-panel', payload: { width, height } } }, '*')
+  }, [])
+
+  const onPointerUp = useCallback(() => {
+    dragging.current = null
+    window.removeEventListener('pointermove', onPointerMove)
+    window.removeEventListener('pointerup', onPointerUp)
+  }, [onPointerMove])
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    dragging.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initW: window.innerWidth,
+      initH: window.innerHeight,
+    }
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+  }, [onPointerMove, onPointerUp])
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+    }
+  }, [onPointerMove, onPointerUp])
+
+  return (
+    <div
+      role="separator"
+      aria-label="Resize handle"
+      className="resize-handle"
+      onPointerDown={onPointerDown}
+    />
+  )
+}
+
 export interface PanelProps {
   onCreateElement?: (type: ElementType | StructuralType | SectionType) => void
 }
@@ -93,7 +162,7 @@ export function Panel({ onCreateElement }: PanelProps) {
       if (message?.type === 'export-slice-to-markdown-result') {
         const markdown = message.payload?.markdown
         if (markdown) {
-          navigator.clipboard.writeText(markdown).then(() => {
+          copyToClipboard(markdown).then(() => {
             showToast('Copied to clipboard!')
           }).catch(() => {
             showToast('Failed to copy to clipboard')
@@ -192,6 +261,7 @@ export function Panel({ onCreateElement }: PanelProps) {
           </div>
         </>
       )}
+      <ResizeHandle />
     </div>
   )
 }
