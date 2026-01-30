@@ -224,6 +224,59 @@ h2 {
   background: #50E3C2;
 }
 
+.type-lane {
+  background: #C0C0C0;
+}
+
+.type-chapter {
+  background: #00BCD4;
+}
+
+.type-processor {
+  background: #333333;
+  color: white;
+}
+
+.type-screen {
+  background: #808080;
+}
+
+.type-slice {
+  background: #E91E63;
+}
+
+.type-gwt {
+  background: #FF5722;
+}
+
+/* Import form */
+.import-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.import-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.import-textarea:focus {
+  outline: none;
+  border-color: #4A90D9;
+}
+
+.import-cancel-button {
+  background: #f0f0f0;
+  color: #333;
+}
+
 /* Resize handle */
 .resize-handle {
   position: fixed;
