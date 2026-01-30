@@ -24,10 +24,12 @@ const GWT_CHILD_HEIGHT = 180
 const GWT_CHILD_GAP = 15
 const GWT_CHILD_NAMES = ['Given', 'When', 'Then'] as const
 
-const COLUMN_GAP = 40
-const VERTICAL_GAP = 20
+const ELEMENT_GAP = 20
+const GROUP_GAP = 60
+const ROW_GAP = 40
 const SLICE_WIDTH = 400
 const SLICE_HEIGHT = 120
+const COLUMN_GAP = 40
 const GWT_VERTICAL_OFFSET = 40
 
 function isImportData(payload: unknown): payload is ImportData {
@@ -63,11 +65,6 @@ export async function handleImportFromYaml(
   try {
     const center = figma.viewport.center
 
-    // Calculate column X positions: Commands (left) | Events (center) | Queries (right)
-    const eventColumnX = center.x - ELEMENT_WIDTH / 2
-    const commandColumnX = eventColumnX - ELEMENT_WIDTH - COLUMN_GAP
-    const queryColumnX = eventColumnX + ELEMENT_WIDTH + COLUMN_GAP
-
     // Create slice section
     const slice = figma.createSection()
     slice.name = data.slice
@@ -87,10 +84,38 @@ export async function handleImportFromYaml(
       await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
     }
 
-    // Starting Y position for element columns (below the slice)
-    const elementsStartY = center.y + SLICE_HEIGHT / 2 + COLUMN_GAP
+    // Two-row layout:
+    // Row 1 (top): Commands on the left, Queries on the right (with larger gap between groups)
+    // Row 2 (bottom): Events in a horizontal row
 
-    // Create commands
+    const commandCount = data.commands?.length ?? 0
+    const queryCount = data.queries?.length ?? 0
+    const eventCount = data.events?.length ?? 0
+
+    // Calculate top row width: commands + group gap + queries
+    const topRowItemCount = commandCount + queryCount
+    const topRowWidth = topRowItemCount > 0
+      ? commandCount * ELEMENT_WIDTH + (commandCount > 1 ? (commandCount - 1) * ELEMENT_GAP : 0)
+        + (commandCount > 0 && queryCount > 0 ? GROUP_GAP : 0)
+        + queryCount * ELEMENT_WIDTH + (queryCount > 1 ? (queryCount - 1) * ELEMENT_GAP : 0)
+      : 0
+
+    // Calculate bottom row width: events
+    const bottomRowWidth = eventCount > 0
+      ? eventCount * ELEMENT_WIDTH + (eventCount - 1) * ELEMENT_GAP
+      : 0
+
+    // Starting Y position for rows (below the slice)
+    const topRowY = center.y + SLICE_HEIGHT / 2 + COLUMN_GAP
+    const bottomRowY = topRowY + ELEMENT_HEIGHT + ROW_GAP
+
+    // Top row starting X (centered on viewport)
+    const topRowStartX = center.x - topRowWidth / 2
+
+    // Bottom row starting X (centered on viewport)
+    const bottomRowStartX = center.x - bottomRowWidth / 2
+
+    // Create commands (left side of top row)
     if (data.commands) {
       data.commands.forEach((cmd, index) => {
         const shape = figma.createShapeWithText()
@@ -110,13 +135,13 @@ export async function handleImportFromYaml(
         if (cmd.notes) {
           shape.setPluginData('notes', cmd.notes)
         }
-        shape.x = commandColumnX
-        shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
+        shape.x = topRowStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
+        shape.y = topRowY
         slice.appendChild(shape)
       })
     }
 
-    // Create events
+    // Create events (bottom row)
     if (data.events) {
       data.events.forEach((evt, index) => {
         const shape = figma.createShapeWithText()
@@ -139,14 +164,19 @@ export async function handleImportFromYaml(
         if (evt.notes) {
           shape.setPluginData('notes', evt.notes)
         }
-        shape.x = eventColumnX
-        shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
+        shape.x = bottomRowStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
+        shape.y = topRowItemCount > 0 ? bottomRowY : topRowY
         slice.appendChild(shape)
       })
     }
 
-    // Create queries
+    // Create queries (right side of top row)
     if (data.queries) {
+      const queryStartX = topRowStartX
+        + commandCount * ELEMENT_WIDTH
+        + (commandCount > 1 ? (commandCount - 1) * ELEMENT_GAP : 0)
+        + (commandCount > 0 ? GROUP_GAP : 0)
+
       data.queries.forEach((qry, index) => {
         const shape = figma.createShapeWithText()
         shape.shapeType = 'ROUNDED_RECTANGLE'
@@ -165,23 +195,21 @@ export async function handleImportFromYaml(
         if (qry.notes) {
           shape.setPluginData('notes', qry.notes)
         }
-        shape.x = queryColumnX
-        shape.y = elementsStartY + index * (ELEMENT_HEIGHT + VERTICAL_GAP)
+        shape.x = queryStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
+        shape.y = topRowY
         slice.appendChild(shape)
       })
     }
 
     // Create GWT sections
     if (data.gwt) {
-      // Position GWT sections below element columns
-      const maxElementRows = Math.max(
-        data.commands?.length ?? 0,
-        data.events?.length ?? 0,
-        data.queries?.length ?? 0
-      )
-      const gwtStartY = maxElementRows > 0
-        ? elementsStartY + maxElementRows * (ELEMENT_HEIGHT + VERTICAL_GAP) + GWT_VERTICAL_OFFSET
-        : elementsStartY
+      // Position GWT sections below element rows
+      const hasTopRow = topRowItemCount > 0
+      const hasBottomRow = eventCount > 0
+      const rowCount = (hasTopRow ? 1 : 0) + (hasBottomRow ? 1 : 0)
+      const gwtStartY = rowCount > 0
+        ? topRowY + (rowCount > 1 ? 2 : 1) * ELEMENT_HEIGHT + (rowCount > 1 ? ROW_GAP : 0) + GWT_VERTICAL_OFFSET
+        : topRowY
 
       data.gwt.forEach((gwtEntry, gwtIndex) => {
         const parent = figma.createSection()
