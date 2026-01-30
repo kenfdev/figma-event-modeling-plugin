@@ -75,6 +75,8 @@ export async function handleImportFromYaml(
     slice.resizeWithoutConstraints(SLICE_WIDTH, SLICE_HEIGHT)
     figma.currentPage.appendChild(slice)
 
+    const sliceChildren: Array<{ x: number; y: number; width: number; height: number }> = []
+
     const needsFont =
       (data.commands && data.commands.length > 0) ||
       (data.events && data.events.length > 0) ||
@@ -138,6 +140,7 @@ export async function handleImportFromYaml(
         shape.x = topRowStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
         shape.y = topRowY
         slice.appendChild(shape)
+        sliceChildren.push({ x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
       })
     }
 
@@ -167,6 +170,7 @@ export async function handleImportFromYaml(
         shape.x = bottomRowStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
         shape.y = topRowItemCount > 0 ? bottomRowY : topRowY
         slice.appendChild(shape)
+        sliceChildren.push({ x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
       })
     }
 
@@ -198,6 +202,7 @@ export async function handleImportFromYaml(
         shape.x = queryStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
         shape.y = topRowY
         slice.appendChild(shape)
+        sliceChildren.push({ x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
       })
     }
 
@@ -243,7 +248,34 @@ export async function handleImportFromYaml(
         }
 
         slice.appendChild(parent)
+        sliceChildren.push({ x: parent.x, y: parent.y, width: GWT_PARENT_WIDTH, height: GWT_PARENT_HEIGHT })
       })
+    }
+
+    // Auto-size slice to fit all children with padding
+    const SLICE_PADDING = 20
+    if (sliceChildren.length > 0) {
+      let minX = Infinity
+      let minY = Infinity
+      let maxRight = -Infinity
+      let maxBottom = -Infinity
+
+      for (const child of sliceChildren) {
+        minX = Math.min(minX, child.x)
+        minY = Math.min(minY, child.y)
+        maxRight = Math.max(maxRight, child.x + child.width)
+        maxBottom = Math.max(maxBottom, child.y + child.height)
+      }
+
+      const contentWidth = maxRight - minX
+      const contentHeight = maxBottom - minY
+      const finalWidth = contentWidth + SLICE_PADDING * 2
+      const finalHeight = contentHeight + SLICE_PADDING * 2
+
+      // Adjust slice position so children are inside with padding
+      slice.x = minX - SLICE_PADDING
+      slice.y = minY - SLICE_PADDING
+      slice.resizeWithoutConstraints(finalWidth, finalHeight)
     }
 
     // Select the slice after import
