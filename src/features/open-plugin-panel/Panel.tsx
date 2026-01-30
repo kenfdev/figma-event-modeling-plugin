@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 import { ElementEditor, type SelectedElement } from '../view-selected-element'
 
@@ -65,6 +65,15 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
   const [multipleSelected, setMultipleSelected] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = (message: string) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current)
+    }
+    setToastMessage(message)
+    toastTimerRef.current = setTimeout(() => setToastMessage(null), 3000)
+  }
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -85,18 +94,21 @@ export function Panel({ onCreateElement }: PanelProps) {
         const markdown = message.payload?.markdown
         if (markdown) {
           navigator.clipboard.writeText(markdown).then(() => {
-            setToastMessage('Copied to clipboard!')
-            setTimeout(() => setToastMessage(null), 3000)
+            showToast('Copied to clipboard!')
           }).catch(() => {
-            setToastMessage('Failed to copy to clipboard')
-            setTimeout(() => setToastMessage(null), 3000)
+            showToast('Failed to copy to clipboard')
           })
         }
       }
     }
 
     window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current)
+      }
+    }
   }, [])
 
   const handleCreateElement = (type: ElementType | StructuralType | SectionType) => {
@@ -166,7 +178,7 @@ export function Panel({ onCreateElement }: PanelProps) {
           <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
 
           {toastMessage && (
-            <div className="toast">{toastMessage}</div>
+            <div className="toast" role="status">{toastMessage}</div>
           )}
 
           <div className="help-link">

@@ -57,13 +57,20 @@ function formatGwtSection(node: SliceNode): string {
 }
 
 export async function handleExportSliceToMarkdown(
-  _payload: unknown,
+  payload: { id?: string },
   { figma }: MessageHandlerContext
 ): Promise<void> {
-  const selection = figma.currentPage.selection
-  if (!selection.length) return
+  let slice: SliceNode | null = null
 
-  const slice = selection[0] as unknown as SliceNode
+  if (payload?.id) {
+    slice = figma.getNodeById(payload.id) as unknown as SliceNode | null
+  }
+
+  if (!slice) {
+    const selection = figma.currentPage.selection
+    if (!selection.length) return
+    slice = selection[0] as unknown as SliceNode
+  }
 
   let markdown = `# ${slice.name}\n`
 
