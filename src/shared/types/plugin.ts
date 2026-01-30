@@ -1,6 +1,6 @@
 // Shared types for Event Modeling plugin
 
-export type ElementType = 'command' | 'event' | 'query' | 'actor'
+export type ElementType = 'command' | 'event' | 'query' | 'actor' | 'error'
 
 export type StructuralType = 'lane' | 'chapter' | 'processor' | 'screen'
 

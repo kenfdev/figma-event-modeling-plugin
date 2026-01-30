@@ -19,11 +19,18 @@ export interface ImportQuery {
   notes?: string
 }
 
+export interface ImportGwtItem {
+  name: string
+  type: 'command' | 'event' | 'query' | 'error'
+  fields?: string
+}
+
 export interface ImportGwt {
   name: string
-  given: string[]
-  when: string[]
-  then: string[]
+  description?: string
+  given: ImportGwtItem[]
+  when: ImportGwtItem[]
+  then: ImportGwtItem[]
 }
 
 export interface ImportData {
@@ -124,12 +131,59 @@ export function parseImportYaml(input: string): ParseResult {
   if (doc.gwt) {
     const err = validateNamedEntries(doc.gwt as unknown[], 'gwt')
     if (err) return { success: false, error: err }
-    data.gwt = (doc.gwt as Record<string, unknown>[]).map((g) => ({
-      name: g.name as string,
-      given: (g.given as string[]) || [],
-      when: (g.when as string[]) || [],
-      then: (g.then as string[]) || [],
-    }))
+
+    const validGwtItemTypes = ['command', 'event', 'query', 'error']
+
+    const parseGwtItems = (
+      items: unknown[] | undefined,
+      gwtIndex: number,
+      section: string,
+    ): ImportGwtItem[] | string => {
+      if (!items) return []
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i] as Record<string, unknown>
+        if (!item.name || typeof item.name !== 'string') {
+          return `gwt[${gwtIndex}].${section}[${i}] is missing a required "name" field`
+        }
+        if (!item.type || typeof item.type !== 'string') {
+          return `gwt[${gwtIndex}].${section}[${i}] is missing a required "type" field`
+        }
+        if (!validGwtItemTypes.includes(item.type as string)) {
+          return `gwt[${gwtIndex}].${section}[${i}] has invalid "type": "${item.type}". Must be one of: ${validGwtItemTypes.join(', ')}`
+        }
+      }
+      return items.map((item) => {
+        const i = item as Record<string, unknown>
+        return {
+          name: i.name as string,
+          type: i.type as ImportGwtItem['type'],
+          ...(i.fields !== undefined && { fields: i.fields as string }),
+        }
+      })
+    }
+
+    const gwtEntries = doc.gwt as Record<string, unknown>[]
+    const parsedGwt: ImportGwt[] = []
+
+    for (let i = 0; i < gwtEntries.length; i++) {
+      const g = gwtEntries[i]
+      const given = parseGwtItems(g.given as unknown[] | undefined, i, 'given')
+      if (typeof given === 'string') return { success: false, error: given }
+      const when = parseGwtItems(g.when as unknown[] | undefined, i, 'when')
+      if (typeof when === 'string') return { success: false, error: when }
+      const then = parseGwtItems(g.then as unknown[] | undefined, i, 'then')
+      if (typeof then === 'string') return { success: false, error: then }
+
+      parsedGwt.push({
+        name: g.name as string,
+        ...(g.description !== undefined && { description: g.description as string }),
+        given,
+        when,
+        then,
+      })
+    }
+
+    data.gwt = parsedGwt
   }
 
   return { success: true, data }
