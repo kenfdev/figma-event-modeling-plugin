@@ -20,7 +20,7 @@ describe('Panel', () => {
 
   it('renders Core Shapes section with buttons', () => {
     renderPanel()
-    expect(screen.getByRole('heading', { name: 'Core Shapes' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Core Shapes/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Command' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Event' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Query' })).toBeInTheDocument()
@@ -29,7 +29,7 @@ describe('Panel', () => {
 
   it('renders Structural section with buttons', () => {
     renderPanel()
-    expect(screen.getByRole('heading', { name: 'Structural' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Structural/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Lane' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Chapter' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Processor' })).toBeInTheDocument()
@@ -38,7 +38,7 @@ describe('Panel', () => {
 
   it('renders Sections section with buttons', () => {
     renderPanel()
-    expect(screen.getByRole('heading', { name: 'Sections' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Sections/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Slice' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'GWT' })).toBeInTheDocument()
   })
@@ -380,6 +380,100 @@ describe('Panel', () => {
     renderPanel()
     expect(screen.queryByRole('heading', { name: /import/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /import yaml/i })).not.toBeInTheDocument()
+  })
+
+  describe('Collapsible sections', () => {
+    it('renders all three sections expanded by default', () => {
+      renderPanel()
+      // All buttons should be visible when sections are expanded
+      expect(screen.getByRole('button', { name: 'Command' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Lane' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Slice' })).toBeVisible()
+    })
+
+    it('collapses Core Shapes section when its heading is clicked', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      const heading = screen.getByRole('heading', { name: /Core Shapes/ })
+      await user.click(heading)
+
+      // Core Shapes buttons should be hidden
+      expect(screen.queryByRole('button', { name: 'Command' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Event' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Query' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Actor' })).not.toBeInTheDocument()
+
+      // Other sections should still be visible
+      expect(screen.getByRole('button', { name: 'Lane' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Slice' })).toBeVisible()
+    })
+
+    it('collapses Structural section when its heading is clicked', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      const heading = screen.getByRole('heading', { name: /Structural/ })
+      await user.click(heading)
+
+      expect(screen.queryByRole('button', { name: 'Lane' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Chapter' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Processor' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Screen' })).not.toBeInTheDocument()
+
+      // Other sections still visible
+      expect(screen.getByRole('button', { name: 'Command' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Slice' })).toBeVisible()
+    })
+
+    it('collapses Sections section when its heading is clicked', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      const heading = screen.getByRole('heading', { name: /Sections/ })
+      await user.click(heading)
+
+      expect(screen.queryByRole('button', { name: 'Slice' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'GWT' })).not.toBeInTheDocument()
+
+      // Other sections still visible
+      expect(screen.getByRole('button', { name: 'Command' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Lane' })).toBeVisible()
+    })
+
+    it('expands a collapsed section when its heading is clicked again', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      const heading = screen.getByRole('heading', { name: /Core Shapes/ })
+
+      // Collapse
+      await user.click(heading)
+      expect(screen.queryByRole('button', { name: 'Command' })).not.toBeInTheDocument()
+
+      // Expand
+      await user.click(heading)
+      expect(screen.getByRole('button', { name: 'Command' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Event' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Query' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Actor' })).toBeVisible()
+    })
+
+    it('shows expand chevron indicator when section is expanded', () => {
+      renderPanel()
+      const heading = screen.getByRole('heading', { name: /Core Shapes/ })
+      expect(heading.textContent).toContain('▾')
+    })
+
+    it('shows collapse chevron indicator when section is collapsed', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      const heading = screen.getByRole('heading', { name: /Core Shapes/ })
+      await user.click(heading)
+
+      expect(heading.textContent).toContain('▸')
+    })
   })
 
   describe('Card-style element preview buttons', () => {

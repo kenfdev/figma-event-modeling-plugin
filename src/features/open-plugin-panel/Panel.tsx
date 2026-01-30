@@ -36,25 +36,29 @@ interface ButtonGroupProps {
   buttons: ButtonConfig[]
   onCreateElement: (type: ElementType | StructuralType | SectionType) => void
   enabledTypes: Set<string>
+  collapsed: boolean
+  onToggle: () => void
 }
 
-function ButtonGroup({ title, buttons, onCreateElement, enabledTypes }: ButtonGroupProps) {
+function ButtonGroup({ title, buttons, onCreateElement, enabledTypes, collapsed, onToggle }: ButtonGroupProps) {
   return (
     <div className="section">
-      <h2>{title}</h2>
-      <div className="button-group card-grid">
-        {buttons.map((btn) => (
-          <button
-            key={btn.type}
-            className={`button card-button ${btn.className}`}
-            onClick={() => onCreateElement(btn.type)}
-            disabled={!enabledTypes.has(btn.type)}
-          >
-            <div className="card-preview" style={{ backgroundColor: btn.previewColor }} />
-            <span className="card-label">{btn.label}</span>
-          </button>
-        ))}
-      </div>
+      <h2 onClick={onToggle} style={{ cursor: 'pointer' }}>{collapsed ? '▸' : '▾'} {title}</h2>
+      {!collapsed && (
+        <div className="button-group card-grid">
+          {buttons.map((btn) => (
+            <button
+              key={btn.type}
+              className={`button card-button ${btn.className}`}
+              onClick={() => onCreateElement(btn.type)}
+              disabled={!enabledTypes.has(btn.type)}
+            >
+              <div className="card-preview" style={{ backgroundColor: btn.previewColor }} />
+              <span className="card-label">{btn.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -229,6 +233,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
   const { t } = useTranslation()
 
   const showToast = (message: string) => {
@@ -341,6 +346,8 @@ export function Panel({ onCreateElement }: PanelProps) {
             buttons={coreShapes}
             onCreateElement={handleCreateElement}
             enabledTypes={enabledTypes}
+            collapsed={!!collapsedSections['coreShapes']}
+            onToggle={() => setCollapsedSections(prev => ({ ...prev, coreShapes: !prev.coreShapes }))}
           />
 
           <ButtonGroup
@@ -348,6 +355,8 @@ export function Panel({ onCreateElement }: PanelProps) {
             buttons={structural}
             onCreateElement={handleCreateElement}
             enabledTypes={enabledTypes}
+            collapsed={!!collapsedSections['structural']}
+            onToggle={() => setCollapsedSections(prev => ({ ...prev, structural: !prev.structural }))}
           />
 
           <ButtonGroup
@@ -355,6 +364,8 @@ export function Panel({ onCreateElement }: PanelProps) {
             buttons={sections}
             onCreateElement={handleCreateElement}
             enabledTypes={enabledTypes}
+            collapsed={!!collapsedSections['sections']}
+            onToggle={() => setCollapsedSections(prev => ({ ...prev, sections: !prev.sections }))}
           />
 
           <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
