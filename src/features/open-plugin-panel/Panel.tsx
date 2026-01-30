@@ -132,6 +132,8 @@ interface SettingsPanelProps {
 
 function SettingsPanel({ onBack }: SettingsPanelProps) {
   const { locale, setLocale, t } = useTranslation()
+  const [showImportTextarea, setShowImportTextarea] = useState(false)
+  const [importYaml, setImportYaml] = useState('')
 
   const handleLocaleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value as Locale
@@ -164,6 +166,51 @@ function SettingsPanel({ onBack }: SettingsPanelProps) {
             <option value="ja">日本語</option>
           </select>
         </div>
+        <div className="section">
+          <h2>{t('sections.import')}</h2>
+          {!showImportTextarea ? (
+            <div className="button-group">
+              <button
+                className="button"
+                onClick={() => setShowImportTextarea(true)}
+              >
+                {t('buttons.importYaml')}
+              </button>
+            </div>
+          ) : (
+            <div className="import-form">
+              <textarea
+                className="import-textarea"
+                placeholder={t('placeholders.pasteYaml')}
+                value={importYaml}
+                onChange={(e) => setImportYaml(e.target.value)}
+                rows={8}
+              />
+              <div className="button-group">
+                <button
+                  className="button"
+                  disabled={!importYaml.trim()}
+                  onClick={() => {
+                    parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: importYaml } } }, '*')
+                    setImportYaml('')
+                    setShowImportTextarea(false)
+                  }}
+                >
+                  {t('buttons.import')}
+                </button>
+                <button
+                  className="button import-cancel-button"
+                  onClick={() => {
+                    setImportYaml('')
+                    setShowImportTextarea(false)
+                  }}
+                >
+                  {t('buttons.cancel')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -179,8 +226,6 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [multipleSelected, setMultipleSelected] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [showImportTextarea, setShowImportTextarea] = useState(false)
-  const [importYaml, setImportYaml] = useState('')
   const [showSettings, setShowSettings] = useState(false)
   const { t } = useTranslation()
 
@@ -311,52 +356,6 @@ export function Panel({ onCreateElement }: PanelProps) {
           />
 
           <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
-
-          <div className="section">
-            <h2>{t('sections.import')}</h2>
-            {!showImportTextarea ? (
-              <div className="button-group">
-                <button
-                  className="button"
-                  onClick={() => setShowImportTextarea(true)}
-                >
-                  {t('buttons.importYaml')}
-                </button>
-              </div>
-            ) : (
-              <div className="import-form">
-                <textarea
-                  className="import-textarea"
-                  placeholder={t('placeholders.pasteYaml')}
-                  value={importYaml}
-                  onChange={(e) => setImportYaml(e.target.value)}
-                  rows={8}
-                />
-                <div className="button-group">
-                  <button
-                    className="button"
-                    disabled={!importYaml.trim()}
-                    onClick={() => {
-                      parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: importYaml } } }, '*')
-                      setImportYaml('')
-                      setShowImportTextarea(false)
-                    }}
-                  >
-                    {t('buttons.import')}
-                  </button>
-                  <button
-                    className="button import-cancel-button"
-                    onClick={() => {
-                      setImportYaml('')
-                      setShowImportTextarea(false)
-                    }}
-                  >
-                    {t('buttons.cancel')}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
 
           {toastMessage && (
             <div className="toast" role="status">{toastMessage}</div>
