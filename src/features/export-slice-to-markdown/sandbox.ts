@@ -1,0 +1,1 @@
+export { handleExportSliceToMarkdown } from './handlers'
