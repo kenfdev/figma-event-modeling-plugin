@@ -277,6 +277,100 @@ h2 {
   color: #333;
 }
 
+/* Panel header */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.panel-header h1 {
+  margin-bottom: 0;
+}
+
+.settings-gear-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  line-height: 1;
+  color: #666;
+  border-radius: 4px;
+}
+
+.settings-gear-button:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+/* Settings panel */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-header h2 {
+  margin-bottom: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.settings-back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: #4A90D9;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.settings-back-button:hover {
+  background: #f0f0f0;
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-row label {
+  font-size: 12px;
+  color: #555;
+  min-width: 60px;
+}
+
+.settings-row select {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.settings-row select:focus {
+  outline: none;
+  border-color: #4A90D9;
+}
+
 /* Resize handle */
 .resize-handle {
   position: fixed;

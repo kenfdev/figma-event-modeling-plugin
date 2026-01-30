@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 import { ElementEditor, type SelectedElement } from '../view-selected-element'
+import { useTranslation, type Locale } from '../../shared/i18n'
 
 type EditorType = 'figma' | 'figjam' | null
 
@@ -125,6 +126,49 @@ function ResizeHandle() {
   )
 }
 
+interface SettingsPanelProps {
+  onBack: () => void
+}
+
+function SettingsPanel({ onBack }: SettingsPanelProps) {
+  const { locale, setLocale, t } = useTranslation()
+
+  const handleLocaleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLocale = e.target.value as Locale
+    setLocale(newLocale)
+    parent.postMessage({ pluginMessage: { type: 'set-locale', payload: { locale: newLocale } } }, '*')
+  }
+
+  return (
+    <div className="settings-panel">
+      <div className="settings-header">
+        <button
+          className="settings-back-button"
+          onClick={onBack}
+          aria-label={t('settings.back')}
+        >
+          ← {t('settings.back')}
+        </button>
+        <h2>{t('settings.title')}</h2>
+      </div>
+      <div className="settings-content">
+        <div className="settings-row">
+          <label htmlFor="language-select">{t('settings.language')}</label>
+          <select
+            id="language-select"
+            value={locale}
+            onChange={handleLocaleChange}
+            aria-label={t('settings.language')}
+          >
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export interface PanelProps {
   onCreateElement?: (type: ElementType | StructuralType | SectionType) => void
 }
@@ -135,6 +179,9 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [multipleSelected, setMultipleSelected] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [showImportTextarea, setShowImportTextarea] = useState(false)
+  const [importYaml, setImportYaml] = useState('')
+  const [showSettings, setShowSettings] = useState(false)
 
   const showToast = (message: string) => {
     if (toastTimerRef.current) {
@@ -209,9 +256,27 @@ export function Panel({ onCreateElement }: PanelProps) {
   const enabledTypes = new Set<string>(['command', 'event', 'query', 'actor', 'lane', 'chapter', 'processor', 'screen', 'slice', 'gwt'])
   const isFigmaDesign = editorType === 'figma'
 
+  if (showSettings) {
+    return (
+      <div className="container">
+        <SettingsPanel onBack={() => setShowSettings(false)} />
+        <ResizeHandle />
+      </div>
+    )
+  }
+
   return (
     <div className="container">
-      <h1>Event Modeling</h1>
+      <div className="panel-header">
+        <h1>Event Modeling</h1>
+        <button
+          className="settings-gear-button"
+          onClick={() => setShowSettings(true)}
+          aria-label="Settings"
+        >
+          ⚙
+        </button>
+      </div>
 
       {isFigmaDesign ? (
         <div role="alert" className="error-message">
@@ -248,16 +313,48 @@ export function Panel({ onCreateElement }: PanelProps) {
 
           <div className="section">
             <h2>Import</h2>
-            <div className="button-group">
-              <button
-                className="button"
-                onClick={() => {
-                  parent.postMessage({ pluginMessage: { type: 'import-from-yaml' } }, '*')
-                }}
-              >
-                Import from Clipboard
-              </button>
-            </div>
+            {!showImportTextarea ? (
+              <div className="button-group">
+                <button
+                  className="button"
+                  onClick={() => setShowImportTextarea(true)}
+                >
+                  Import YAML
+                </button>
+              </div>
+            ) : (
+              <div className="import-form">
+                <textarea
+                  className="import-textarea"
+                  placeholder="Paste YAML here..."
+                  value={importYaml}
+                  onChange={(e) => setImportYaml(e.target.value)}
+                  rows={8}
+                />
+                <div className="button-group">
+                  <button
+                    className="button"
+                    disabled={!importYaml.trim()}
+                    onClick={() => {
+                      parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: importYaml } } }, '*')
+                      setImportYaml('')
+                      setShowImportTextarea(false)
+                    }}
+                  >
+                    Import
+                  </button>
+                  <button
+                    className="button import-cancel-button"
+                    onClick={() => {
+                      setImportYaml('')
+                      setShowImportTextarea(false)
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {toastMessage && (

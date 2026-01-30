@@ -39,6 +39,11 @@ const ja = {
   links: {
     learnAboutEventModeling: 'イベントモデリングについて学ぶ',
   },
+  settings: {
+    title: '設定',
+    language: '言語',
+    back: '戻る',
+  },
 } as const
 
 export default ja

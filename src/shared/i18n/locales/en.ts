@@ -39,6 +39,11 @@ const en = {
   links: {
     learnAboutEventModeling: 'Learn about Event Modeling',
   },
+  settings: {
+    title: 'Settings',
+    language: 'Language',
+    back: 'Back',
+  },
 } as const
 
 export default en
