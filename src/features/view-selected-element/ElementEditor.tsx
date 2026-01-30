@@ -117,6 +117,18 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     )
   }
 
+  const handleDuplicate = () => {
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'duplicate-element',
+          payload: { id: selectedElement.id },
+        },
+      },
+      '*'
+    )
+  }
+
   const handleFieldsVisibilityToggle = () => {
     setFieldsVisible(!fieldsVisible)
     parent.postMessage(
@@ -236,6 +248,17 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
               />
               {' '}Show Fields
             </label>
+          </div>
+        )}
+        {showCustomFields && (
+          <div className="element-editor-row">
+            <button
+              type="button"
+              onClick={handleDuplicate}
+              aria-label="Duplicate"
+            >
+              Duplicate
+            </button>
           </div>
         )}
         {selectedElement.type === 'slice' && (
