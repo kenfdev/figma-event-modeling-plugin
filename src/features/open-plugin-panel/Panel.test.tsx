@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Panel } from './Panel'
 
@@ -244,5 +244,126 @@ describe('Panel', () => {
     // Other buttons should still be disabled until their handlers are implemented
     expect(screen.getByRole('button', { name: 'Lane' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Chapter' })).toBeEnabled()
+  })
+
+  it('renders GWT button as enabled', () => {
+    render(<Panel />)
+    expect(screen.getByRole('button', { name: 'GWT' })).toBeEnabled()
+  })
+
+  it('sends create-gwt message to sandbox when GWT button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<Panel />)
+
+    const gwtButton = screen.getByRole('button', { name: 'GWT' })
+    await user.click(gwtButton)
+
+    expect(parent.postMessage).toHaveBeenCalledWith(
+      { pluginMessage: { type: 'create-gwt' } },
+      '*'
+    )
+  })
+
+  it('calls onCreateElement with "gwt" when GWT button is clicked and callback provided', async () => {
+    const user = userEvent.setup()
+    const onCreateElement = vi.fn()
+    render(<Panel onCreateElement={onCreateElement} />)
+
+    const gwtButton = screen.getByRole('button', { name: 'GWT' })
+    await user.click(gwtButton)
+
+    expect(onCreateElement).toHaveBeenCalledWith('gwt')
+  })
+
+  describe('ResizeHandle', () => {
+    beforeEach(() => {
+      vi.spyOn(parent, 'postMessage')
+      Object.defineProperty(window, 'innerWidth', { value: 300, writable: true })
+      Object.defineProperty(window, 'innerHeight', { value: 400, writable: true })
+    })
+
+    it('renders a resize handle element', () => {
+      render(<Panel />)
+      expect(screen.getByRole('separator', { name: /resize/i })).toBeInTheDocument()
+    })
+
+    it('sends resize-panel message on drag', () => {
+      render(<Panel />)
+      const handle = screen.getByRole('separator', { name: /resize/i })
+
+      fireEvent.pointerDown(handle, { clientX: 100, clientY: 200 })
+      fireEvent.pointerMove(window, { clientX: 120, clientY: 230 })
+
+      expect(parent.postMessage).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'resize-panel',
+            payload: { width: 320, height: 430 },
+          },
+        },
+        '*'
+      )
+    })
+
+    it('enforces minimum width of 240px', () => {
+      Object.defineProperty(window, 'innerWidth', { value: 260, writable: true })
+      render(<Panel />)
+      const handle = screen.getByRole('separator', { name: /resize/i })
+
+      // Drag left by 30px: 260 + (-30) = 230, should clamp to 240
+      fireEvent.pointerDown(handle, { clientX: 100, clientY: 200 })
+      fireEvent.pointerMove(window, { clientX: 70, clientY: 200 })
+
+      expect(parent.postMessage).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'resize-panel',
+            payload: { width: 240, height: 400 },
+          },
+        },
+        '*'
+      )
+    })
+
+    it('enforces minimum height of 300px', () => {
+      Object.defineProperty(window, 'innerHeight', { value: 320, writable: true })
+      render(<Panel />)
+      const handle = screen.getByRole('separator', { name: /resize/i })
+
+      // Drag up by 30px: 320 + (-30) = 290, should clamp to 300
+      fireEvent.pointerDown(handle, { clientX: 100, clientY: 200 })
+      fireEvent.pointerMove(window, { clientX: 100, clientY: 170 })
+
+      expect(parent.postMessage).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'resize-panel',
+            payload: { width: 300, height: 300 },
+          },
+        },
+        '*'
+      )
+    })
+
+    it('stops tracking on pointerup', () => {
+      render(<Panel />)
+      const handle = screen.getByRole('separator', { name: /resize/i })
+
+      fireEvent.pointerDown(handle, { clientX: 100, clientY: 200 })
+      fireEvent.pointerUp(window)
+
+      // Clear any calls from the drag
+      vi.mocked(parent.postMessage).mockClear()
+
+      // Further movement should not send messages
+      fireEvent.pointerMove(window, { clientX: 150, clientY: 250 })
+
+      expect(parent.postMessage).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          pluginMessage: expect.objectContaining({ type: 'resize-panel' }),
+        }),
+        '*'
+      )
+    })
   })
 })
