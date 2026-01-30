@@ -289,6 +289,16 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             </div>
           </div>
         )}
+        {selectedElement.type === 'slice' && (
+          <div className="element-editor-row">
+            <button
+              type="button"
+              aria-label="Export to Markdown"
+            >
+              Export to Markdown
+            </button>
+          </div>
+        )}
       </div>
     </section>
   )
