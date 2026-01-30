@@ -61,6 +61,8 @@ export async function handleExportSliceToMarkdown(
   { figma }: MessageHandlerContext
 ): Promise<void> {
   const selection = figma.currentPage.selection
+  if (!selection.length) return
+
   const slice = selection[0] as unknown as SliceNode
 
   let markdown = `# ${slice.name}\n`

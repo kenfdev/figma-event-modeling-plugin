@@ -86,6 +86,10 @@ export function Panel({ onCreateElement }: PanelProps) {
         if (markdown) {
           navigator.clipboard.writeText(markdown).then(() => {
             setToastMessage('Copied to clipboard!')
+            setTimeout(() => setToastMessage(null), 3000)
+          }).catch(() => {
+            setToastMessage('Failed to copy to clipboard')
+            setTimeout(() => setToastMessage(null), 3000)
           })
         }
       }
