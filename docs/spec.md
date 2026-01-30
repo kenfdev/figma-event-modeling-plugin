@@ -122,17 +122,17 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F9.1 | ShowExportButton | Done | `src/features/export-slice-to-markdown/SPEC.md` |
 | F9.2 | ExportSliceToMarkdown | Done | `src/features/export-slice-to-markdown/SPEC.md` |
 | F10.1 | ImportFromYaml | Done | `src/features/import-from-yaml/SPEC.md` |
+| F2.4 | ViewStructuralElementType | Done | `src/features/view-selected-element/SPEC.md` |
+| F11.1 | ChangeElementType | | `src/features/change-element-type/SPEC.md` |
+| F12.1 | Internationalization | | `src/shared/i18n/SPEC.md` |
 
 ## Feature Backlog
 
 Ideas under consideration. When ready to implement, flesh out via discussion, then create `src/features/<name>/SPEC.md` and add a row to the Feature Index table above.
 
 - improve the plugin panel. it isn't intuitive. the "Core shapes" look nice. but all the other stuff aren't intuitive at all. the ux should be improved
-- when an element is selected, the panel should show the type of the element. This is already implemented for Command, event, query, and actor.
-- command, event, query should be able to change their 
 - all the core shapes should be locked by default. this will prevend users who do not have the plugin installed easily edit the contents of the shape. when the plugin is active and the shape is selected, the lock is unlocked. Whenever the user attempts to edit the content directly, an error indicator should notify the user not to directly edit the shape content and edit via plugin.
-- the plugin should support i18n. English as default, but also Japanese.
-- there should be an `raw` toggle, which shows the raw json properties of the shape. it's editable, but validates the json. if invalid, it gives feedback to the user and will not accept the change. 
+- there should be an `raw` toggle, which shows the raw json properties of the shape. it's editable, but validates the json. if invalid, it gives feedback to the user and will not accept the change.
 
 
 ## Future Considerations (Post-MVP)
