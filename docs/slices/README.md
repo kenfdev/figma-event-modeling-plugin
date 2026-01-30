@@ -30,7 +30,7 @@ This directory contains feature slices for the FigJam Event Modeling Plugin. Eac
 | 6 | F6.2 | Query | ViewSliceIssueMarker | Show link icon when URL exists | Done |
 | 6 | F6.3 | Command | OpenSliceIssueUrl | Open URL in browser | Done |
 | 7 | F7.1 | Infrastructure | KeyboardShortcuts | Cmd/Ctrl+Shift+Letter shortcuts | |
-| 8 | F8.1 | Command | DuplicateElement | Duplicate element with all data | |
+| 8 | F8.1 | Command | DuplicateElement | Duplicate element with all data | Done |
 | 9 | F9.1 | Query | ShowExportButton | Show Export when Slice selected | |
 | 9 | F9.2 | Command | ExportSliceToMarkdown | Export Slice to Markdown clipboard | |
 | 10 | F10.1 | Command | ImportFromYaml | Import from YAML clipboard | |
