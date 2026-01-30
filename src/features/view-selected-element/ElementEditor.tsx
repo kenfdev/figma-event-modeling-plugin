@@ -31,6 +31,7 @@ const typeLabels: Record<string, string> = {
 }
 
 const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
+const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
 
 export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
   const [name, setName] = useState('')
@@ -174,6 +175,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
   }
 
   const showCustomFields = typesWithCustomFields.includes(selectedElement.type as ElementType)
+  const isStructural = structuralTypes.includes(selectedElement.type as StructuralType)
 
   return (
     <section className="element-editor" aria-label="Element Editor">
@@ -211,6 +213,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             value={name}
             onChange={handleNameChange}
             aria-label="Element name"
+            disabled={isStructural}
           />
         </div>
         {showCustomFields && (
@@ -227,7 +230,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             />
           </div>
         )}
-        {showCustomFields && (
+        {(showCustomFields || isStructural) && (
           <div className="element-editor-row">
             <label htmlFor="notes" className="element-editor-label">
               Notes
