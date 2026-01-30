@@ -5,7 +5,7 @@ const EVENT_HEIGHT = 80
 const EVENT_FILL_COLOR = { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 }
 const EVENT_STROKE_COLOR = { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 }
 const EVENT_CORNER_RADIUS = 0
-const EVENT_TEXT_COLOR = { r: 0, g: 0, b: 0 }
+const EVENT_TEXT_COLOR = { r: 1, g: 1, b: 1 }
 
 export async function handleCreateEvent(
   _payload: unknown,
@@ -29,6 +29,8 @@ export async function handleCreateEvent(
   const center = figma.viewport.center
   shape.x = center.x - EVENT_WIDTH / 2
   shape.y = center.y - EVENT_HEIGHT / 2
+
+  shape.locked = true
 
   figma.currentPage.appendChild(shape)
 }
