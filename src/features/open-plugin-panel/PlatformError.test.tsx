@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import { Panel } from './Panel'
+import { TranslationProvider } from '../../shared/i18n'
+
+function renderPanel() {
+  return render(
+    <TranslationProvider initialLocale="en">
+      <Panel />
+    </TranslationProvider>
+  )
+}
 
 describe('Platform Error Display', () => {
   let messageHandler: ((event: MessageEvent) => void) | null = null
@@ -37,7 +46,7 @@ describe('Platform Error Display', () => {
 
   describe('when running in Figma Design', () => {
     it('displays an error message explaining the plugin requires FigJam', () => {
-      render(<Panel />)
+      renderPanel()
 
       simulatePlatformMessage('figma')
 
@@ -46,7 +55,7 @@ describe('Platform Error Display', () => {
     })
 
     it('hides or disables the creation buttons', () => {
-      render(<Panel />)
+      renderPanel()
 
       simulatePlatformMessage('figma')
 
@@ -68,7 +77,7 @@ describe('Platform Error Display', () => {
     })
 
     it('still displays the plugin title', () => {
-      render(<Panel />)
+      renderPanel()
 
       simulatePlatformMessage('figma')
 
@@ -78,7 +87,7 @@ describe('Platform Error Display', () => {
 
   describe('when running in FigJam', () => {
     it('does not display an error message', () => {
-      render(<Panel />)
+      renderPanel()
 
       simulatePlatformMessage('figjam')
 
@@ -86,7 +95,7 @@ describe('Platform Error Display', () => {
     })
 
     it('displays all creation buttons', () => {
-      render(<Panel />)
+      renderPanel()
 
       simulatePlatformMessage('figjam')
 
@@ -110,7 +119,7 @@ describe('Platform Error Display', () => {
 
   describe('before platform is detected', () => {
     it('shows a loading state or normal UI', () => {
-      render(<Panel />)
+      renderPanel()
 
       // Before any message, the component should show normal UI or loading
       // The buttons should be present (they may be disabled until element creation is implemented)

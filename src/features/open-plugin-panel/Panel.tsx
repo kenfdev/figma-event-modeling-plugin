@@ -182,6 +182,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [showImportTextarea, setShowImportTextarea] = useState(false)
   const [importYaml, setImportYaml] = useState('')
   const [showSettings, setShowSettings] = useState(false)
+  const { t } = useTranslation()
 
   const showToast = (message: string) => {
     if (toastTimerRef.current) {
@@ -210,9 +211,9 @@ export function Panel({ onCreateElement }: PanelProps) {
         const markdown = message.payload?.markdown
         if (markdown) {
           copyToClipboard(markdown).then(() => {
-            showToast('Copied to clipboard!')
+            showToast(t('messages.copiedToClipboard'))
           }).catch(() => {
-            showToast('Failed to copy to clipboard')
+            showToast(t('messages.failedToCopy'))
           })
         }
       }
@@ -225,7 +226,7 @@ export function Panel({ onCreateElement }: PanelProps) {
         clearTimeout(toastTimerRef.current)
       }
     }
-  }, [])
+  }, [t])
 
   const handleCreateElement = (type: ElementType | StructuralType | SectionType) => {
     if (onCreateElement) {
@@ -268,11 +269,11 @@ export function Panel({ onCreateElement }: PanelProps) {
   return (
     <div className="container">
       <div className="panel-header">
-        <h1>Event Modeling</h1>
+        <h1>{t('panel.title')}</h1>
         <button
           className="settings-gear-button"
           onClick={() => setShowSettings(true)}
-          aria-label="Settings"
+          aria-label={t('settings.title')}
         >
           ⚙
         </button>
@@ -280,30 +281,30 @@ export function Panel({ onCreateElement }: PanelProps) {
 
       {isFigmaDesign ? (
         <div role="alert" className="error-message">
-          This plugin only works in FigJam. Please open a FigJam file to use this plugin.
+          {t('messages.figjamOnly')}
         </div>
       ) : (
         <>
           <p className="description">
-            Create Event Modeling diagrams in FigJam.
+            {t('panel.description')}
           </p>
 
           <ButtonGroup
-            title="Core Shapes"
+            title={t('sections.coreShapes')}
             buttons={coreShapes}
             onCreateElement={handleCreateElement}
             enabledTypes={enabledTypes}
           />
 
           <ButtonGroup
-            title="Structural"
+            title={t('sections.structural')}
             buttons={structural}
             onCreateElement={handleCreateElement}
             enabledTypes={enabledTypes}
           />
 
           <ButtonGroup
-            title="Sections"
+            title={t('sections.sections')}
             buttons={sections}
             onCreateElement={handleCreateElement}
             enabledTypes={enabledTypes}
@@ -312,21 +313,21 @@ export function Panel({ onCreateElement }: PanelProps) {
           <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
 
           <div className="section">
-            <h2>Import</h2>
+            <h2>{t('sections.import')}</h2>
             {!showImportTextarea ? (
               <div className="button-group">
                 <button
                   className="button"
                   onClick={() => setShowImportTextarea(true)}
                 >
-                  Import YAML
+                  {t('buttons.importYaml')}
                 </button>
               </div>
             ) : (
               <div className="import-form">
                 <textarea
                   className="import-textarea"
-                  placeholder="Paste YAML here..."
+                  placeholder={t('placeholders.pasteYaml')}
                   value={importYaml}
                   onChange={(e) => setImportYaml(e.target.value)}
                   rows={8}
@@ -341,7 +342,7 @@ export function Panel({ onCreateElement }: PanelProps) {
                       setShowImportTextarea(false)
                     }}
                   >
-                    Import
+                    {t('buttons.import')}
                   </button>
                   <button
                     className="button import-cancel-button"
@@ -350,7 +351,7 @@ export function Panel({ onCreateElement }: PanelProps) {
                       setShowImportTextarea(false)
                     }}
                   >
-                    Cancel
+                    {t('buttons.cancel')}
                   </button>
                 </div>
               </div>
@@ -367,7 +368,7 @@ export function Panel({ onCreateElement }: PanelProps) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Learn about Event Modeling
+              {t('links.learnAboutEventModeling')}
             </a>
           </div>
         </>

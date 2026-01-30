@@ -2,17 +2,26 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ElementEditor } from './ElementEditor'
-import type { ElementType, SectionType } from '../../shared/types/plugin'
+import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
+import { TranslationProvider } from '../../shared/i18n'
 
 interface SelectedElement {
   id: string
-  type: ElementType | SectionType
+  type: ElementType | StructuralType | SectionType
   name: string
   customFields?: string
   notes?: string
   external?: boolean
   fieldsVisible?: boolean
   issueUrl?: string
+}
+
+function renderEditor(ui: React.ReactElement) {
+  return render(
+    <TranslationProvider initialLocale="en">
+      {ui}
+    </TranslationProvider>
+  )
 }
 
 describe('ElementEditor', () => {
@@ -32,14 +41,16 @@ describe('ElementEditor', () => {
     ...overrides,
   })
 
+  const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
+
   describe('when multiple elements are selected', () => {
     it('shows "Multiple elements selected" message', () => {
-      render(<ElementEditor selectedElement={null} multipleSelected={true} />)
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} />)
       expect(screen.getByText(/multiple elements selected/i)).toBeInTheDocument()
     })
 
     it('does not show editable fields', () => {
-      render(<ElementEditor selectedElement={null} multipleSelected={true} />)
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} />)
       expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
       expect(screen.queryByRole('status')).not.toBeInTheDocument()
     })
@@ -47,55 +58,106 @@ describe('ElementEditor', () => {
 
   describe('when no element is selected', () => {
     it('renders nothing when selectedElement is null', () => {
-      const { container } = render(<ElementEditor selectedElement={null} />)
+      const { container } = renderEditor(<ElementEditor selectedElement={null} />)
       expect(container).toBeEmptyDOMElement()
     })
   })
 
   describe('when an element is selected', () => {
     it('renders the element editor section', () => {
-      render(<ElementEditor selectedElement={createSelectedElement()} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement()} />)
       expect(screen.getByRole('region', { name: /element editor/i })).toBeInTheDocument()
     })
 
     it('displays the element name in a text input field', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ name: 'My Command' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ name: 'My Command' })} />)
       const input = screen.getByRole('textbox', { name: /element name/i })
       expect(input).toBeInTheDocument()
       expect(input).toHaveValue('My Command')
     })
 
-    it('displays type badge with correct styling class for command', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
-      const badge = screen.getByRole('status')
-      expect(badge).toHaveTextContent('Command')
-      expect(badge).toHaveClass('type-command')
+    it('displays type dropdown for command elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      const dropdown = screen.getByRole('combobox', { name: /element type/i })
+      expect(dropdown).toBeInTheDocument()
+      expect(dropdown).toHaveValue('command')
     })
 
-    it('displays type badge with correct styling class for event', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
-      const badge = screen.getByRole('status')
-      expect(badge).toHaveTextContent('Event')
-      expect(badge).toHaveClass('type-event')
+    it('displays type dropdown for event elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      const dropdown = screen.getByRole('combobox', { name: /element type/i })
+      expect(dropdown).toBeInTheDocument()
+      expect(dropdown).toHaveValue('event')
     })
 
-    it('displays type badge with correct styling class for query', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
-      const badge = screen.getByRole('status')
-      expect(badge).toHaveTextContent('Query')
-      expect(badge).toHaveClass('type-query')
+    it('displays type dropdown for query elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      const dropdown = screen.getByRole('combobox', { name: /element type/i })
+      expect(dropdown).toBeInTheDocument()
+      expect(dropdown).toHaveValue('query')
     })
 
-    it('displays type badge with correct styling class for actor', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+    it('type dropdown contains Command, Event, Query options', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      const dropdown = screen.getByRole('combobox', { name: /element type/i })
+      const options = Array.from(dropdown.querySelectorAll('option'))
+      expect(options).toHaveLength(3)
+      expect(options.map(o => o.value)).toEqual(['command', 'event', 'query'])
+    })
+
+    it('does NOT show type dropdown for actor elements — shows badge instead', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      expect(screen.queryByRole('combobox', { name: /element type/i })).not.toBeInTheDocument()
       const badge = screen.getByRole('status')
       expect(badge).toHaveTextContent('Actor')
       expect(badge).toHaveClass('type-actor')
     })
 
+    it('displays type badge with correct styling class for lane', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'lane' as StructuralType })} />)
+      const badge = screen.getByRole('status')
+      expect(badge).toHaveTextContent('Lane')
+      expect(badge).toHaveClass('type-lane')
+    })
+
+    it('displays type badge with correct styling class for chapter', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'chapter' as StructuralType })} />)
+      const badge = screen.getByRole('status')
+      expect(badge).toHaveTextContent('Chapter')
+      expect(badge).toHaveClass('type-chapter')
+    })
+
+    it('displays type badge with correct styling class for processor', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'processor' as StructuralType })} />)
+      const badge = screen.getByRole('status')
+      expect(badge).toHaveTextContent('Processor')
+      expect(badge).toHaveClass('type-processor')
+    })
+
+    it('displays type badge with correct styling class for screen', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'screen' as StructuralType })} />)
+      const badge = screen.getByRole('status')
+      expect(badge).toHaveTextContent('Screen')
+      expect(badge).toHaveClass('type-screen')
+    })
+
+    it('displays type badge with correct styling class for slice', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'slice' as SectionType })} />)
+      const badge = screen.getByRole('status')
+      expect(badge).toHaveTextContent('Slice')
+      expect(badge).toHaveClass('type-slice')
+    })
+
+    it('displays type badge with correct styling class for gwt', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'gwt' as SectionType })} />)
+      const badge = screen.getByRole('status')
+      expect(badge).toHaveTextContent('GWT')
+      expect(badge).toHaveClass('type-gwt')
+    })
+
     it('allows editing the name field', async () => {
       const user = userEvent.setup()
-      render(<ElementEditor selectedElement={createSelectedElement({ name: 'Original' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ name: 'Original' })} />)
       const input = screen.getByRole('textbox', { name: /element name/i })
 
       await user.clear(input)
@@ -106,7 +168,7 @@ describe('ElementEditor', () => {
 
     it('sends update-element-name message to sandbox when name changes', async () => {
       const user = userEvent.setup()
-      render(<ElementEditor selectedElement={createSelectedElement({ id: 'node-42', name: 'Original' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ id: 'node-42', name: 'Original' })} />)
       const input = screen.getByRole('textbox', { name: /element name/i })
 
       await user.clear(input)
@@ -126,28 +188,28 @@ describe('ElementEditor', () => {
 
   describe('custom fields textarea', () => {
     it('shows custom fields textarea for command elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
       expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
     })
 
     it('shows custom fields textarea for event elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
       expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
     })
 
     it('shows custom fields textarea for query elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
       expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
     })
 
     it('does NOT show custom fields textarea for actor elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
       expect(screen.queryByRole('textbox', { name: /custom fields/i })).not.toBeInTheDocument()
     })
 
     it('accepts free-form text input', async () => {
       const user = userEvent.setup()
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
       const textarea = screen.getByRole('textbox', { name: /custom fields/i })
 
       await user.type(textarea, 'userId: string\namount: number')
@@ -156,7 +218,7 @@ describe('ElementEditor', () => {
     })
 
     it('displays existing custom fields from selected element', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({
             type: 'event',
@@ -170,7 +232,7 @@ describe('ElementEditor', () => {
 
     it('sends update-custom-fields message to sandbox when custom fields change', async () => {
       const user = userEvent.setup()
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ id: 'node-99', type: 'command' })}
         />
@@ -193,27 +255,27 @@ describe('ElementEditor', () => {
 
   describe('notes textarea', () => {
     it('shows notes textarea for command elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
       expect(screen.getByRole('textbox', { name: /notes/i })).toBeInTheDocument()
     })
 
     it('shows notes textarea for event elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
       expect(screen.getByRole('textbox', { name: /notes/i })).toBeInTheDocument()
     })
 
     it('shows notes textarea for query elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
       expect(screen.getByRole('textbox', { name: /notes/i })).toBeInTheDocument()
     })
 
     it('does NOT show notes textarea for actor elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
       expect(screen.queryByRole('textbox', { name: /^notes$/i })).not.toBeInTheDocument()
     })
 
     it('displays existing notes from selected element', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({
             type: 'event',
@@ -227,7 +289,7 @@ describe('ElementEditor', () => {
 
     it('sends update-notes message to sandbox when notes change', async () => {
       const user = userEvent.setup()
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ id: 'node-55', type: 'command' })}
         />
@@ -250,27 +312,27 @@ describe('ElementEditor', () => {
 
   describe('event type toggle', () => {
     it('shows toggle only for event elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
       expect(screen.getByRole('checkbox', { name: /external/i })).toBeInTheDocument()
     })
 
     it('does NOT show toggle for command elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
       expect(screen.queryByRole('checkbox', { name: /external/i })).not.toBeInTheDocument()
     })
 
     it('does NOT show toggle for query elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
       expect(screen.queryByRole('checkbox', { name: /external/i })).not.toBeInTheDocument()
     })
 
     it('does NOT show toggle for actor elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
       expect(screen.queryByRole('checkbox', { name: /external/i })).not.toBeInTheDocument()
     })
 
     it('toggle is unchecked when external is false (internal)', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ type: 'event', external: false })}
         />
@@ -280,7 +342,7 @@ describe('ElementEditor', () => {
     })
 
     it('toggle is checked when external is true', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ type: 'event', external: true })}
         />
@@ -291,7 +353,7 @@ describe('ElementEditor', () => {
 
     it('sends toggle-event-type message to sandbox when toggled', async () => {
       const user = userEvent.setup()
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ id: 'node-77', type: 'event', external: false })}
         />
@@ -314,7 +376,7 @@ describe('ElementEditor', () => {
 
   describe('issue URL field', () => {
     it('shows issue URL field when slice is selected', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ type: 'slice' as ElementType })}
         />
@@ -323,7 +385,7 @@ describe('ElementEditor', () => {
     })
 
     it('does NOT show issue URL field for command elements', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ type: 'command' })}
         />
@@ -332,7 +394,7 @@ describe('ElementEditor', () => {
     })
 
     it('does NOT show issue URL field for event elements', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ type: 'event' })}
         />
@@ -341,7 +403,7 @@ describe('ElementEditor', () => {
     })
 
     it('displays existing issue URL from selected element', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({
             type: 'slice' as ElementType,
@@ -355,7 +417,7 @@ describe('ElementEditor', () => {
 
     it('sends update-slice-issue-url message to sandbox when issue URL changes', async () => {
       const user = userEvent.setup()
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({
             id: 'node-slice-1',
@@ -380,7 +442,7 @@ describe('ElementEditor', () => {
 
     it('allows clearing the issue URL', async () => {
       const user = userEvent.setup()
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({
             id: 'node-slice-2',
@@ -406,29 +468,119 @@ describe('ElementEditor', () => {
     })
   })
 
+  describe('duplicate button', () => {
+    it('shows duplicate button for command elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      expect(screen.getByRole('button', { name: /duplicate/i })).toBeInTheDocument()
+    })
+
+    it('shows duplicate button for event elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      expect(screen.getByRole('button', { name: /duplicate/i })).toBeInTheDocument()
+    })
+
+    it('shows duplicate button for query elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      expect(screen.getByRole('button', { name: /duplicate/i })).toBeInTheDocument()
+    })
+
+    it('does NOT show duplicate button for actor elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      expect(screen.queryByRole('button', { name: /duplicate/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT show duplicate button for slice elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'slice' as ElementType })} />)
+      expect(screen.queryByRole('button', { name: /duplicate/i })).not.toBeInTheDocument()
+    })
+
+    it('sends duplicate-element message to sandbox when clicked', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-101', type: 'command' })}
+        />
+      )
+      const button = screen.getByRole('button', { name: /duplicate/i })
+
+      await user.click(button)
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'duplicate-element',
+            payload: { id: 'node-101' },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  describe('export button', () => {
+    it('shows export button when a slice is selected', () => {
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'slice' as ElementType })}
+        />
+      )
+      expect(screen.getByRole('button', { name: /export to markdown/i })).toBeInTheDocument()
+    })
+
+    it('does NOT show export button for command elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      expect(screen.queryByRole('button', { name: /export to markdown/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT show export button for event elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      expect(screen.queryByRole('button', { name: /export to markdown/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT show export button for query elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      expect(screen.queryByRole('button', { name: /export to markdown/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT show export button for actor elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      expect(screen.queryByRole('button', { name: /export to markdown/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT show export button when no element is selected', () => {
+      const { container } = renderEditor(<ElementEditor selectedElement={null} />)
+      expect(container).toBeEmptyDOMElement()
+    })
+
+    it('does NOT show export button when multiple elements are selected', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} />)
+      expect(screen.queryByRole('button', { name: /export to markdown/i })).not.toBeInTheDocument()
+    })
+  })
+
   describe('fields visibility toggle', () => {
     it('shows toggle for command elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
       expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
     })
 
     it('shows toggle for event elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
       expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
     })
 
     it('shows toggle for query elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
       expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
     })
 
     it('does NOT show toggle for actor elements', () => {
-      render(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
       expect(screen.queryByRole('checkbox', { name: /show fields/i })).not.toBeInTheDocument()
     })
 
     it('toggle is unchecked when fieldsVisible is false', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ type: 'command', fieldsVisible: false })}
         />
@@ -438,7 +590,7 @@ describe('ElementEditor', () => {
     })
 
     it('toggle is checked when fieldsVisible is true', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ type: 'command', fieldsVisible: true })}
         />
@@ -448,7 +600,7 @@ describe('ElementEditor', () => {
     })
 
     it('toggle defaults to unchecked when fieldsVisible is undefined', () => {
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ type: 'command' })}
         />
@@ -459,7 +611,7 @@ describe('ElementEditor', () => {
 
     it('sends toggle-fields-visibility message to sandbox when toggled', async () => {
       const user = userEvent.setup()
-      render(
+      renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ id: 'node-88', type: 'command', fieldsVisible: false })}
         />
@@ -477,6 +629,126 @@ describe('ElementEditor', () => {
         },
         '*'
       )
+    })
+  })
+
+  describe('change element type dropdown', () => {
+    it('sends change-element-type message when type is changed', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-200', type: 'command' })}
+        />
+      )
+      const dropdown = screen.getByRole('combobox', { name: /element type/i })
+
+      await user.selectOptions(dropdown, 'event')
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'change-element-type',
+            payload: { id: 'node-200', newType: 'event' },
+          },
+        },
+        '*'
+      )
+    })
+
+    it('does NOT show type dropdown for structural elements', () => {
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'lane' as StructuralType })}
+        />
+      )
+      expect(screen.queryByRole('combobox', { name: /element type/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('status')).toHaveTextContent('Lane')
+    })
+
+    it('does NOT show type dropdown for section elements', () => {
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'slice' as SectionType })}
+        />
+      )
+      expect(screen.queryByRole('combobox', { name: /element type/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('status')).toHaveTextContent('Slice')
+    })
+  })
+
+  describe('structural element behavior', () => {
+    it.each(['lane', 'chapter', 'processor', 'screen'] as StructuralType[])(
+      'shows name field as read-only for %s elements',
+      (structuralType) => {
+        renderEditor(
+          <ElementEditor
+            selectedElement={createSelectedElement({ type: structuralType, name: 'My Element' })}
+          />
+        )
+        const input = screen.getByRole('textbox', { name: /element name/i })
+        expect(input).toBeInTheDocument()
+        expect(input).toHaveValue('My Element')
+        expect(input).toBeDisabled()
+      }
+    )
+
+    it.each(['lane', 'chapter', 'processor', 'screen'] as StructuralType[])(
+      'does NOT show custom fields textarea for %s elements',
+      (structuralType) => {
+        renderEditor(
+          <ElementEditor
+            selectedElement={createSelectedElement({ type: structuralType })}
+          />
+        )
+        expect(screen.queryByRole('textbox', { name: /custom fields/i })).not.toBeInTheDocument()
+      }
+    )
+
+    it.each(['lane', 'chapter', 'processor', 'screen'] as StructuralType[])(
+      'shows editable notes textarea for %s elements',
+      (structuralType) => {
+        renderEditor(
+          <ElementEditor
+            selectedElement={createSelectedElement({ type: structuralType, notes: 'Some notes' })}
+          />
+        )
+        const textarea = screen.getByRole('textbox', { name: /notes/i })
+        expect(textarea).toBeInTheDocument()
+        expect(textarea).toHaveValue('Some notes')
+        expect(textarea).not.toBeDisabled()
+      }
+    )
+
+    it('sends update-notes message when notes change on a structural element', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-lane-1', type: 'lane' as StructuralType })}
+        />
+      )
+      const textarea = screen.getByRole('textbox', { name: /notes/i })
+
+      await user.type(textarea, 'Lane note')
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'update-notes',
+            payload: { id: 'node-lane-1', notes: 'Lane note' },
+          },
+        },
+        '*'
+      )
+    })
+
+    it('name field is editable for non-structural element types', () => {
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ type: 'command', name: 'My Command' })}
+        />
+      )
+      const input = screen.getByRole('textbox', { name: /element name/i })
+      expect(input).not.toBeDisabled()
     })
   })
 })

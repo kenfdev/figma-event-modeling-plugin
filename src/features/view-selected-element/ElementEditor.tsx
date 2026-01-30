@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
+import { useTranslation } from '../../shared/i18n'
 
 export interface SelectedElement {
   id: string
@@ -35,6 +36,7 @@ const typesWithDropdown: ElementType[] = ['command', 'event', 'query']
 const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
 
 export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
+  const { t } = useTranslation()
   const [name, setName] = useState('')
   const [customFields, setCustomFields] = useState('')
   const [notes, setNotes] = useState('')
@@ -56,7 +58,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
   if (multipleSelected) {
     return (
       <section className="element-editor" aria-label="Element Editor">
-        <p className="multiple-selected-message">Multiple elements selected</p>
+        <p className="multiple-selected-message">{t('messages.multipleSelected')}</p>
       </section>
     )
   }
@@ -194,14 +196,14 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
 
   return (
     <section className="element-editor" aria-label="Element Editor">
-      <h2>Selected Element</h2>
+      <h2>{t('editor.selectedElement')}</h2>
       <div className="element-editor-content">
         <div className="element-editor-row">
           {showTypeDropdown ? (
             <select
               value={selectedElement.type}
               onChange={handleTypeChange}
-              aria-label="Element type"
+              aria-label={t('editor.elementType')}
               className={`type-badge type-${selectedElement.type}`}
             >
               <option value="command">Command</option>
@@ -224,15 +226,15 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
                 type="checkbox"
                 checked={external}
                 onChange={handleExternalToggle}
-                aria-label="External"
+                aria-label={t('editor.external')}
               />
-              {' '}External
+              {' '}{t('editor.external')}
             </label>
           </div>
         )}
         <div className="element-editor-row">
           <label htmlFor="element-name" className="element-editor-label">
-            Name
+            {t('editor.name')}
           </label>
           <input
             id="element-name"
@@ -247,7 +249,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
         {showCustomFields && (
           <div className="element-editor-row">
             <label htmlFor="custom-fields" className="element-editor-label">
-              Custom Fields
+              {t('editor.customFields')}
             </label>
             <textarea
               id="custom-fields"
@@ -261,7 +263,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
         {(showCustomFields || isStructural) && (
           <div className="element-editor-row">
             <label htmlFor="notes" className="element-editor-label">
-              Notes
+              {t('editor.notes')}
             </label>
             <textarea
               id="notes"
@@ -279,9 +281,9 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
                 type="checkbox"
                 checked={fieldsVisible}
                 onChange={handleFieldsVisibilityToggle}
-                aria-label="Show Fields"
+                aria-label={t('editor.showFields')}
               />
-              {' '}Show Fields
+              {' '}{t('editor.showFields')}
             </label>
           </div>
         )}
@@ -290,16 +292,16 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             <button
               type="button"
               onClick={handleDuplicate}
-              aria-label="Duplicate"
+              aria-label={t('buttons.duplicate')}
             >
-              Duplicate
+              {t('buttons.duplicate')}
             </button>
           </div>
         )}
         {selectedElement.type === 'slice' && (
           <div className="element-editor-row">
             <label htmlFor="issue-url" className="element-editor-label">
-              Issue URL
+              {t('editor.issueUrl')}
             </label>
             <div className="element-editor-url-row">
               <input
@@ -315,8 +317,8 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
                   type="button"
                   className="element-editor-open-url-button"
                   onClick={handleOpenIssueUrl}
-                  aria-label="Open Issue URL"
-                  title="Open in browser"
+                  aria-label={`${t('editor.openInBrowser')} Issue URL`}
+                  title={t('editor.openInBrowser')}
                 >
                   🔗
                 </button>
@@ -328,7 +330,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
           <div className="element-editor-row">
             <button
               type="button"
-              aria-label="Export to Markdown"
+              aria-label={t('buttons.exportToMarkdown')}
               onClick={() => {
                 parent.postMessage(
                   {
@@ -341,7 +343,7 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
                 )
               }}
             >
-              Export to Markdown
+              {t('buttons.exportToMarkdown')}
             </button>
           </div>
         )}

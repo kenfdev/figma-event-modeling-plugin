@@ -2,15 +2,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Panel } from './Panel'
+import { TranslationProvider } from '../../shared/i18n'
+
+function renderPanel(props: React.ComponentProps<typeof Panel> = {}) {
+  return render(
+    <TranslationProvider initialLocale="en">
+      <Panel {...props} />
+    </TranslationProvider>
+  )
+}
 
 describe('Panel', () => {
   it('renders the plugin title', () => {
-    render(<Panel />)
+    renderPanel()
     expect(screen.getByRole('heading', { name: 'Event Modeling' })).toBeInTheDocument()
   })
 
   it('renders Core Shapes section with buttons', () => {
-    render(<Panel />)
+    renderPanel()
     expect(screen.getByRole('heading', { name: 'Core Shapes' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Command' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Event' })).toBeInTheDocument()
@@ -19,7 +28,7 @@ describe('Panel', () => {
   })
 
   it('renders Structural section with buttons', () => {
-    render(<Panel />)
+    renderPanel()
     expect(screen.getByRole('heading', { name: 'Structural' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Lane' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Chapter' })).toBeInTheDocument()
@@ -28,14 +37,14 @@ describe('Panel', () => {
   })
 
   it('renders Sections section with buttons', () => {
-    render(<Panel />)
+    renderPanel()
     expect(screen.getByRole('heading', { name: 'Sections' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Slice' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'GWT' })).toBeInTheDocument()
   })
 
   it('renders help link', () => {
-    render(<Panel />)
+    renderPanel()
     const link = screen.getByRole('link', { name: /learn about event modeling/i })
     expect(link).toBeInTheDocument()
     expect(link).toHaveAttribute('href', 'https://eventmodeling.org/')
@@ -43,14 +52,14 @@ describe('Panel', () => {
   })
 
   it('renders Command button as enabled', () => {
-    render(<Panel />)
+    renderPanel()
     const commandButton = screen.getByRole('button', { name: 'Command' })
     expect(commandButton).not.toBeDisabled()
   })
 
   it('sends create-command message to sandbox when Command button is clicked', async () => {
     const user = userEvent.setup()
-    render(<Panel />)
+    renderPanel()
 
     const commandButton = screen.getByRole('button', { name: 'Command' })
     await user.click(commandButton)
@@ -64,7 +73,7 @@ describe('Panel', () => {
   it('calls onCreateElement with "command" when Command button is clicked and callback provided', async () => {
     const user = userEvent.setup()
     const onCreateElement = vi.fn()
-    render(<Panel onCreateElement={onCreateElement} />)
+    renderPanel({ onCreateElement })
 
     const commandButton = screen.getByRole('button', { name: 'Command' })
     await user.click(commandButton)
@@ -73,14 +82,14 @@ describe('Panel', () => {
   })
 
   it('renders Event button as enabled', () => {
-    render(<Panel />)
+    renderPanel()
     const eventButton = screen.getByRole('button', { name: 'Event' })
     expect(eventButton).not.toBeDisabled()
   })
 
   it('sends create-event message to sandbox when Event button is clicked', async () => {
     const user = userEvent.setup()
-    render(<Panel />)
+    renderPanel()
 
     const eventButton = screen.getByRole('button', { name: 'Event' })
     await user.click(eventButton)
@@ -94,7 +103,7 @@ describe('Panel', () => {
   it('calls onCreateElement with "event" when Event button is clicked and callback provided', async () => {
     const user = userEvent.setup()
     const onCreateElement = vi.fn()
-    render(<Panel onCreateElement={onCreateElement} />)
+    renderPanel({ onCreateElement })
 
     const eventButton = screen.getByRole('button', { name: 'Event' })
     await user.click(eventButton)
@@ -103,14 +112,14 @@ describe('Panel', () => {
   })
 
   it('renders Query button as enabled', () => {
-    render(<Panel />)
+    renderPanel()
     const queryButton = screen.getByRole('button', { name: 'Query' })
     expect(queryButton).not.toBeDisabled()
   })
 
   it('sends create-query message to sandbox when Query button is clicked', async () => {
     const user = userEvent.setup()
-    render(<Panel />)
+    renderPanel()
 
     const queryButton = screen.getByRole('button', { name: 'Query' })
     await user.click(queryButton)
@@ -124,7 +133,7 @@ describe('Panel', () => {
   it('calls onCreateElement with "query" when Query button is clicked and callback provided', async () => {
     const user = userEvent.setup()
     const onCreateElement = vi.fn()
-    render(<Panel onCreateElement={onCreateElement} />)
+    renderPanel({ onCreateElement })
 
     const queryButton = screen.getByRole('button', { name: 'Query' })
     await user.click(queryButton)
@@ -133,14 +142,14 @@ describe('Panel', () => {
   })
 
   it('renders Actor button as enabled', () => {
-    render(<Panel />)
+    renderPanel()
     const actorButton = screen.getByRole('button', { name: 'Actor' })
     expect(actorButton).not.toBeDisabled()
   })
 
   it('sends create-actor message to sandbox when Actor button is clicked', async () => {
     const user = userEvent.setup()
-    render(<Panel />)
+    renderPanel()
 
     const actorButton = screen.getByRole('button', { name: 'Actor' })
     await user.click(actorButton)
@@ -154,7 +163,7 @@ describe('Panel', () => {
   it('calls onCreateElement with "actor" when Actor button is clicked and callback provided', async () => {
     const user = userEvent.setup()
     const onCreateElement = vi.fn()
-    render(<Panel onCreateElement={onCreateElement} />)
+    renderPanel({ onCreateElement })
 
     const actorButton = screen.getByRole('button', { name: 'Actor' })
     await user.click(actorButton)
@@ -163,13 +172,13 @@ describe('Panel', () => {
   })
 
   it('renders Lane button as enabled', () => {
-    render(<Panel />)
+    renderPanel()
     expect(screen.getByRole('button', { name: 'Lane' })).toBeEnabled()
   })
 
   it('sends create-lane message to sandbox when Lane button is clicked', async () => {
     const user = userEvent.setup()
-    render(<Panel />)
+    renderPanel()
 
     const laneButton = screen.getByRole('button', { name: 'Lane' })
     await user.click(laneButton)
@@ -181,7 +190,7 @@ describe('Panel', () => {
   })
 
   it('shows multiple selection message when multiple elements are selected', async () => {
-    render(<Panel />)
+    renderPanel()
 
     // Simulate receiving a multiple-selection message from the sandbox
     const messageEvent = new MessageEvent('message', {
@@ -198,7 +207,7 @@ describe('Panel', () => {
   })
 
   it('keeps creation buttons visible when multiple elements are selected', async () => {
-    render(<Panel />)
+    renderPanel()
 
     const messageEvent = new MessageEvent('message', {
       data: {
@@ -221,7 +230,7 @@ describe('Panel', () => {
   })
 
   it('does not show element editor fields when multiple elements are selected', async () => {
-    render(<Panel />)
+    renderPanel()
 
     const messageEvent = new MessageEvent('message', {
       data: {
@@ -240,20 +249,20 @@ describe('Panel', () => {
   })
 
   it('keeps other element buttons disabled', () => {
-    render(<Panel />)
+    renderPanel()
     // Other buttons should still be disabled until their handlers are implemented
     expect(screen.getByRole('button', { name: 'Lane' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Chapter' })).toBeEnabled()
   })
 
   it('renders GWT button as enabled', () => {
-    render(<Panel />)
+    renderPanel()
     expect(screen.getByRole('button', { name: 'GWT' })).toBeEnabled()
   })
 
   it('sends create-gwt message to sandbox when GWT button is clicked', async () => {
     const user = userEvent.setup()
-    render(<Panel />)
+    renderPanel()
 
     const gwtButton = screen.getByRole('button', { name: 'GWT' })
     await user.click(gwtButton)
@@ -267,7 +276,7 @@ describe('Panel', () => {
   it('calls onCreateElement with "gwt" when GWT button is clicked and callback provided', async () => {
     const user = userEvent.setup()
     const onCreateElement = vi.fn()
-    render(<Panel onCreateElement={onCreateElement} />)
+    renderPanel({ onCreateElement })
 
     const gwtButton = screen.getByRole('button', { name: 'GWT' })
     await user.click(gwtButton)
@@ -283,12 +292,12 @@ describe('Panel', () => {
     })
 
     it('renders a resize handle element', () => {
-      render(<Panel />)
+      renderPanel()
       expect(screen.getByRole('separator', { name: /resize/i })).toBeInTheDocument()
     })
 
     it('sends resize-panel message on drag', () => {
-      render(<Panel />)
+      renderPanel()
       const handle = screen.getByRole('separator', { name: /resize/i })
 
       fireEvent.pointerDown(handle, { clientX: 100, clientY: 200 })
@@ -307,7 +316,7 @@ describe('Panel', () => {
 
     it('enforces minimum width of 240px', () => {
       Object.defineProperty(window, 'innerWidth', { value: 260, writable: true })
-      render(<Panel />)
+      renderPanel()
       const handle = screen.getByRole('separator', { name: /resize/i })
 
       // Drag left by 30px: 260 + (-30) = 230, should clamp to 240
@@ -327,7 +336,7 @@ describe('Panel', () => {
 
     it('enforces minimum height of 300px', () => {
       Object.defineProperty(window, 'innerHeight', { value: 320, writable: true })
-      render(<Panel />)
+      renderPanel()
       const handle = screen.getByRole('separator', { name: /resize/i })
 
       // Drag up by 30px: 320 + (-30) = 290, should clamp to 300
@@ -346,7 +355,7 @@ describe('Panel', () => {
     })
 
     it('stops tracking on pointerup', () => {
-      render(<Panel />)
+      renderPanel()
       const handle = screen.getByRole('separator', { name: /resize/i })
 
       fireEvent.pointerDown(handle, { clientX: 100, clientY: 200 })
@@ -364,6 +373,56 @@ describe('Panel', () => {
         }),
         '*'
       )
+    })
+  })
+
+  describe('Import YAML', () => {
+    it('renders Import YAML button', () => {
+      renderPanel()
+      expect(screen.getByRole('button', { name: /import yaml/i })).toBeInTheDocument()
+    })
+
+    it('shows textarea when Import YAML button is clicked', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      await user.click(screen.getByRole('button', { name: /import yaml/i }))
+
+      expect(screen.getByPlaceholderText(/paste yaml here/i)).toBeInTheDocument()
+    })
+
+    it('sends import-from-yaml message with textarea content on Import', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      await user.click(screen.getByRole('button', { name: /import yaml/i }))
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 'slice: Test')
+      await user.click(screen.getByRole('button', { name: /^import$/i }))
+
+      expect(parent.postMessage).toHaveBeenCalledWith(
+        { pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: 'slice: Test' } } },
+        '*'
+      )
+    })
+
+    it('hides textarea when Cancel is clicked', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      await user.click(screen.getByRole('button', { name: /import yaml/i }))
+      expect(screen.getByPlaceholderText(/paste yaml here/i)).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: /cancel/i }))
+      expect(screen.queryByPlaceholderText(/paste yaml here/i)).not.toBeInTheDocument()
+    })
+
+    it('disables Import button when textarea is empty', async () => {
+      const user = userEvent.setup()
+      renderPanel()
+
+      await user.click(screen.getByRole('button', { name: /import yaml/i }))
+
+      expect(screen.getByRole('button', { name: /^import$/i })).toBeDisabled()
     })
   })
 })

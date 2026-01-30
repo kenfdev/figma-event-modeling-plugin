@@ -3,6 +3,15 @@ import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ElementEditor } from '../view-selected-element/ElementEditor'
 import type { ElementType } from '../../shared/types/plugin'
+import { TranslationProvider } from '../../shared/i18n'
+
+function renderWithProvider(ui: React.ReactElement) {
+  return render(
+    <TranslationProvider initialLocale="en">
+      {ui}
+    </TranslationProvider>
+  )
+}
 
 describe('Export to Markdown button click', () => {
   const postMessageSpy = vi.fn()
@@ -14,7 +23,7 @@ describe('Export to Markdown button click', () => {
 
   it('sends export-slice-to-markdown message with slice id when clicked', async () => {
     const user = userEvent.setup()
-    render(
+    renderWithProvider(
       <ElementEditor
         selectedElement={{
           id: 'slice-42',
@@ -59,7 +68,7 @@ describe('Export to Markdown clipboard and toast', () => {
 
   it('copies markdown to clipboard when result message is received', async () => {
     const { Panel } = await import('../open-plugin-panel/Panel')
-    render(<Panel />)
+    render(<TranslationProvider initialLocale="en"><Panel /></TranslationProvider>)
 
     await act(async () => {
       messageHandler(new MessageEvent('message', {
@@ -77,7 +86,7 @@ describe('Export to Markdown clipboard and toast', () => {
 
   it('shows toast notification after copying to clipboard', async () => {
     const { Panel } = await import('../open-plugin-panel/Panel')
-    render(<Panel />)
+    render(<TranslationProvider initialLocale="en"><Panel /></TranslationProvider>)
 
     await act(async () => {
       messageHandler(new MessageEvent('message', {
@@ -96,7 +105,7 @@ describe('Export to Markdown clipboard and toast', () => {
   it('auto-dismisses toast after 3 seconds', async () => {
     vi.useFakeTimers()
     const { Panel } = await import('../open-plugin-panel/Panel')
-    render(<Panel />)
+    render(<TranslationProvider initialLocale="en"><Panel /></TranslationProvider>)
 
     await act(async () => {
       messageHandler(new MessageEvent('message', {
@@ -124,7 +133,7 @@ describe('Export to Markdown clipboard and toast', () => {
       clipboard: { writeText: vi.fn(() => Promise.reject(new Error('denied'))) },
     })
     const { Panel } = await import('../open-plugin-panel/Panel')
-    render(<Panel />)
+    render(<TranslationProvider initialLocale="en"><Panel /></TranslationProvider>)
 
     await act(async () => {
       messageHandler(new MessageEvent('message', {
@@ -138,5 +147,28 @@ describe('Export to Markdown clipboard and toast', () => {
     })
 
     expect(screen.getByText('Failed to copy to clipboard')).toBeInTheDocument()
+  })
+
+  it('falls back to execCommand when navigator.clipboard is unavailable', async () => {
+    vi.stubGlobal('navigator', {})
+    document.execCommand = vi.fn(() => true)
+    const execCommandSpy = vi.spyOn(document, 'execCommand')
+    const { Panel } = await import('../open-plugin-panel/Panel')
+    render(<TranslationProvider initialLocale="en"><Panel /></TranslationProvider>)
+
+    await act(async () => {
+      messageHandler(new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'export-slice-to-markdown-result',
+            payload: { markdown: '# My Slice\n' },
+          },
+        },
+      }))
+    })
+
+    expect(execCommandSpy).toHaveBeenCalledWith('copy')
+    expect(screen.getByText('Copied to clipboard!')).toBeInTheDocument()
+    execCommandSpy.mockRestore()
   })
 })
