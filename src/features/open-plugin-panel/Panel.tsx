@@ -246,6 +246,20 @@ export function Panel({ onCreateElement }: PanelProps) {
 
           <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
 
+          <div className="section">
+            <h2>Import</h2>
+            <div className="button-group">
+              <button
+                className="button"
+                onClick={() => {
+                  parent.postMessage({ pluginMessage: { type: 'import-from-yaml' } }, '*')
+                }}
+              >
+                Import from Clipboard
+              </button>
+            </div>
+          </div>
+
           {toastMessage && (
             <div className="toast" role="status">{toastMessage}</div>
           )}
