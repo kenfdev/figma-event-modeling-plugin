@@ -125,14 +125,15 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F2.4 | ViewStructuralElementType | Done | `src/features/view-selected-element/SPEC.md` |
 | F11.1 | ChangeElementType | Done | `src/features/change-element-type/SPEC.md` |
 | F12.1 | Internationalization | Done | `src/shared/i18n/SPEC.md` |
+| F0.3 | PanelUXRedesign | Done | `src/features/open-plugin-panel/SPEC.md` |
+| F13.1 | LockCoreShapes | | `src/features/lock-core-shapes/SPEC.md` |
+| F14.1 | RawJsonViewer | | `src/features/raw-json-viewer/SPEC.md` |
 
 ## Feature Backlog
 
 Ideas under consideration. When ready to implement, flesh out via discussion, then create `src/features/<name>/SPEC.md` and add a row to the Feature Index table above.
 
-- improve the plugin panel. it isn't intuitive. the "Core shapes" look nice. but all the other stuff aren't intuitive at all. the ux should be improved
-- all the core shapes should be locked by default. this will prevend users who do not have the plugin installed easily edit the contents of the shape. when the plugin is active and the shape is selected, the lock is unlocked. Whenever the user attempts to edit the content directly, an error indicator should notify the user not to directly edit the shape content and edit via plugin.
-- there should be an `raw` toggle, which shows the raw json properties of the shape. it's editable, but validates the json. if invalid, it gives feedback to the user and will not accept the change.
+(No items — all current ideas have been promoted to specs.)
 
 
 ## Future Considerations (Post-MVP)
