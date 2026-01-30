@@ -1,0 +1,1 @@
+export { handleDuplicateElement } from './handlers'
