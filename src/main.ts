@@ -30,6 +30,7 @@ import { handleExportSliceToMarkdown } from './features/export-slice-to-markdown
 import { handleImportFromYaml } from './features/import-from-yaml/sandbox'
 import { handleChangeElementType } from './features/change-element-type/sandbox'
 import { handleGetLocale, handleSetLocale } from './shared/i18n/sandbox'
+import { createAutoLockManager } from './features/lock-core-shapes/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -55,9 +56,14 @@ registerHandler('change-element-type', handleChangeElementType)
 registerHandler('get-locale', handleGetLocale)
 registerHandler('set-locale', handleSetLocale)
 
+const autoLockManager = createAutoLockManager()
+
 export default function main() {
   initializePlugin({ figma })
   registerSelectionChangeListener({ figma })
+  figma.on('selectionchange', () => {
+    autoLockManager.handleSelectionForLock({ figma })
+  })
   figma.on('documentchange', (event) => {
     handleImagePasteIntoScreen(event, { figma })
   })
