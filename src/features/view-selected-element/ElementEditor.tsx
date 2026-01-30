@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import type { ElementType, SectionType } from '../../shared/types/plugin'
+import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 
 export interface SelectedElement {
   id: string
-  type: ElementType | SectionType
+  type: ElementType | StructuralType | SectionType
   name: string
   customFields?: string
   notes?: string
@@ -22,6 +22,10 @@ const typeLabels: Record<string, string> = {
   event: 'Event',
   query: 'Query',
   actor: 'Actor',
+  lane: 'Lane',
+  chapter: 'Chapter',
+  processor: 'Processor',
+  screen: 'Screen',
   slice: 'Slice',
   gwt: 'GWT',
 }

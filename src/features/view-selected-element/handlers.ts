@@ -1,9 +1,9 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
-import type { ElementType } from '../../shared/types/plugin'
+import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 
 export interface SelectionChangePayload {
   id: string
-  type: ElementType
+  type: ElementType | StructuralType | SectionType
   name: string
 }
 
@@ -43,7 +43,7 @@ export function handleSelectionChange({
     type: 'selection-changed',
     payload: {
       id: node.id,
-      type: elementType as ElementType,
+      type: elementType as ElementType | StructuralType | SectionType,
       name: node.name,
       customFields: node.getPluginData('customFields') || '',
       notes: node.getPluginData('notes') || '',
