@@ -211,13 +211,21 @@ export async function handleImportFromYaml(
         ? topRowY + (rowCount > 1 ? 2 : 1) * ELEMENT_HEIGHT + (rowCount > 1 ? ROW_GAP : 0) + GWT_VERTICAL_OFFSET
         : topRowY
 
+      // Align GWT to left edge of content area
+      const contentLeftXCandidates: number[] = []
+      if (topRowItemCount > 0) contentLeftXCandidates.push(topRowStartX)
+      if (eventCount > 0) contentLeftXCandidates.push(bottomRowStartX)
+      const gwtLeftX = contentLeftXCandidates.length > 0
+        ? Math.min(...contentLeftXCandidates)
+        : center.x - GWT_PARENT_WIDTH / 2
+
       data.gwt.forEach((gwtEntry, gwtIndex) => {
         const parent = figma.createSection()
         parent.name = gwtEntry.name
         parent.setPluginData('type', 'gwt')
         parent.resizeWithoutConstraints(GWT_PARENT_WIDTH, GWT_PARENT_HEIGHT)
-        parent.x = center.x - GWT_PARENT_WIDTH / 2 + gwtIndex * (GWT_PARENT_WIDTH + COLUMN_GAP)
-        parent.y = gwtStartY
+        parent.x = gwtLeftX
+        parent.y = gwtStartY + gwtIndex * (GWT_PARENT_HEIGHT + GWT_VERTICAL_OFFSET)
 
         const gwtItems = [gwtEntry.given, gwtEntry.when, gwtEntry.then]
         for (let i = 0; i < GWT_CHILD_NAMES.length; i++) {
