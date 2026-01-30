@@ -17,6 +17,9 @@ const EVENT_EXTERNAL_STROKE = { r: 0x7d / 255, g: 0x3c / 255, b: 0x98 / 255 }
 const QUERY_FILL = { r: 0x7e / 255, g: 0xd3 / 255, b: 0x21 / 255 }
 const QUERY_STROKE = { r: 0x5b / 255, g: 0xa5 / 255, b: 0x18 / 255 }
 
+const ERROR_FILL = { r: 0xff / 255, g: 0x44 / 255, b: 0x44 / 255 }
+const ERROR_STROKE = { r: 0xcc / 255, g: 0x00 / 255, b: 0x00 / 255 }
+
 const GWT_PARENT_WIDTH = 400
 const GWT_PARENT_HEIGHT = 600
 const GWT_CHILD_WIDTH = 350
@@ -77,10 +80,14 @@ export async function handleImportFromYaml(
 
     const sliceChildren: Array<{ node: { x: number; y: number }; x: number; y: number; width: number; height: number }> = []
 
+    const gwtHasItems = data.gwt?.some(g =>
+      g.given.length > 0 || g.when.length > 0 || g.then.length > 0
+    )
     const needsFont =
       (data.commands && data.commands.length > 0) ||
       (data.events && data.events.length > 0) ||
-      (data.queries && data.queries.length > 0)
+      (data.queries && data.queries.length > 0) ||
+      gwtHasItems
 
     if (needsFont) {
       await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
@@ -228,24 +235,71 @@ export async function handleImportFromYaml(
         const parent = figma.createSection()
         parent.name = gwtEntry.name
         parent.setPluginData('type', 'gwt')
-        parent.resizeWithoutConstraints(GWT_PARENT_WIDTH, GWT_PARENT_HEIGHT)
-        parent.x = gwtLeftX
-        parent.y = gwtStartY + gwtIndex * (GWT_PARENT_HEIGHT + GWT_VERTICAL_OFFSET)
+
+        // Create sticky note for description if provided
+        if (gwtEntry.description) {
+          const sticky = figma.createSticky()
+          sticky.text.characters = gwtEntry.description
+          parent.appendChild(sticky)
+        }
 
         const gwtItems = [gwtEntry.given, gwtEntry.when, gwtEntry.then]
         for (let i = 0; i < GWT_CHILD_NAMES.length; i++) {
           const child = figma.createSection()
-          const items = gwtItems[i]
-          if (items && items.length > 0) {
-            child.name = `${GWT_CHILD_NAMES[i]}\n${items.map(item => item.name).join('\n')}`
-          } else {
-            child.name = GWT_CHILD_NAMES[i]
-          }
+          child.name = GWT_CHILD_NAMES[i]
           child.resizeWithoutConstraints(GWT_CHILD_WIDTH, GWT_CHILD_HEIGHT)
           child.x = (GWT_PARENT_WIDTH - GWT_CHILD_WIDTH) / 2
           child.y = GWT_CHILD_GAP + i * (GWT_CHILD_HEIGHT + GWT_CHILD_GAP)
+
+          // Create colored element shapes inside child section
+          const items = gwtItems[i]
+          if (items) {
+            items.forEach((item) => {
+              const shape = figma.createShapeWithText()
+              shape.shapeType = 'ROUNDED_RECTANGLE'
+              shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
+              shape.cornerRadius = ELEMENT_CORNER_RADIUS
+
+              let fillColor, strokeColor
+              switch (item.type) {
+                case 'command':
+                  fillColor = COMMAND_FILL
+                  strokeColor = COMMAND_STROKE
+                  break
+                case 'event':
+                  fillColor = EVENT_INTERNAL_FILL
+                  strokeColor = EVENT_INTERNAL_STROKE
+                  break
+                case 'query':
+                  fillColor = QUERY_FILL
+                  strokeColor = QUERY_STROKE
+                  break
+                case 'error':
+                  fillColor = ERROR_FILL
+                  strokeColor = ERROR_STROKE
+                  break
+              }
+
+              shape.fills = [{ type: 'SOLID', color: fillColor }]
+              shape.strokes = [{ type: 'SOLID', color: strokeColor }]
+              shape.strokeWeight = 2
+              shape.text.characters = item.name
+              shape.text.fills = [{ type: 'SOLID', color: TEXT_COLOR }]
+              shape.setPluginData('type', item.type)
+              shape.setPluginData('label', item.name)
+              if (item.fields) {
+                shape.setPluginData('customFields', item.fields)
+              }
+              child.appendChild(shape)
+            })
+          }
+
           parent.appendChild(child)
         }
+
+        parent.resizeWithoutConstraints(GWT_PARENT_WIDTH, GWT_PARENT_HEIGHT)
+        parent.x = gwtLeftX
+        parent.y = gwtStartY + gwtIndex * (GWT_PARENT_HEIGHT + GWT_VERTICAL_OFFSET)
 
         slice.appendChild(parent)
         sliceChildren.push({ node: parent, x: parent.x, y: parent.y, width: GWT_PARENT_WIDTH, height: GWT_PARENT_HEIGHT })
