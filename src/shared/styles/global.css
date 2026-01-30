@@ -46,6 +46,12 @@ h2 {
   flex-wrap: wrap;
 }
 
+.button-group.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .button {
   padding: 8px 16px;
   border: 1.5px solid transparent;
@@ -60,48 +66,56 @@ h2 {
   opacity: 0.9;
 }
 
+/* Card-style element buttons */
+.card-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  color: #333;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.card-button:hover:not(:disabled) {
+  opacity: 1;
+  border-color: #bbb;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.card-preview {
+  width: 100%;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #444;
+}
+
 .button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Element type colors */
-.button-command {
-  background: #3DADFF;
-  border: 2px solid #007AD2;
-  color: white;
-}
-
-.button-event {
-  background: #FF9E42;
-  color: white;
-}
-
-.button-query {
-  background: #7ED321;
-  color: white;
-}
-
-.button-actor {
-  background: #50E3C2;
-  color: white;
-}
-
-/* Structural type colors */
-.button-lane,
-.button-processor,
-.button-screen,
-.button-chapter {
-  background: transparent;
-  border: 1.5px solid #555;
-  color: #333;
-}
-
-/* Section type colors */
-.button-slice,
-.button-gwt {
-  background: transparent;
-  border: 1.5px solid #555;
+/* Element type button classes (used by card-button for identification) */
+.card-button.button-command,
+.card-button.button-event,
+.card-button.button-query,
+.card-button.button-actor,
+.card-button.button-lane,
+.card-button.button-processor,
+.card-button.button-screen,
+.card-button.button-chapter,
+.card-button.button-slice,
+.card-button.button-gwt {
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
   color: #333;
 }
 

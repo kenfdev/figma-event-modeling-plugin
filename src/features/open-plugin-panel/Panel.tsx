@@ -9,25 +9,26 @@ interface ButtonConfig {
   type: ElementType | StructuralType | SectionType
   label: string
   className: string
+  previewColor: string
 }
 
 const coreShapes: ButtonConfig[] = [
-  { type: 'command', label: 'Command', className: 'button-command' },
-  { type: 'event', label: 'Event', className: 'button-event' },
-  { type: 'query', label: 'Query', className: 'button-query' },
-  { type: 'actor', label: 'Actor', className: 'button-actor' },
+  { type: 'command', label: 'Command', className: 'button-command', previewColor: '#3DADFF' },
+  { type: 'event', label: 'Event', className: 'button-event', previewColor: '#FF9E42' },
+  { type: 'query', label: 'Query', className: 'button-query', previewColor: '#7ED321' },
+  { type: 'actor', label: 'Actor', className: 'button-actor', previewColor: '#50E3C2' },
 ]
 
 const structural: ButtonConfig[] = [
-  { type: 'lane', label: 'Lane', className: 'button-lane' },
-  { type: 'chapter', label: 'Chapter', className: 'button-chapter' },
-  { type: 'processor', label: 'Processor', className: 'button-processor' },
-  { type: 'screen', label: 'Screen', className: 'button-screen' },
+  { type: 'lane', label: 'Lane', className: 'button-lane', previewColor: '#C0C0C0' },
+  { type: 'chapter', label: 'Chapter', className: 'button-chapter', previewColor: '#00BCD4' },
+  { type: 'processor', label: 'Processor', className: 'button-processor', previewColor: '#333333' },
+  { type: 'screen', label: 'Screen', className: 'button-screen', previewColor: '#808080' },
 ]
 
 const sections: ButtonConfig[] = [
-  { type: 'slice', label: 'Slice', className: 'button-slice' },
-  { type: 'gwt', label: 'GWT', className: 'button-gwt' },
+  { type: 'slice', label: 'Slice', className: 'button-slice', previewColor: '#E91E63' },
+  { type: 'gwt', label: 'GWT', className: 'button-gwt', previewColor: '#FF5722' },
 ]
 
 interface ButtonGroupProps {
@@ -41,15 +42,16 @@ function ButtonGroup({ title, buttons, onCreateElement, enabledTypes }: ButtonGr
   return (
     <div className="section">
       <h2>{title}</h2>
-      <div className="button-group">
+      <div className="button-group card-grid">
         {buttons.map((btn) => (
           <button
             key={btn.type}
-            className={`button ${btn.className}`}
+            className={`button card-button ${btn.className}`}
             onClick={() => onCreateElement(btn.type)}
             disabled={!enabledTypes.has(btn.type)}
           >
-            {btn.label}
+            <div className="card-preview" style={{ backgroundColor: btn.previewColor }} />
+            <span className="card-label">{btn.label}</span>
           </button>
         ))}
       </div>

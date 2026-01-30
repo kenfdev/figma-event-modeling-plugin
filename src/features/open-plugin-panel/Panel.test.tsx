@@ -376,53 +376,80 @@ describe('Panel', () => {
     })
   })
 
-  describe('Import YAML', () => {
-    it('renders Import YAML button', () => {
+  it('does not render Import section in main panel (moved to Settings)', () => {
+    renderPanel()
+    expect(screen.queryByRole('heading', { name: /import/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /import yaml/i })).not.toBeInTheDocument()
+  })
+
+  describe('Card-style element preview buttons', () => {
+    it('renders each creation button as a card with a colored preview element', () => {
       renderPanel()
-      expect(screen.getByRole('button', { name: /import yaml/i })).toBeInTheDocument()
+
+      // Each button should contain a visual preview element (not just text)
+      const allButtons = [
+        'Command', 'Event', 'Query', 'Actor',
+        'Lane', 'Chapter', 'Processor', 'Screen',
+        'Slice', 'GWT',
+      ]
+      for (const name of allButtons) {
+        const button = screen.getByRole('button', { name })
+        // Each card button should have a child element with class 'card-preview'
+        const preview = button.querySelector('.card-preview')
+        expect(preview, `${name} button should contain a .card-preview element`).toBeTruthy()
+      }
     })
 
-    it('shows textarea when Import YAML button is clicked', async () => {
+    it('renders Core Shapes preview colors matching element colors', () => {
+      renderPanel()
+
+      // Browser normalizes hex colors to rgb() format
+      const colorMap: Record<string, string> = {
+        Command: 'rgb(61, 173, 255)',
+        Event: 'rgb(255, 158, 66)',
+        Query: 'rgb(126, 211, 33)',
+        Actor: 'rgb(80, 227, 194)',
+      }
+
+      for (const [name, expectedColor] of Object.entries(colorMap)) {
+        const button = screen.getByRole('button', { name })
+        const preview = button.querySelector('.card-preview') as HTMLElement
+        expect(preview).toBeTruthy()
+        expect(preview.style.backgroundColor).toBe(expectedColor)
+      }
+    })
+
+    it('renders button-group containers with grid layout class', () => {
+      renderPanel()
+      const buttonGroups = document.querySelectorAll('.button-group')
+      for (const group of buttonGroups) {
+        expect(group.classList.contains('card-grid')).toBe(true)
+      }
+    })
+
+    it('still sends correct message when a card button is clicked', async () => {
       const user = userEvent.setup()
       renderPanel()
 
-      await user.click(screen.getByRole('button', { name: /import yaml/i }))
-
-      expect(screen.getByPlaceholderText(/paste yaml here/i)).toBeInTheDocument()
-    })
-
-    it('sends import-from-yaml message with textarea content on Import', async () => {
-      const user = userEvent.setup()
-      renderPanel()
-
-      await user.click(screen.getByRole('button', { name: /import yaml/i }))
-      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 'slice: Test')
-      await user.click(screen.getByRole('button', { name: /^import$/i }))
+      // Click Processor card (one of the structural types) to verify cards still work
+      const processorButton = screen.getByRole('button', { name: 'Processor' })
+      await user.click(processorButton)
 
       expect(parent.postMessage).toHaveBeenCalledWith(
-        { pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: 'slice: Test' } } },
+        { pluginMessage: { type: 'create-processor' } },
         '*'
       )
     })
 
-    it('hides textarea when Cancel is clicked', async () => {
+    it('still calls onCreateElement callback when a card button is clicked', async () => {
       const user = userEvent.setup()
-      renderPanel()
+      const onCreateElement = vi.fn()
+      renderPanel({ onCreateElement })
 
-      await user.click(screen.getByRole('button', { name: /import yaml/i }))
-      expect(screen.getByPlaceholderText(/paste yaml here/i)).toBeInTheDocument()
+      const screenButton = screen.getByRole('button', { name: 'Screen' })
+      await user.click(screenButton)
 
-      await user.click(screen.getByRole('button', { name: /cancel/i }))
-      expect(screen.queryByPlaceholderText(/paste yaml here/i)).not.toBeInTheDocument()
-    })
-
-    it('disables Import button when textarea is empty', async () => {
-      const user = userEvent.setup()
-      renderPanel()
-
-      await user.click(screen.getByRole('button', { name: /import yaml/i }))
-
-      expect(screen.getByRole('button', { name: /^import$/i })).toBeDisabled()
+      expect(onCreateElement).toHaveBeenCalledWith('screen')
     })
   })
 })
