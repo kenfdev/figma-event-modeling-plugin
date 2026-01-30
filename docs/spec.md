@@ -124,7 +124,7 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F10.1 | ImportFromYaml | Done | `src/features/import-from-yaml/SPEC.md` |
 | F2.4 | ViewStructuralElementType | Done | `src/features/view-selected-element/SPEC.md` |
 | F11.1 | ChangeElementType | Done | `src/features/change-element-type/SPEC.md` |
-| F12.1 | Internationalization | | `src/shared/i18n/SPEC.md` |
+| F12.1 | Internationalization | Done | `src/shared/i18n/SPEC.md` |
 
 ## Feature Backlog
 
