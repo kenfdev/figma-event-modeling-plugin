@@ -31,6 +31,7 @@ const typeLabels: Record<string, string> = {
 }
 
 const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
+const typesWithDropdown: ElementType[] = ['command', 'event', 'query']
 const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
 
 export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
@@ -174,7 +175,21 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     )
   }
 
+  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newType = e.target.value
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'change-element-type',
+          payload: { id: selectedElement.id, newType },
+        },
+      },
+      '*'
+    )
+  }
+
   const showCustomFields = typesWithCustomFields.includes(selectedElement.type as ElementType)
+  const showTypeDropdown = typesWithDropdown.includes(selectedElement.type as ElementType)
   const isStructural = structuralTypes.includes(selectedElement.type as StructuralType)
 
   return (
@@ -182,12 +197,25 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
       <h2>Selected Element</h2>
       <div className="element-editor-content">
         <div className="element-editor-row">
-          <span
-            role="status"
-            className={`type-badge type-${selectedElement.type}`}
-          >
-            {typeLabel}
-          </span>
+          {showTypeDropdown ? (
+            <select
+              value={selectedElement.type}
+              onChange={handleTypeChange}
+              aria-label="Element type"
+              className={`type-badge type-${selectedElement.type}`}
+            >
+              <option value="command">Command</option>
+              <option value="event">Event</option>
+              <option value="query">Query</option>
+            </select>
+          ) : (
+            <span
+              role="status"
+              className={`type-badge type-${selectedElement.type}`}
+            >
+              {typeLabel}
+            </span>
+          )}
         </div>
         {selectedElement.type === 'event' && (
           <div className="element-editor-row">
