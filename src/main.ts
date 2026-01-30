@@ -27,6 +27,7 @@ import { handleUpdateSliceIssueUrl } from './features/update-slice-issue-url/san
 import { handleOpenSliceIssueUrl } from './features/open-slice-issue-url/sandbox'
 import { handleDuplicateElement } from './features/duplicate-element/sandbox'
 import { handleExportSliceToMarkdown } from './features/export-slice-to-markdown/sandbox'
+import { handleImportFromYaml } from './features/import-from-yaml/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -47,6 +48,7 @@ registerHandler('update-slice-issue-url', handleUpdateSliceIssueUrl)
 registerHandler('open-slice-issue-url', handleOpenSliceIssueUrl)
 registerHandler('duplicate-element', handleDuplicateElement)
 registerHandler('export-slice-to-markdown', handleExportSliceToMarkdown)
+registerHandler('import-from-yaml', handleImportFromYaml)
 
 export default function main() {
   initializePlugin({ figma })
