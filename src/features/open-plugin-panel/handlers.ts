@@ -13,6 +13,10 @@ const handlers: Record<string, MessageHandler> = {
   close: (_payload, { figma }) => {
     figma.closePlugin()
   },
+  'resize-panel': (payload, { figma }) => {
+    const { width, height } = payload as { width: number; height: number }
+    figma.ui.resize(Math.round(width), Math.round(height))
+  },
 }
 
 export function createMessageRouter(context: MessageHandlerContext) {

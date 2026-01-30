@@ -18,6 +18,14 @@ describe('Message Handlers', () => {
       expect(figmaMock.closePlugin).toHaveBeenCalled()
     })
 
+    it('routes resize-panel message to figma.ui.resize with rounded values', () => {
+      const router = createMessageRouter({ figma: figmaMock as unknown as typeof figma })
+
+      router({ type: 'resize-panel', payload: { width: 350.7, height: 600.3 } })
+
+      expect(figmaMock.ui.resize).toHaveBeenCalledWith(351, 600)
+    })
+
     it('logs unknown message types', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
       const router = createMessageRouter({ figma: figmaMock as unknown as typeof figma })

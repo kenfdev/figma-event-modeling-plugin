@@ -7,6 +7,7 @@ export interface FigmaMock {
   on: ReturnType<typeof vi.fn>
   ui: {
     postMessage: ReturnType<typeof vi.fn>
+    resize: ReturnType<typeof vi.fn>
     onmessage: ((msg: unknown) => void) | null
   }
   currentPage: {
@@ -28,6 +29,7 @@ export interface FigmaMock {
   loadFontAsync: ReturnType<typeof vi.fn>
   getNodeById: ReturnType<typeof vi.fn>
   notify: ReturnType<typeof vi.fn>
+  openExternal: ReturnType<typeof vi.fn>
 }
 
 export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
@@ -38,6 +40,7 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
     on: vi.fn(),
     ui: {
       postMessage: vi.fn(),
+      resize: vi.fn(),
       onmessage: null,
     },
     currentPage: {
@@ -130,6 +133,7 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
     loadFontAsync: vi.fn(() => Promise.resolve()),
     getNodeById: vi.fn(),
     notify: vi.fn(),
+    openExternal: vi.fn(() => Promise.resolve()),
     ...overrides,
   }
 }
