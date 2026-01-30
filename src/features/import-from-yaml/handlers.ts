@@ -29,11 +29,14 @@ const GWT_CHILD_NAMES = ['Given', 'When', 'Then'] as const
 
 const ELEMENT_GAP = 20
 const GROUP_GAP = 60
-const ROW_GAP = 40
+const ROW_GAP = 120
+const RESERVED_TOP_SPACE = 120
 const SLICE_WIDTH = 400
 const SLICE_HEIGHT = 120
 const COLUMN_GAP = 40
 const GWT_VERTICAL_OFFSET = 40
+const GWT_DESCRIPTION_WIDTH = 200
+const GWT_DESCRIPTION_GAP = 20
 
 function isImportData(payload: unknown): payload is ImportData {
   return (
@@ -114,8 +117,8 @@ export async function handleImportFromYaml(
       ? eventCount * ELEMENT_WIDTH + (eventCount - 1) * ELEMENT_GAP
       : 0
 
-    // Starting Y position for rows (below the slice)
-    const topRowY = center.y + SLICE_HEIGHT / 2 + COLUMN_GAP
+    // Starting Y position for rows (with reserved space above for screen/processor elements)
+    const topRowY = center.y + SLICE_HEIGHT / 2 + COLUMN_GAP + RESERVED_TOP_SPACE
     const bottomRowY = topRowY + ELEMENT_HEIGHT + ROW_GAP
 
     // Top row starting X (centered on viewport)
@@ -236,13 +239,6 @@ export async function handleImportFromYaml(
         parent.name = gwtEntry.name
         parent.setPluginData('type', 'gwt')
 
-        // Create sticky note for description if provided
-        if (gwtEntry.description) {
-          const sticky = figma.createSticky()
-          sticky.text.characters = gwtEntry.description
-          parent.appendChild(sticky)
-        }
-
         const gwtItems = [gwtEntry.given, gwtEntry.when, gwtEntry.then]
         for (let i = 0; i < GWT_CHILD_NAMES.length; i++) {
           const child = figma.createSection()
@@ -297,12 +293,27 @@ export async function handleImportFromYaml(
           parent.appendChild(child)
         }
 
-        parent.resizeWithoutConstraints(GWT_PARENT_WIDTH, GWT_PARENT_HEIGHT)
+        // Create sticky note for description to the right of children
+        const hasDescription = !!gwtEntry.description
+        const parentWidth = hasDescription
+          ? GWT_PARENT_WIDTH + GWT_DESCRIPTION_GAP + GWT_DESCRIPTION_WIDTH
+          : GWT_PARENT_WIDTH
+
+        if (hasDescription) {
+          const sticky = figma.createSticky()
+          sticky.text.characters = gwtEntry.description!
+          // Place sticky to the right of the child sections column
+          sticky.x = GWT_PARENT_WIDTH + GWT_DESCRIPTION_GAP
+          sticky.y = GWT_CHILD_GAP
+          parent.appendChild(sticky)
+        }
+
+        parent.resizeWithoutConstraints(parentWidth, GWT_PARENT_HEIGHT)
         parent.x = gwtLeftX
         parent.y = gwtStartY + gwtIndex * (GWT_PARENT_HEIGHT + GWT_VERTICAL_OFFSET)
 
         slice.appendChild(parent)
-        sliceChildren.push({ node: parent, x: parent.x, y: parent.y, width: GWT_PARENT_WIDTH, height: GWT_PARENT_HEIGHT })
+        sliceChildren.push({ node: parent, x: parent.x, y: parent.y, width: parentWidth, height: GWT_PARENT_HEIGHT })
       })
     }
 
@@ -320,6 +331,9 @@ export async function handleImportFromYaml(
         maxRight = Math.max(maxRight, child.x + child.width)
         maxBottom = Math.max(maxBottom, child.y + child.height)
       }
+
+      // Include reserved top space for screen/processor elements above command row
+      minY -= RESERVED_TOP_SPACE
 
       const contentWidth = maxRight - minX
       const contentHeight = maxBottom - minY
