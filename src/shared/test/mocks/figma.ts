@@ -21,6 +21,7 @@ export interface FigmaMock {
   }
   createShapeWithText: ReturnType<typeof vi.fn>
   createSection: ReturnType<typeof vi.fn>
+  createSticky: ReturnType<typeof vi.fn>
   createConnector: ReturnType<typeof vi.fn>
   createRectangle: ReturnType<typeof vi.fn>
   createNodeFromSvg: ReturnType<typeof vi.fn>
@@ -30,6 +31,10 @@ export interface FigmaMock {
   getNodeById: ReturnType<typeof vi.fn>
   notify: ReturnType<typeof vi.fn>
   openExternal: ReturnType<typeof vi.fn>
+  clientStorage: {
+    getAsync: ReturnType<typeof vi.fn>
+    setAsync: ReturnType<typeof vi.fn>
+  }
 }
 
 export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
@@ -75,6 +80,14 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
       height: 40,
       resizeWithoutConstraints: vi.fn(),
       fills: [],
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn(() => ''),
+    })),
+    createSticky: vi.fn(() => ({
+      id: 'mock-sticky-id',
+      x: 0,
+      y: 0,
+      text: { characters: '' },
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     })),
@@ -134,6 +147,10 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
     getNodeById: vi.fn(),
     notify: vi.fn(),
     openExternal: vi.fn(() => Promise.resolve()),
+    clientStorage: {
+      getAsync: vi.fn(),
+      setAsync: vi.fn(),
+    },
     ...overrides,
   }
 }
