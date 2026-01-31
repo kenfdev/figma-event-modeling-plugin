@@ -39,18 +39,29 @@ export function handleSelectionChange({
     return
   }
 
+  const payload: Record<string, unknown> = {
+    id: node.id,
+    type: elementType as ElementType | StructuralType | SectionType,
+    name: node.name,
+    customFields: node.getPluginData('customFields') || '',
+    notes: node.getPluginData('notes') || '',
+    external: node.getPluginData('external') === 'true',
+    fieldsVisible: node.getPluginData('fieldsVisible') === 'true',
+    issueUrl: node.getPluginData('issueUrl') || '',
+  }
+
+  if ('getPluginDataKeys' in node && typeof node.getPluginDataKeys === 'function') {
+    const keys = (node as unknown as { getPluginDataKeys: () => string[] }).getPluginDataKeys()
+    const pluginData: Record<string, string> = {}
+    for (const key of keys) {
+      pluginData[key] = node.getPluginData(key)
+    }
+    payload.pluginData = pluginData
+  }
+
   figma.ui.postMessage({
     type: 'selection-changed',
-    payload: {
-      id: node.id,
-      type: elementType as ElementType | StructuralType | SectionType,
-      name: node.name,
-      customFields: node.getPluginData('customFields') || '',
-      notes: node.getPluginData('notes') || '',
-      external: node.getPluginData('external') === 'true',
-      fieldsVisible: node.getPluginData('fieldsVisible') === 'true',
-      issueUrl: node.getPluginData('issueUrl') || '',
-    },
+    payload,
   })
 }
 
