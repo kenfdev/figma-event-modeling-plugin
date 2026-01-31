@@ -144,7 +144,7 @@ function SettingsPanel({ onBack }: SettingsPanelProps) {
   const [templateCopied, setTemplateCopied] = useState(false)
 
   const handleCopyTemplate = async () => {
-    await navigator.clipboard.writeText(YAML_TEMPLATE)
+    await copyToClipboard(YAML_TEMPLATE)
     setTemplateCopied(true)
     setTimeout(() => setTemplateCopied(false), 2000)
   }
