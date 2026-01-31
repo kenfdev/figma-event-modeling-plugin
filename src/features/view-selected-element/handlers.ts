@@ -5,6 +5,7 @@ export interface SelectionChangePayload {
   id: string
   type: ElementType | StructuralType | SectionType
   name: string
+  pluginData?: Record<string, string>
 }
 
 export function handleSelectionChange({

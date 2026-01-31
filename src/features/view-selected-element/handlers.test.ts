@@ -537,6 +537,156 @@ describe('handleSelectionChange', () => {
       })
     )
   })
+
+  it('includes pluginData with all plugin data keys and values for a command element', () => {
+    const data: Record<string, string> = {
+      type: 'command',
+      customFields: 'field1: value1',
+      notes: 'some notes',
+    }
+    const mockNode = {
+      id: 'node-1',
+      name: 'CreateOrder',
+      getPluginData: vi.fn((key: string) => data[key] || ''),
+      getPluginDataKeys: vi.fn(() => Object.keys(data)),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          pluginData: {
+            type: 'command',
+            customFields: 'field1: value1',
+            notes: 'some notes',
+          },
+        }),
+      })
+    )
+  })
+
+  it('includes pluginData for a structural element (lane)', () => {
+    const data: Record<string, string> = {
+      type: 'lane',
+    }
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Lane',
+      getPluginData: vi.fn((key: string) => data[key] || ''),
+      getPluginDataKeys: vi.fn(() => Object.keys(data)),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          pluginData: {
+            type: 'lane',
+          },
+        }),
+      })
+    )
+  })
+
+  it('includes pluginData for a section element (slice) with issueUrl', () => {
+    const data: Record<string, string> = {
+      type: 'slice',
+      issueUrl: 'https://github.com/issues/123',
+    }
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Slice',
+      getPluginData: vi.fn((key: string) => data[key] || ''),
+      getPluginDataKeys: vi.fn(() => Object.keys(data)),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          pluginData: {
+            type: 'slice',
+            issueUrl: 'https://github.com/issues/123',
+          },
+        }),
+      })
+    )
+  })
+
+  it('includes pluginData with all keys including external and fieldsVisible', () => {
+    const data: Record<string, string> = {
+      type: 'event',
+      external: 'true',
+      fieldsVisible: 'true',
+      customFields: 'amount: number',
+      notes: 'domain event',
+    }
+    const mockNode = {
+      id: 'node-1',
+      name: 'OrderPlaced',
+      getPluginData: vi.fn((key: string) => data[key] || ''),
+      getPluginDataKeys: vi.fn(() => Object.keys(data)),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'selection-changed',
+        payload: expect.objectContaining({
+          pluginData: {
+            type: 'event',
+            external: 'true',
+            fieldsVisible: 'true',
+            customFields: 'amount: number',
+            notes: 'domain event',
+          },
+        }),
+      })
+    )
+  })
+
+  it('does not include pluginData when getPluginDataKeys is not available on the node', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'CreateOrder',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        return ''
+      }),
+      // Note: no getPluginDataKeys method
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    const call = (figmaMock.ui.postMessage as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(call.type).toBe('selection-changed')
+    expect(call.payload.id).toBe('node-1')
+    expect(call.payload.type).toBe('command')
+    expect(call.payload).not.toHaveProperty('pluginData')
+  })
+
+  it('does not include pluginData when no element is selected', () => {
+    figmaMock.currentPage.selection = []
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: null,
+    })
+  })
 })
 
 describe('registerSelectionChangeListener', () => {
