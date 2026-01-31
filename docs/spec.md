@@ -126,7 +126,7 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F11.1 | ChangeElementType | Done | `src/features/change-element-type/SPEC.md` |
 | F12.1 | Internationalization | Done | `src/shared/i18n/SPEC.md` |
 | F0.3 | PanelUXRedesign | Done | `src/features/open-plugin-panel/SPEC.md` |
-| F13.1 | LockCoreShapes | Done | `src/features/lock-core-shapes/SPEC.md` |
+| F13.2 | DetectDrift | Done | `src/features/detect-drift/SPEC.md` |
 | F14.1 | RawJsonViewer | Done | `src/features/raw-json-viewer/SPEC.md` |
 
 ## Feature Backlog
