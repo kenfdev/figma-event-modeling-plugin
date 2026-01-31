@@ -12,6 +12,8 @@ Read YAML from clipboard, validate, create Slice with elements arranged in colum
 ## User Story
 As a user, I want to import an Event Model definition from YAML to quickly create elements from a text specification, including fully rendered GWT scenarios with typed element shapes.
 
+As a user, I want to copy a YAML template to my clipboard so I can quickly start writing a valid YAML definition without memorizing the schema.
+
 ## Acceptance Criteria
 - "Import from Clipboard" button visible in panel
 - Clicking button reads YAML from system clipboard
@@ -34,6 +36,10 @@ As a user, I want to import an Event Model definition from YAML to quickly creat
 - Newly created Slice is automatically selected after import
 - Custom fields and notes are imported from YAML (top-level elements only; GWT items support fields but not notes)
 - `error` is added to the `ElementType` union as a first-class element type
+- Document/template icon button displayed next to the "Import from Clipboard" button
+- Clicking the icon button copies the full YAML template string to the system clipboard
+- Hover tooltip shows "Copy YAML template"
+- Brief "Copied!" feedback displayed after clicking the button
 
 ## Dependencies
 - F1.1-F1.3: Command, Event, Query creation
