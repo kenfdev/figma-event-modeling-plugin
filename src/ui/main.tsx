@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Panel } from '../features/open-plugin-panel'
+import { TranslationProvider } from '../shared/i18n'
 import '../shared/styles/global.css'
 
 // Create root element if it doesn't exist
@@ -13,6 +14,8 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <Panel />
+    <TranslationProvider>
+      <Panel />
+    </TranslationProvider>
   </StrictMode>
 )

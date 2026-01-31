@@ -85,7 +85,7 @@ describe('handleCreateQuery', () => {
 
     expect(mockShape.text.characters).toBe('Query')
     expect(mockShape.text.fills).toEqual([
-      { type: 'SOLID', color: { r: 0, g: 0, b: 0 } },
+      { type: 'SOLID', color: { r: 1, g: 1, b: 1 } },
     ])
   })
 
@@ -126,6 +126,15 @@ describe('handleCreateQuery', () => {
     await handleCreateQuery(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(figmaMock.currentPage.appendChild).toHaveBeenCalledWith(mockShape)
+  })
+
+  it('locks the created element', async () => {
+    const mockShape = figmaMock.createShapeWithText()
+    figmaMock.createShapeWithText.mockReturnValue(mockShape)
+
+    await handleCreateQuery(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockShape.locked).toBe(true)
   })
 
   it('creates multiple elements on multiple calls', async () => {

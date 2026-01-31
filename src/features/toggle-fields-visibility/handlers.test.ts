@@ -17,6 +17,8 @@ describe('handleToggleFieldsVisibility', () => {
         if (key === 'fieldsVisible') return ''
         return ''
       }),
+      resize: vi.fn(),
+      text: { characters: 'Command', fills: [] },
     }
     figmaMock.getNodeById.mockReturnValue(mockNode)
 
@@ -36,6 +38,8 @@ describe('handleToggleFieldsVisibility', () => {
         if (key === 'fieldsVisible') return 'false'
         return ''
       }),
+      resize: vi.fn(),
+      text: { characters: 'Command', fills: [] },
     }
     figmaMock.getNodeById.mockReturnValue(mockNode)
 
@@ -55,6 +59,8 @@ describe('handleToggleFieldsVisibility', () => {
         if (key === 'fieldsVisible') return 'true'
         return ''
       }),
+      resize: vi.fn(),
+      text: { characters: 'Command', fills: [] },
     }
     figmaMock.getNodeById.mockReturnValue(mockNode)
 
@@ -102,18 +108,31 @@ describe('handleToggleFieldsVisibility', () => {
     )
   })
 
-  describe('element resizing', () => {
-    it('expands element height when toggling fields visible', async () => {
-      const mockNode = {
+  describe('element resizing and text display', () => {
+    function createMockNode(overrides: {
+      fieldsVisible: string
+      customFields?: string
+      label?: string
+    }) {
+      return {
         id: 'node-1',
         setPluginData: vi.fn(),
         getPluginData: vi.fn((key: string) => {
-          if (key === 'fieldsVisible') return 'false'
-          if (key === 'customFields') return 'field1: string\nfield2: number'
+          if (key === 'fieldsVisible') return overrides.fieldsVisible
+          if (key === 'customFields') return overrides.customFields ?? ''
+          if (key === 'label') return overrides.label ?? 'Command'
           return ''
         }),
         resize: vi.fn(),
+        text: { characters: overrides.label ?? 'Command', fills: [] },
       }
+    }
+
+    it('expands element height when toggling fields visible', async () => {
+      const mockNode = createMockNode({
+        fieldsVisible: 'false',
+        customFields: 'field1: string\nfield2: number',
+      })
       figmaMock.getNodeById.mockReturnValue(mockNode)
 
       await handleToggleFieldsVisibility(
@@ -127,15 +146,10 @@ describe('handleToggleFieldsVisibility', () => {
     })
 
     it('shrinks element back to base height when toggling fields hidden', async () => {
-      const mockNode = {
-        id: 'node-1',
-        setPluginData: vi.fn(),
-        getPluginData: vi.fn((key: string) => {
-          if (key === 'fieldsVisible') return 'true'
-          return ''
-        }),
-        resize: vi.fn(),
-      }
+      const mockNode = createMockNode({
+        fieldsVisible: 'true',
+        label: 'Command',
+      })
       figmaMock.getNodeById.mockReturnValue(mockNode)
 
       await handleToggleFieldsVisibility(
@@ -147,16 +161,10 @@ describe('handleToggleFieldsVisibility', () => {
     })
 
     it('uses base height when showing fields but customFields is empty', async () => {
-      const mockNode = {
-        id: 'node-1',
-        setPluginData: vi.fn(),
-        getPluginData: vi.fn((key: string) => {
-          if (key === 'fieldsVisible') return 'false'
-          if (key === 'customFields') return ''
-          return ''
-        }),
-        resize: vi.fn(),
-      }
+      const mockNode = createMockNode({
+        fieldsVisible: 'false',
+        customFields: '',
+      })
       figmaMock.getNodeById.mockReturnValue(mockNode)
 
       await handleToggleFieldsVisibility(
@@ -168,26 +176,16 @@ describe('handleToggleFieldsVisibility', () => {
     })
 
     it('calculates expanded height based on number of custom field lines', async () => {
-      const oneLineMock = {
-        id: 'node-1',
-        setPluginData: vi.fn(),
-        getPluginData: vi.fn((key: string) => {
-          if (key === 'fieldsVisible') return 'false'
-          if (key === 'customFields') return 'field1: string'
-          return ''
-        }),
-        resize: vi.fn(),
-      }
-
+      const oneLineMock = createMockNode({
+        fieldsVisible: 'false',
+        customFields: 'field1: string',
+      })
       const threeLineMock = {
-        id: 'node-2',
-        setPluginData: vi.fn(),
-        getPluginData: vi.fn((key: string) => {
-          if (key === 'fieldsVisible') return 'false'
-          if (key === 'customFields') return 'field1: string\nfield2: number\nfield3: boolean'
-          return ''
+        ...createMockNode({
+          fieldsVisible: 'false',
+          customFields: 'field1: string\nfield2: number\nfield3: boolean',
         }),
-        resize: vi.fn(),
+        id: 'node-2',
       }
 
       figmaMock.getNodeById.mockReturnValue(oneLineMock)
@@ -208,16 +206,10 @@ describe('handleToggleFieldsVisibility', () => {
     })
 
     it('keeps width at 176px regardless of toggle direction', async () => {
-      const mockNode = {
-        id: 'node-1',
-        setPluginData: vi.fn(),
-        getPluginData: vi.fn((key: string) => {
-          if (key === 'fieldsVisible') return 'false'
-          if (key === 'customFields') return 'field1: string'
-          return ''
-        }),
-        resize: vi.fn(),
-      }
+      const mockNode = createMockNode({
+        fieldsVisible: 'false',
+        customFields: 'field1: string',
+      })
       figmaMock.getNodeById.mockReturnValue(mockNode)
 
       await handleToggleFieldsVisibility(
@@ -226,6 +218,76 @@ describe('handleToggleFieldsVisibility', () => {
       )
 
       expect(mockNode.resize).toHaveBeenCalledWith(176, expect.any(Number))
+    })
+
+    it('sets text to label + custom fields when showing fields', async () => {
+      const mockNode = createMockNode({
+        fieldsVisible: 'false',
+        customFields: 'userId: string\namount: number',
+        label: 'UpdateOrder',
+      })
+      figmaMock.getNodeById.mockReturnValue(mockNode)
+
+      await handleToggleFieldsVisibility(
+        { id: 'node-1' },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      expect(mockNode.text.characters).toContain('UpdateOrder')
+      expect(mockNode.text.characters).toContain('userId: string')
+      expect(mockNode.text.characters).toContain('amount: number')
+    })
+
+    it('restores text to label only when hiding fields', async () => {
+      const mockNode = createMockNode({
+        fieldsVisible: 'true',
+        customFields: 'userId: string',
+        label: 'UpdateOrder',
+      })
+      figmaMock.getNodeById.mockReturnValue(mockNode)
+
+      await handleToggleFieldsVisibility(
+        { id: 'node-1' },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      expect(mockNode.text.characters).toBe('UpdateOrder')
+    })
+
+    it('preserves cornerRadius after resizing', async () => {
+      const mockNode = {
+        ...createMockNode({
+          fieldsVisible: 'false',
+          customFields: 'field1: string',
+        }),
+        cornerRadius: 0,
+      }
+      figmaMock.getNodeById.mockReturnValue(mockNode)
+
+      await handleToggleFieldsVisibility(
+        { id: 'node-1' },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      expect(mockNode.cornerRadius).toBe(0)
+    })
+
+    it('loads font before modifying text', async () => {
+      const mockNode = createMockNode({
+        fieldsVisible: 'false',
+        customFields: 'field1: string',
+      })
+      figmaMock.getNodeById.mockReturnValue(mockNode)
+
+      await handleToggleFieldsVisibility(
+        { id: 'node-1' },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      expect(figmaMock.loadFontAsync).toHaveBeenCalledWith({
+        family: 'Inter',
+        style: 'Medium',
+      })
     })
   })
 })

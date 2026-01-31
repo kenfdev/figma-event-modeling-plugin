@@ -11,6 +11,7 @@ interface SliceNode {
   type: string
   name: string
   children?: SliceNode[]
+  text?: { characters: string }
   getPluginData(key: string): string
 }
 
@@ -35,18 +36,36 @@ function formatElement(node: SliceNode): string {
   return result
 }
 
-function formatNodeTypeName(figmaType: string): string {
-  return figmaType.charAt(0).toUpperCase() + figmaType.slice(1).toLowerCase()
+function getNodeText(node: SliceNode): string {
+  return node.text?.characters || node.name
 }
 
 function formatGwtSection(node: SliceNode): string {
   let result = `## GWT: ${node.name}\n`
 
   const sections = node.children ?? []
+  const notes: SliceNode[] = []
+
   for (const section of sections) {
     const sectionName = section.name
     if (['Given', 'When', 'Then'].includes(sectionName)) {
-      result += `### ${sectionName}\n`
+      continue
+    } else {
+      notes.push(section)
+    }
+  }
+
+  for (let i = 0; i < notes.length; i++) {
+    if (i > 0) {
+      result += `\n---\n\n`
+    }
+    result += `${getNodeText(notes[i])}\n`
+  }
+
+  for (const section of sections) {
+    const sectionName = section.name
+    if (['Given', 'When', 'Then'].includes(sectionName)) {
+      result += `\n### ${sectionName}\n`
       for (const child of section.children ?? []) {
         result += formatElement(child)
       }
@@ -80,7 +99,6 @@ export async function handleExportSliceToMarkdown(
     query: [],
   }
   const gwtSections: SliceNode[] = []
-  const otherNodes: SliceNode[] = []
 
   for (const child of (slice.children ?? []) as SliceNode[]) {
     const pluginType = child.getPluginData('type')
@@ -88,8 +106,6 @@ export async function handleExportSliceToMarkdown(
       grouped[pluginType].push(child)
     } else if (pluginType === 'gwt') {
       gwtSections.push(child)
-    } else {
-      otherNodes.push(child)
     }
   }
 
@@ -104,13 +120,6 @@ export async function handleExportSliceToMarkdown(
 
   for (const gwt of gwtSections) {
     markdown += `\n${formatGwtSection(gwt)}`
-  }
-
-  if (otherNodes.length > 0) {
-    markdown += '\n## Other\n'
-    for (const node of otherNodes) {
-      markdown += `- ${formatNodeTypeName(node.type)}\n`
-    }
   }
 
   figma.ui.postMessage({

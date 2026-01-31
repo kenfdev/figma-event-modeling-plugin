@@ -82,6 +82,59 @@ describe('handleUpdateSliceIssueUrl', () => {
       expect(mockNode.appendChild).toHaveBeenCalledWith(mockTextNode)
     })
 
+    it('sets hyperlink on the marker so it opens the URL when clicked on canvas', async () => {
+      const mockNode = {
+        id: 'node-1',
+        setPluginData: vi.fn(),
+        getPluginData: vi.fn(() => ''),
+        children: [],
+        appendChild: vi.fn(),
+      }
+      figmaMock.getNodeById.mockReturnValue(mockNode)
+
+      await handleUpdateSliceIssueUrl(
+        { id: 'node-1', issueUrl: 'https://github.com/issues/123' },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      const mockTextNode = figmaMock.createText.mock.results[0].value
+      expect(mockTextNode.hyperlink).toEqual({
+        type: 'URL',
+        value: 'https://github.com/issues/123',
+      })
+    })
+
+    it('updates hyperlink on existing marker when URL changes', async () => {
+      const existingMarker = {
+        id: 'existing-marker',
+        getPluginData: vi.fn((key: string) =>
+          key === 'isIssueMarker' ? 'true' : ''
+        ),
+        setPluginData: vi.fn(),
+        hyperlink: { type: 'URL', value: 'https://old-url.com' },
+        remove: vi.fn(),
+      }
+      const mockNode = {
+        id: 'node-1',
+        setPluginData: vi.fn(),
+        getPluginData: vi.fn(() => ''),
+        children: [existingMarker],
+        appendChild: vi.fn(),
+      }
+      figmaMock.getNodeById.mockReturnValue(mockNode)
+
+      await handleUpdateSliceIssueUrl(
+        { id: 'node-1', issueUrl: 'https://new-url.com' },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      expect(existingMarker.hyperlink).toEqual({
+        type: 'URL',
+        value: 'https://new-url.com',
+      })
+      expect(figmaMock.createText).not.toHaveBeenCalled()
+    })
+
     it('does not add a duplicate marker when one already exists', async () => {
       const existingMarker = {
         id: 'existing-marker',

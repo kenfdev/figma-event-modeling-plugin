@@ -3,6 +3,19 @@ import { handleImportFromYaml } from './handlers'
 import { createFigmaMock, type FigmaMock } from '../../shared/test/mocks/figma'
 import type { ImportData } from './parser'
 
+function createMockSticky(id: string) {
+  return {
+    id,
+    x: 0,
+    y: 0,
+    text: {
+      characters: '',
+    },
+    setPluginData: vi.fn(),
+    getPluginData: vi.fn(() => ''),
+  }
+}
+
 function createMockShape(id: string) {
   return {
     id,
@@ -43,10 +56,12 @@ describe('handleImportFromYaml', () => {
   let figmaMock: FigmaMock
   let shapes: ReturnType<typeof createMockShape>[]
   let sections: ReturnType<typeof createMockSection>[]
+  let stickies: ReturnType<typeof createMockSticky>[]
 
   beforeEach(() => {
     shapes = []
     sections = []
+    stickies = []
     figmaMock = createFigmaMock()
     figmaMock.createShapeWithText.mockImplementation(() => {
       const shape = createMockShape(`shape-${shapes.length}`)
@@ -57,6 +72,11 @@ describe('handleImportFromYaml', () => {
       const section = createMockSection(`section-${sections.length}`)
       sections.push(section)
       return section
+    })
+    figmaMock.createSticky.mockImplementation(() => {
+      const sticky = createMockSticky(`sticky-${stickies.length}`)
+      stickies.push(sticky)
+      return sticky
     })
   })
 
@@ -399,23 +419,297 @@ describe('handleImportFromYaml', () => {
       expect(sections[1].setPluginData).toHaveBeenCalledWith('type', 'gwt')
     })
 
-    it('creates Given, When, Then child sections with text labels from YAML items', async () => {
+    it('names child sections as plain Given, When, Then (no item text)', async () => {
       await callHandler({
         slice: 'S',
         gwt: [
           {
             name: 'Scenario',
-            given: [{ name: 'OrderSubmitted event', type: 'event' }],
-            when: [{ name: 'CreateOrder command', type: 'command' }],
-            then: [{ name: 'OrderCreated event', type: 'event' }],
+            given: [{ name: 'OrderSubmitted', type: 'event' as const }],
+            when: [{ name: 'CreateOrder', type: 'command' as const }],
+            then: [{ name: 'OrderCreated', type: 'event' as const }],
           },
         ],
       })
 
       // sections[2] = Given, sections[3] = When, sections[4] = Then
-      expect(sections[2].name).toBe('Given\nOrderSubmitted event')
-      expect(sections[3].name).toBe('When\nCreateOrder command')
-      expect(sections[4].name).toBe('Then\nOrderCreated event')
+      expect(sections[2].name).toBe('Given')
+      expect(sections[3].name).toBe('When')
+      expect(sections[4].name).toBe('Then')
+    })
+
+    it('creates colored element shapes inside GWT child sections', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            given: [{ name: 'OrderSubmitted', type: 'event' as const }],
+            when: [{ name: 'CreateOrder', type: 'command' as const }],
+            then: [{ name: 'OrderCreated', type: 'event' as const }],
+          },
+        ],
+      })
+
+      // 3 shapes created for GWT items (one in each child section)
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(3)
+
+      // Each shape should be appended to its respective child section
+      expect(sections[2].appendChild).toHaveBeenCalledWith(shapes[0]) // Given
+      expect(sections[3].appendChild).toHaveBeenCalledWith(shapes[1]) // When
+      expect(sections[4].appendChild).toHaveBeenCalledWith(shapes[2]) // Then
+    })
+
+    it('applies correct colors for command type in GWT items', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            given: [],
+            when: [{ name: 'CreateOrder', type: 'command' as const }],
+            then: [],
+          },
+        ],
+      })
+
+      // shapes[0] = command in When section
+      expect(shapes[0].fills).toEqual([
+        { type: 'SOLID', color: { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 } },
+      ])
+      expect(shapes[0].strokes).toEqual([
+        { type: 'SOLID', color: { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 } },
+      ])
+    })
+
+    it('applies correct colors for event type in GWT items', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            given: [{ name: 'OrderCreated', type: 'event' as const }],
+            when: [],
+            then: [],
+          },
+        ],
+      })
+
+      expect(shapes[0].fills).toEqual([
+        { type: 'SOLID', color: { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 } },
+      ])
+    })
+
+    it('applies correct colors for query type in GWT items', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            given: [],
+            when: [],
+            then: [{ name: 'GetStatus', type: 'query' as const }],
+          },
+        ],
+      })
+
+      expect(shapes[0].fills).toEqual([
+        { type: 'SOLID', color: { r: 0x7e / 255, g: 0xd3 / 255, b: 0x21 / 255 } },
+      ])
+    })
+
+    it('applies red fill and stroke for error type in GWT items', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Error Scenario',
+            given: [],
+            when: [],
+            then: [{ name: 'DuplicateTitleError', type: 'error' as const }],
+          },
+        ],
+      })
+
+      expect(shapes[0].fills).toEqual([
+        { type: 'SOLID', color: { r: 0xff / 255, g: 0x44 / 255, b: 0x44 / 255 } },
+      ])
+      expect(shapes[0].strokes).toEqual([
+        { type: 'SOLID', color: { r: 0xcc / 255, g: 0x00 / 255, b: 0x00 / 255 } },
+      ])
+    })
+
+    it('stores type and label as plugin data on GWT element shapes', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            given: [],
+            when: [{ name: 'CreateOrder', type: 'command' as const }],
+            then: [],
+          },
+        ],
+      })
+
+      expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'command')
+      expect(shapes[0].setPluginData).toHaveBeenCalledWith('label', 'CreateOrder')
+      expect(shapes[0].text.characters).toBe('CreateOrder')
+    })
+
+    it('stores fields as plugin data on GWT element shapes when provided', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            given: [],
+            when: [{ name: 'CreateOrder', type: 'command' as const, fields: 'title: string\nitems: array' }],
+            then: [],
+          },
+        ],
+      })
+
+      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+        'customFields',
+        'title: string\nitems: array'
+      )
+    })
+
+    it('creates multiple element shapes in a child section for multiple items', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Multi-item',
+            given: [
+              { name: 'EventA', type: 'event' as const },
+              { name: 'EventB', type: 'event' as const },
+            ],
+            when: [{ name: 'CommandA', type: 'command' as const }],
+            then: [],
+          },
+        ],
+      })
+
+      // 3 shapes total (2 in Given, 1 in When)
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(3)
+
+      // Given section should have 2 children
+      expect(sections[2].appendChild).toHaveBeenCalledWith(shapes[0])
+      expect(sections[2].appendChild).toHaveBeenCalledWith(shapes[1])
+      // When section should have 1 child
+      expect(sections[3].appendChild).toHaveBeenCalledWith(shapes[2])
+    })
+
+    it('creates a sticky note for GWT description when provided', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Duplicate Title',
+            description: 'Roadmaps with exact same title are not allowed.',
+            given: [],
+            when: [{ name: 'CreateRoadmap', type: 'command' as const }],
+            then: [{ name: 'DuplicateTitleError', type: 'error' as const }],
+          },
+        ],
+      })
+
+      expect(figmaMock.createSticky).toHaveBeenCalledTimes(1)
+      expect(stickies[0].text.characters).toBe(
+        'Roadmaps with exact same title are not allowed.'
+      )
+      // Sticky should be appended to the GWT parent section
+      expect(sections[1].appendChild).toHaveBeenCalledWith(stickies[0])
+    })
+
+    it('places description sticky to the right of Given/When/Then children inside GWT parent', async () => {
+      figmaMock.viewport.center = { x: 500, y: 300 }
+
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            description: 'Test description',
+            given: [{ name: 'OrderSubmitted', type: 'event' as const }],
+            when: [{ name: 'CreateOrder', type: 'command' as const }],
+            then: [{ name: 'OrderCreated', type: 'event' as const }],
+          },
+        ],
+      })
+
+      // The sticky note's x position should be to the right of the Given/When/Then child sections
+      // Child sections are in the left column; sticky should be in the right column
+      const givenSection = sections[2] // first child section
+      const stickyX = stickies[0].x
+      // Sticky should be positioned to the right of child section's right edge
+      expect(stickyX).toBeGreaterThan(givenSection.x + givenSection.width)
+    })
+
+    it('makes GWT parent wider to accommodate two-column layout with description', async () => {
+      figmaMock.viewport.center = { x: 500, y: 300 }
+
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'With Description',
+            description: 'Some description text',
+            given: [],
+            when: [],
+            then: [],
+          },
+        ],
+      })
+
+      const gwtParent = sections[1]
+      const lastResize = gwtParent.resizeWithoutConstraints.mock.calls[
+        gwtParent.resizeWithoutConstraints.mock.calls.length - 1
+      ]
+      const parentWidth = lastResize[0]
+
+      // The GWT parent should be wider than the default 400px to fit
+      // both the child sections column and the description sticky column
+      expect(parentWidth).toBeGreaterThan(400)
+    })
+
+    it('does not create a sticky note when GWT has no description', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'No Description',
+            given: [],
+            when: [],
+            then: [],
+          },
+        ],
+      })
+
+      expect(figmaMock.createSticky).not.toHaveBeenCalled()
+    })
+
+    it('positions element shapes inside GWT child sections with ~20px padding from top and left', async () => {
+      figmaMock.viewport.center = { x: 500, y: 300 }
+
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            given: [{ name: 'OrderSubmitted', type: 'event' as const }],
+            when: [],
+            then: [],
+          },
+        ],
+      })
+
+      // shapes[0] = element inside Given child section
+      // The shape should have ~40px padding from the top and left of the child section
+      expect(shapes[0].x).toBeGreaterThanOrEqual(40)
+      expect(shapes[0].y).toBeGreaterThanOrEqual(40)
     })
 
     it('uses plain section name when GWT items are empty', async () => {
@@ -434,24 +728,6 @@ describe('handleImportFromYaml', () => {
       expect(sections[2].name).toBe('Given')
       expect(sections[3].name).toBe('When')
       expect(sections[4].name).toBe('Then')
-    })
-
-    it('includes multiple items in child section names', async () => {
-      await callHandler({
-        slice: 'S',
-        gwt: [
-          {
-            name: 'Multi-item',
-            given: [{ name: 'Item A', type: 'event' }, { name: 'Item B', type: 'event' }],
-            when: [{ name: 'Item C', type: 'command' }],
-            then: [{ name: 'Item D', type: 'event' }, { name: 'Item E', type: 'query' }, { name: 'Item F', type: 'error' }],
-          },
-        ],
-      })
-
-      expect(sections[2].name).toBe('Given\nItem A\nItem B')
-      expect(sections[3].name).toBe('When\nItem C')
-      expect(sections[4].name).toBe('Then\nItem D\nItem E\nItem F')
     })
 
     it('appends child sections to the GWT parent', async () => {
@@ -581,6 +857,62 @@ describe('handleImportFromYaml', () => {
       expect(bottomRowY).toBeGreaterThan(topRowY)
       // Queries should be in the same row as commands
       expect(shapes[2].y).toBe(topRowY)
+    })
+
+    it('leaves ~240px vertical gap between command/query row and event row for connectors', async () => {
+      figmaMock.viewport.center = { x: 500, y: 300 }
+
+      await callHandler({
+        slice: 'S',
+        commands: [{ name: 'Cmd1' }],
+        events: [{ name: 'Evt1', external: false }],
+      })
+
+      // shapes[0] = command (top row), shapes[1] = event (bottom row)
+      const topRowBottom = shapes[0].y + 80 // ELEMENT_HEIGHT
+      const bottomRowTop = shapes[1].y
+
+      // The gap between the bottom of the command row and top of the event row
+      // should be approximately 240px (doubled from ~120px) for drawing connectors
+      expect(bottomRowTop - topRowBottom).toBeGreaterThanOrEqual(240)
+    })
+
+    it('reserves vertical space above command/query row for screen/processor elements', async () => {
+      figmaMock.viewport.center = { x: 500, y: 300 }
+
+      await callHandler({
+        slice: 'S',
+        commands: [{ name: 'Cmd1' }],
+      })
+
+      // The command should not be at the very top of the slice content area.
+      // There should be reserved space above the command/query row.
+      // The command's y (section-relative) should be offset down from the slice padding
+      // to leave room for Screen/Processor elements above.
+      const commandRelativeY = shapes[0].y
+      // Reserved space should be at least 240px (doubled from ~120px) above the command row
+      expect(commandRelativeY).toBeGreaterThanOrEqual(240)
+    })
+
+    it('leaves sufficient gap between event row and GWT sections', async () => {
+      figmaMock.viewport.center = { x: 500, y: 300 }
+
+      await callHandler({
+        slice: 'S',
+        commands: [{ name: 'Cmd1' }],
+        events: [{ name: 'Evt1', external: false }],
+        gwt: [
+          { name: 'Scenario', given: [], when: [], then: [] },
+        ],
+      })
+
+      // shapes[0] = command, shapes[1] = event
+      const eventRowBottom = shapes[1].y + 80 // ELEMENT_HEIGHT
+      const gwtParent = sections[1]
+      const gwtTop = gwtParent.y
+
+      // Gap between event row bottom and GWT top should be at least 80px (doubled from ~40px)
+      expect(gwtTop - eventRowBottom).toBeGreaterThanOrEqual(80)
     })
 
     it('arranges multiple commands horizontally in the top row', async () => {
@@ -962,15 +1294,15 @@ describe('handleImportFromYaml', () => {
         gwt: [
           {
             name: 'Scenario',
-            given: [{ name: 'OrderSubmitted', type: 'event' }],
-            when: [{ name: 'CreateOrder', type: 'command' }],
-            then: [{ name: 'OrderCreated', type: 'event' }],
+            given: [{ name: 'OrderSubmitted', type: 'event' as const }],
+            when: [{ name: 'CreateOrder', type: 'command' as const }],
+            then: [{ name: 'OrderCreated', type: 'event' as const }],
           },
         ],
       })
 
-      // 3 shapes (command + event + query)
-      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(3)
+      // 3 top-level shapes (command + event + query) + 3 GWT element shapes = 6
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(6)
       // 1 slice + 1 GWT parent + 3 GWT children = 5 sections
       expect(figmaMock.createSection).toHaveBeenCalledTimes(5)
     })

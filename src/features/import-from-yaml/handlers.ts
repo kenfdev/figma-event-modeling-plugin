@@ -29,12 +29,13 @@ const GWT_CHILD_NAMES = ['Given', 'When', 'Then'] as const
 
 const ELEMENT_GAP = 20
 const GROUP_GAP = 60
-const ROW_GAP = 120
-const RESERVED_TOP_SPACE = 120
+const ROW_GAP = 240
+const RESERVED_TOP_SPACE = 240
 const SLICE_WIDTH = 400
 const SLICE_HEIGHT = 120
 const COLUMN_GAP = 40
-const GWT_VERTICAL_OFFSET = 40
+const GWT_VERTICAL_OFFSET = 80
+const GWT_CHILD_SHAPE_PADDING = 40
 const GWT_DESCRIPTION_WIDTH = 200
 const GWT_DESCRIPTION_GAP = 20
 
@@ -250,7 +251,7 @@ export async function handleImportFromYaml(
           // Create colored element shapes inside child section
           const items = gwtItems[i]
           if (items) {
-            items.forEach((item) => {
+            items.forEach((item, itemIndex) => {
               const shape = figma.createShapeWithText()
               shape.shapeType = 'ROUNDED_RECTANGLE'
               shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
@@ -286,6 +287,8 @@ export async function handleImportFromYaml(
               if (item.fields) {
                 shape.setPluginData('customFields', item.fields)
               }
+              shape.x = GWT_CHILD_SHAPE_PADDING + itemIndex * (ELEMENT_WIDTH + ELEMENT_GAP)
+              shape.y = GWT_CHILD_SHAPE_PADDING
               child.appendChild(shape)
             })
           }

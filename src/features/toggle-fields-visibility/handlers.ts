@@ -37,6 +37,11 @@ export async function handleToggleFieldsVisibility(
       await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
     }
 
+    const hasCornerRadius = 'cornerRadius' in resizableNode
+    const savedCornerRadius = hasCornerRadius
+      ? (resizableNode as unknown as { cornerRadius: number }).cornerRadius
+      : undefined
+
     if (newValue === 'true') {
       const expandedHeight =
         lines.length > 0 ? BASE_HEIGHT + lines.length * LINE_HEIGHT : BASE_HEIGHT
@@ -50,6 +55,10 @@ export async function handleToggleFieldsVisibility(
       if (hasText) {
         resizableNode.text.characters = label
       }
+    }
+
+    if (hasCornerRadius && savedCornerRadius !== undefined) {
+      ;(resizableNode as unknown as { cornerRadius: number }).cornerRadius = savedCornerRadius
     }
   }
 

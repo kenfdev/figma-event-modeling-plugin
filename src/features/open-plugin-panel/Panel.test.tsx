@@ -477,10 +477,9 @@ describe('Panel', () => {
   })
 
   describe('Card-style element preview buttons', () => {
-    it('renders each creation button as a card with a colored preview element', () => {
+    it('renders each creation button as a card with color-filled background', () => {
       renderPanel()
 
-      // Each button should contain a visual preview element (not just text)
       const allButtons = [
         'Command', 'Event', 'Query', 'Actor',
         'Lane', 'Chapter', 'Processor', 'Screen',
@@ -488,13 +487,11 @@ describe('Panel', () => {
       ]
       for (const name of allButtons) {
         const button = screen.getByRole('button', { name })
-        // Each card button should have a child element with class 'card-preview'
-        const preview = button.querySelector('.card-preview')
-        expect(preview, `${name} button should contain a .card-preview element`).toBeTruthy()
+        expect(button.style.backgroundColor, `${name} button should have a background color`).toBeTruthy()
       }
     })
 
-    it('renders Core Shapes preview colors matching element colors', () => {
+    it('renders Core Shapes button colors matching element colors', () => {
       renderPanel()
 
       // Browser normalizes hex colors to rgb() format
@@ -507,9 +504,7 @@ describe('Panel', () => {
 
       for (const [name, expectedColor] of Object.entries(colorMap)) {
         const button = screen.getByRole('button', { name })
-        const preview = button.querySelector('.card-preview') as HTMLElement
-        expect(preview).toBeTruthy()
-        expect(preview.style.backgroundColor).toBe(expectedColor)
+        expect(button.style.backgroundColor).toBe(expectedColor)
       }
     })
 

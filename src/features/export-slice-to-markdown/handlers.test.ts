@@ -217,7 +217,121 @@ describe('handleExportSliceToMarkdown', () => {
     expect(md).toContain('- PaymentProcessed')
   })
 
-  it('describes unknown elements generically by node type', async () => {
+  it('includes notes from GWT section that are outside Given/When/Then', async () => {
+    const givenChild = createMockNode({ type: 'event', label: 'RoadmapCreated' })
+    const whenChild = createMockNode({ type: 'command', label: 'CreateRoadmap' })
+    const thenChild = createMockNode({ type: 'event', label: 'Error Case' })
+
+    const givenSection = createMockNode(
+      {},
+      { type: 'SECTION', name: 'Given', children: [givenChild] }
+    )
+    const whenSection = createMockNode(
+      {},
+      { type: 'SECTION', name: 'When', children: [whenChild] }
+    )
+    const thenSection = createMockNode(
+      {},
+      { type: 'SECTION', name: 'Then', children: [thenChild] }
+    )
+    const stickyNote = createMockNode(
+      {},
+      {
+        type: 'STICKY',
+        name: 'Roadmaps with exact same title are not allowed',
+        text: { characters: 'Roadmaps with exact same title are not allowed' },
+      }
+    )
+
+    const gwt = createMockNode(
+      { type: 'gwt' },
+      {
+        type: 'SECTION',
+        name: 'Duplicate Title',
+        children: [givenSection, whenSection, thenSection, stickyNote],
+      }
+    )
+    const slice = createMockSlice('TestSlice', [gwt])
+    figmaMock.currentPage.selection = [slice]
+
+    await handleExportSliceToMarkdown(undefined, {
+      figma: figmaMock as unknown as typeof figma,
+    })
+
+    const call = figmaMock.ui.postMessage.mock.calls[0][0]
+    const md: string = call.payload.markdown
+    expect(md).toContain('## GWT: Duplicate Title')
+    expect(md).toContain('Roadmaps with exact same title are not allowed')
+    expect(md).not.toContain('- Roadmaps with exact same title')
+    // Notes should appear before Given/When/Then
+    const noteIdx = md.indexOf('Roadmaps with exact same title')
+    const givenIdx = md.indexOf('### Given')
+    expect(noteIdx).toBeLessThan(givenIdx)
+  })
+
+  it('separates multiple GWT-level notes with ---', async () => {
+    const givenSection = createMockNode(
+      {},
+      { type: 'SECTION', name: 'Given', children: [] }
+    )
+    const note1 = createMockNode(
+      {},
+      { type: 'STICKY', name: 'First note', text: { characters: 'First note' } }
+    )
+    const note2 = createMockNode(
+      {},
+      { type: 'STICKY', name: 'Second note', text: { characters: 'Second note' } }
+    )
+
+    const gwt = createMockNode(
+      { type: 'gwt' },
+      {
+        type: 'SECTION',
+        name: 'Multi Note GWT',
+        children: [givenSection, note1, note2],
+      }
+    )
+    const slice = createMockSlice('TestSlice', [gwt])
+    figmaMock.currentPage.selection = [slice]
+
+    await handleExportSliceToMarkdown(undefined, {
+      figma: figmaMock as unknown as typeof figma,
+    })
+
+    const call = figmaMock.ui.postMessage.mock.calls[0][0]
+    const md: string = call.payload.markdown
+    expect(md).toContain('First note\n\n---\n\nSecond note')
+  })
+
+  it('does not include Given/When/Then children as GWT-level notes', async () => {
+    const givenChild = createMockNode({ type: 'event', label: 'SomeEvent' })
+    const givenSection = createMockNode(
+      {},
+      { type: 'SECTION', name: 'Given', children: [givenChild] }
+    )
+
+    const gwt = createMockNode(
+      { type: 'gwt' },
+      {
+        type: 'SECTION',
+        name: 'Test GWT',
+        children: [givenSection],
+      }
+    )
+    const slice = createMockSlice('TestSlice', [gwt])
+    figmaMock.currentPage.selection = [slice]
+
+    await handleExportSliceToMarkdown(undefined, {
+      figma: figmaMock as unknown as typeof figma,
+    })
+
+    const call = figmaMock.ui.postMessage.mock.calls[0][0]
+    const md: string = call.payload.markdown
+    // Should not have "- Given" as a note
+    expect(md).not.toMatch(/^- Given$/m)
+  })
+
+  it('ignores unknown elements (no Other section)', async () => {
     const unknownNode = createMockNode(
       {},
       { type: 'RECTANGLE', name: 'SomeRect' }
@@ -231,20 +345,22 @@ describe('handleExportSliceToMarkdown', () => {
 
     const call = figmaMock.ui.postMessage.mock.calls[0][0]
     const md: string = call.payload.markdown
-    expect(md).toContain('## Other')
-    expect(md).toContain('- Rectangle')
+    expect(md).not.toContain('## Other')
   })
 
-  it('orders sections: Commands, Events, Queries, GWT, Other', async () => {
+  it('orders sections: Commands, Events, Queries, then GWT', async () => {
     const query = createMockNode({ type: 'query', label: 'GetOrder' })
     const event = createMockNode({ type: 'event', label: 'OrderPlaced' })
     const command = createMockNode({ type: 'command', label: 'PlaceOrder' })
-    const unknownNode = createMockNode({}, { type: 'RECTANGLE' })
+    const gwt = createMockNode(
+      { type: 'gwt' },
+      { type: 'SECTION', name: 'Flow', children: [] }
+    )
     const slice = createMockSlice('OrderSlice', [
       query,
       event,
       command,
-      unknownNode,
+      gwt,
     ])
     figmaMock.currentPage.selection = [slice]
 
@@ -257,9 +373,9 @@ describe('handleExportSliceToMarkdown', () => {
     const commandsIdx = md.indexOf('## Commands')
     const eventsIdx = md.indexOf('## Events')
     const queriesIdx = md.indexOf('## Queries')
-    const otherIdx = md.indexOf('## Other')
+    const gwtIdx = md.indexOf('## GWT: Flow')
     expect(commandsIdx).toBeLessThan(eventsIdx)
     expect(eventsIdx).toBeLessThan(queriesIdx)
-    expect(queriesIdx).toBeLessThan(otherIdx)
+    expect(queriesIdx).toBeLessThan(gwtIdx)
   })
 })

@@ -128,6 +128,15 @@ describe('handleCreateCommand', () => {
     expect(figmaMock.currentPage.appendChild).toHaveBeenCalledWith(mockShape)
   })
 
+  it('locks the created element', async () => {
+    const mockShape = figmaMock.createShapeWithText()
+    figmaMock.createShapeWithText.mockReturnValue(mockShape)
+
+    await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
+
+    expect(mockShape.locked).toBe(true)
+  })
+
   it('creates multiple elements on multiple calls', async () => {
     await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
     await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })

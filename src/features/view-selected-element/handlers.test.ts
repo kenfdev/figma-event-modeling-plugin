@@ -151,6 +151,98 @@ describe('handleSelectionChange', () => {
     })
   })
 
+  it('sends element data when selected node is a structural element (lane)', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Lane',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'lane'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        id: 'node-1',
+        type: 'lane',
+        name: 'My Lane',
+      }),
+    })
+  })
+
+  it('sends element data when selected node is a structural element (chapter)', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Chapter',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'chapter'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        id: 'node-1',
+        type: 'chapter',
+        name: 'My Chapter',
+      }),
+    })
+  })
+
+  it('sends element data when selected node is a structural element (processor)', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Processor',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'processor'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        id: 'node-1',
+        type: 'processor',
+        name: 'My Processor',
+      }),
+    })
+  })
+
+  it('sends element data when selected node is a structural element (screen)', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Screen',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'screen'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        id: 'node-1',
+        type: 'screen',
+        name: 'My Screen',
+      }),
+    })
+  })
+
   it('sends multiple-selected payload when multiple plugin elements are selected', () => {
     const mockNode1 = {
       id: 'node-1',

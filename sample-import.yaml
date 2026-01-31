@@ -1,0 +1,48 @@
+slice: Create Roadmap
+
+commands:
+  - name: CreateRoadmap
+    fields: |
+      title: string
+      items: array
+    notes: Customer creates a new roadmap
+
+events:
+  - name: RoadmapCreated
+    external: false
+    fields: |
+      roadmapId: string
+      title: string
+  - name: NotificationSent
+    external: true
+
+queries:
+  - name: GetRoadmapStatus
+    fields: |
+      roadmapId: string
+
+gwt:
+  - name: Happy Path
+    given: []
+    when:
+      - name: CreateRoadmap
+        type: command
+    then:
+      - name: RoadmapCreated
+        type: event
+        fields: |
+          roadmapId
+          title
+  - name: Duplicate Title
+    description: Roadmaps with exact same title are not allowed. Case-sensitive.
+    given:
+      - name: RoadmapCreated
+        type: event
+        fields: |
+          title
+    when:
+      - name: CreateRoadmap
+        type: command
+    then:
+      - name: DuplicateTitleError
+        type: error
