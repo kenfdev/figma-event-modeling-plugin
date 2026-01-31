@@ -29,7 +29,5 @@ export async function handleCreateCommand(
   shape.x = center.x - COMMAND_WIDTH / 2
   shape.y = center.y - COMMAND_HEIGHT / 2
 
-  shape.locked = true
-
   figma.currentPage.appendChild(shape)
 }

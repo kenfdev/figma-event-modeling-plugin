@@ -30,7 +30,5 @@ export async function handleCreateEvent(
   shape.x = center.x - EVENT_WIDTH / 2
   shape.y = center.y - EVENT_HEIGHT / 2
 
-  shape.locked = true
-
   figma.currentPage.appendChild(shape)
 }

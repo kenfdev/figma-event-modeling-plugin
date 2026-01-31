@@ -29,7 +29,5 @@ export async function handleCreateQuery(
   shape.x = center.x - QUERY_WIDTH / 2
   shape.y = center.y - QUERY_HEIGHT / 2
 
-  shape.locked = true
-
   figma.currentPage.appendChild(shape)
 }

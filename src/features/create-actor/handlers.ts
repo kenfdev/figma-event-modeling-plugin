@@ -29,7 +29,5 @@ export async function handleCreateActor(
   shape.x = center.x - ACTOR_WIDTH / 2
   shape.y = center.y - ACTOR_HEIGHT / 2
 
-  shape.locked = true
-
   figma.currentPage.appendChild(shape)
 }
