@@ -11,6 +11,7 @@ export interface SelectedElement {
   external?: boolean
   fieldsVisible?: boolean
   issueUrl?: string
+  pluginData?: Record<string, string>
 }
 
 export interface ElementEditorProps {
@@ -44,6 +45,11 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
   const [external, setExternal] = useState(false)
   const [fieldsVisible, setFieldsVisible] = useState(false)
   const [issueUrl, setIssueUrl] = useState('')
+  const [mode, setMode] = useState<'visual' | 'raw'>('visual')
+
+  useEffect(() => {
+    setMode('visual')
+  }, [selectedElement?.id])
 
   useEffect(() => {
     if (selectedElement) {
@@ -210,6 +216,29 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
   return (
     <section className="element-editor" aria-label="Element Editor">
       <h2>{t('editor.selectedElement')}</h2>
+      <div className="element-editor-tabs" role="tablist">
+        <button
+          role="tab"
+          aria-selected={mode === 'visual'}
+          className={`element-editor-tab${mode === 'visual' ? ' element-editor-tab--active' : ''}`}
+          onClick={() => setMode('visual')}
+        >
+          Visual
+        </button>
+        <button
+          role="tab"
+          aria-selected={mode === 'raw'}
+          className={`element-editor-tab${mode === 'raw' ? ' element-editor-tab--active' : ''}`}
+          onClick={() => setMode('raw')}
+        >
+          Raw
+        </button>
+      </div>
+      {mode === 'raw' ? (
+        <div className="element-editor-raw">
+          <pre className="element-editor-json">{JSON.stringify(selectedElement.pluginData ?? {}, null, 2)}</pre>
+        </div>
+      ) : (
       <div className="element-editor-content">
         <div className="element-editor-row">
           {showTypeDropdown ? (
@@ -373,6 +402,7 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
           </div>
         )}
       </div>
+      )}
     </section>
   )
 }
