@@ -41,6 +41,11 @@ export const handleSyncDrift: MessageHandler = (payload, { figma }) => {
         },
       },
     ]
+    // Clean up saved stroke data
+    const setData = (node as unknown as { setPluginData: (key: string, value: string) => void }).setPluginData
+    setData.call(node, 'originalStrokeR', '')
+    setData.call(node, 'originalStrokeG', '')
+    setData.call(node, 'originalStrokeB', '')
   }
 
   figma.ui.postMessage({
@@ -102,8 +107,8 @@ export function createAutoLockManager(): AutoLockManager {
       }
 
       if (drifted) {
-        // Save original stroke color before changing to red
-        if (shapeNode.strokes.length > 0) {
+        // Save original stroke color before changing to red (only if not already saved)
+        if (shapeNode.strokes.length > 0 && !shapeNode.getPluginData('originalStrokeR')) {
           const original = shapeNode.strokes[0].color
           shapeNode.setPluginData('originalStrokeR', String(original.r))
           shapeNode.setPluginData('originalStrokeG', String(original.g))

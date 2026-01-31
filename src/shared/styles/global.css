@@ -69,33 +69,24 @@ h2 {
 /* Card-style element buttons */
 .card-button {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 10px 8px;
-  background: #fff;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 8px;
-  color: #333;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  justify-content: center;
+  padding: 8px 4px;
+  border: none;
+  border-radius: 6px;
+  transition: opacity 0.15s, box-shadow 0.15s;
 }
 
 .card-button:hover:not(:disabled) {
-  opacity: 1;
-  border-color: #bbb;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-.card-preview {
-  width: 100%;
-  height: 24px;
-  border-radius: 4px;
+  opacity: 0.85;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .card-label {
   font-size: 11px;
-  font-weight: 500;
-  color: #444;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .button:disabled {
@@ -104,20 +95,6 @@ h2 {
 }
 
 /* Element type button classes (used by card-button for identification) */
-.card-button.button-command,
-.card-button.button-event,
-.card-button.button-query,
-.card-button.button-actor,
-.card-button.button-lane,
-.card-button.button-processor,
-.card-button.button-screen,
-.card-button.button-chapter,
-.card-button.button-slice,
-.card-button.button-gwt {
-  background: #fff;
-  border: 1.5px solid #e0e0e0;
-  color: #333;
-}
 
 .help-link {
   margin-top: 24px;
@@ -381,6 +358,23 @@ h2 {
 .settings-row select:focus {
   outline: none;
   border-color: #4A90D9;
+}
+
+/* Sync drift button */
+.sync-drift-button {
+  padding: 6px 12px;
+  background: #CF222E;
+  color: #fff;
+  border: 1px solid #a4000f;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sync-drift-button:hover {
+  background: #a40e26;
 }
 
 /* Resize handle */
