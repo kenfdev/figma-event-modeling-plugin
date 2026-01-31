@@ -1,4 +1,4 @@
-# F4.4: CreateScreen
+# Create Screen
 
 ## Type
 Command
@@ -10,14 +10,14 @@ Create gray placeholder box with window icon (image container).
 As a user, I want to create Screen placeholders where I can later paste UI screenshots.
 
 ## Acceptance Criteria
-- [ ] Clicking "Screen" button creates a new Screen element
-- [ ] Element appears at viewport center
-- [ ] Element is a grouped shape containing:
+- Clicking "Screen" button creates a new Screen element
+- Element appears at viewport center
+- Element is a grouped shape containing:
   - Gray rectangle (placeholder)
   - Window icon indicating it's a screen placeholder
   - Default label: "Screen"
-- [ ] Element stores `type: "screen"` in plugin data
-- [ ] Images pasted into the Screen are cropped to fit the bounds
+- Element stores `type: "screen"` in plugin data
+- Images pasted into the Screen are cropped to fit the bounds
 
 ## Dependencies
 - F0.1: OpenPluginPanel

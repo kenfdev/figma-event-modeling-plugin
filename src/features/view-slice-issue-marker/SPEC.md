@@ -1,4 +1,4 @@
-# F6.2: ViewSliceIssueMarker
+# View Slice Issue Marker
 
 ## Type
 Query
@@ -10,10 +10,10 @@ Show link icon on Slice corner when URL exists.
 As a user, I want to see a visual indicator that a Slice has a linked issue so I can quickly identify which slices are tracked.
 
 ## Acceptance Criteria
-- [ ] Small link icon appears in corner of Slice section when Issue URL is set
-- [ ] Icon is hidden when Issue URL is empty
-- [ ] Icon updates in real-time when URL is added/removed
-- [ ] Icon is visually unobtrusive but discoverable
+- Small link icon appears in corner of Slice section when Issue URL is set
+- Icon is hidden when Issue URL is empty
+- Icon updates in real-time when URL is added/removed
+- Icon is visually unobtrusive but discoverable
 
 ## Dependencies
 - F5.1: CreateSlice
@@ -21,4 +21,4 @@ As a user, I want to see a visual indicator that a Slice has a linked issue so I
 
 ## Technical Notes
 - Icon placement: corner of Slice section
-- Icon should be clickable (see F6.3)
+- Icon should be clickable (see open-slice-issue-url feature)

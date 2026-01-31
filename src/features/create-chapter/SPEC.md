@@ -1,4 +1,4 @@
-# F4.2: CreateChapter
+# Create Chapter
 
 ## Type
 Command
@@ -10,15 +10,15 @@ Create cyan FigJam connector (200px) with label on arrow.
 As a user, I want to create Chapter markers to group multiple slices into epics.
 
 ## Acceptance Criteria
-- [ ] Clicking "Chapter" button creates a new Chapter element
-- [ ] Element appears at viewport center
-- [ ] Element is a FigJam native connector (unconnected)
-- [ ] Element properties:
+- Clicking "Chapter" button creates a new Chapter element
+- Element appears at viewport center
+- Element is a FigJam native connector (unconnected)
+- Element properties:
   - Color: Cyan (FigJam connector default)
   - Width: 200px
   - Label rendered on the arrow
   - Default label: "Chapter"
-- [ ] Element stores `type: "chapter"` in plugin data
+- Element stores `type: "chapter"` in plugin data
 
 ## Dependencies
 - F0.1: OpenPluginPanel

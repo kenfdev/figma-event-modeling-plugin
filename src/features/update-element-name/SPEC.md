@@ -1,4 +1,4 @@
-# F3.1: UpdateElementName
+# Update Element Name
 
 ## Type
 Command
@@ -10,11 +10,11 @@ User edits element name in panel, updates element on canvas.
 As a user, I want to change the name of a selected element by editing it in the plugin panel.
 
 ## Acceptance Criteria
-- [ ] Name field is editable in the plugin panel
-- [ ] Changing the name updates the text on the canvas element
-- [ ] Name change is persisted in plugin data
-- [ ] Undo works (native Figma undo)
-- [ ] Empty names are allowed
+- Name field is editable in the plugin panel
+- Changing the name updates the text on the canvas element
+- Name change is persisted in plugin data
+- Undo works (native Figma undo)
+- Empty names are allowed
 
 ## Dependencies
 - F2.1: ViewSelectedElement

@@ -1,4 +1,4 @@
-# F5.2: CreateGWT
+# Create GWT
 
 ## Type
 Command
@@ -10,15 +10,15 @@ Create GWT section (400×600px) with 3 nested Given/When/Then sections.
 As a user, I want to create GWT (Given-When-Then) sections to document test scenarios for my Event Model.
 
 ## Acceptance Criteria
-- [ ] Clicking "GWT" button creates a new GWT element
-- [ ] Element appears at viewport center
-- [ ] Parent GWT section is created (400×600px)
-- [ ] Three nested sections are automatically created inside, arranged vertically:
+- Clicking "GWT" button creates a new GWT element
+- Element appears at viewport center
+- Parent GWT section is created (400×600px)
+- Three nested sections are automatically created inside, arranged vertically:
   - "Given" section (350×180px)
   - "When" section (350×180px)
   - "Then" section (350×180px)
-- [ ] Element stores `type: "gwt"` in plugin data
-- [ ] Users can place Event Modeling elements and/or text inside each sub-section
+- Element stores `type: "gwt"` in plugin data
+- Users can place Event Modeling elements and/or text inside each sub-section
 
 ## Dependencies
 - F0.1: OpenPluginPanel

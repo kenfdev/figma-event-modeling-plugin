@@ -1,4 +1,4 @@
-# F4.3: CreateProcessor
+# Create Processor
 
 ## Type
 Command
@@ -10,13 +10,13 @@ Create black gear icon with label below.
 As a user, I want to create Processor elements to represent automation or background processes.
 
 ## Acceptance Criteria
-- [ ] Clicking "Processor" button creates a new Processor element
-- [ ] Element appears at viewport center
-- [ ] Element is a grouped shape containing:
+- Clicking "Processor" button creates a new Processor element
+- Element appears at viewport center
+- Element is a grouped shape containing:
   - Black gear icon (custom SVG) on top
   - Label text below the icon
   - Default label: "Processor"
-- [ ] Element stores `type: "processor"` in plugin data
+- Element stores `type: "processor"` in plugin data
 
 ## Dependencies
 - F0.1: OpenPluginPanel

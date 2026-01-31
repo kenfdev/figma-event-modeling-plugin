@@ -1,4 +1,4 @@
-# F1.3: CreateQuery
+# Create Query
 
 ## Type
 Command
@@ -10,17 +10,17 @@ Create green rectangle (176×80px) with "Query" label at viewport center.
 As a user, I want to click the "Query" button to create a Query element on the canvas.
 
 ## Acceptance Criteria
-- [ ] Clicking "Query" button creates a new Query element
-- [ ] Element appears at viewport center
-- [ ] Element is a grouped shape (not Figma component)
-- [ ] Element properties:
+- Clicking "Query" button creates a new Query element
+- Element appears at viewport center
+- Element is a grouped shape (not Figma component)
+- Element properties:
   - Color: Green (#7ED321)
   - Shape: Rectangle
   - Size: 176×80px
   - Font size: 16px
   - Default label: "Query"
-- [ ] Element stores `type: "query"` in plugin data
-- [ ] Multiple clicks create multiple elements (may overlap)
+- Element stores `type: "query"` in plugin data
+- Multiple clicks create multiple elements (may overlap)
 
 ## Dependencies
 - F0.1: OpenPluginPanel

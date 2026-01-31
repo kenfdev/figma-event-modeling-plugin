@@ -39,6 +39,7 @@ src/
         figma.ts                   # Figma API mock
   features/
     <feature-name>/                # Feature-sliced directory
+      SPEC.md                      # Feature specification
       index.ts                     # UI exports (for src/ui/)
       sandbox.ts                   # Sandbox exports (for src/main.ts)
       Component.tsx                # React components
@@ -51,6 +52,7 @@ src/
 
 Each feature is self-contained in `src/features/<feature-name>/`:
 - All related code (components, handlers, tests, types) lives together
+- **`SPEC.md`**: Feature specification with acceptance criteria and technical notes
 - **`index.ts`**: UI exports (React components) - import in `src/ui/` only
 - **`sandbox.ts`**: Sandbox exports (message handlers) - import in `src/main.ts` only
 - Shared code (types, utilities, test helpers) lives in `src/shared/`
@@ -95,6 +97,8 @@ node.getPluginData('type')              // Retrieve
 
 Uses Vitest + React Testing Library. Tests live alongside feature code.
 
+All exported message handlers must have test coverage, not just the feature's core logic.
+
 ```bash
 npm run test         # Watch mode
 npm run test:run     # Single run
@@ -126,8 +130,8 @@ beforeEach(() => {
 
 ## Specification Documents
 
-- `docs/spec.md`: Complete feature specification (element types, UI, export/import formats, keyboard shortcuts)
-- `docs/slices/`: Implementation roadmap with 31 feature slices across 11 phases
+- `docs/spec.md`: Overview specification with element types, color/sizing reference, technical behavior, and feature index table
+- `src/features/<name>/SPEC.md`: Detailed feature specifications colocated with source code
 
 ## Debugging
 
@@ -137,3 +141,11 @@ beforeEach(() => {
 ## Claude Code Rules
 
 When creating or modifying React components in `src/features/*/` that have visual UI elements, use the `frontend-design` skill to ensure high-quality, polished design.
+
+When a feature is fully implemented (all acceptance criteria met, tests passing), immediately update `docs/spec.md` to mark the feature's Status column as `Done` in the Feature Index table.
+
+When implementing a new feature:
+1. Create `src/features/<feature-name>/` directory with `SPEC.md`
+2. Add a row to the Feature Index table in `docs/spec.md`
+3. Implement the feature following the feature-sliced architecture
+4. Mark status as Done in `docs/spec.md` when complete

@@ -1,4 +1,4 @@
-# F1.4: CreateActor
+# Create Actor
 
 ## Type
 Command
@@ -10,17 +10,17 @@ Create teal rectangle (176×80px) with "Actor" label at viewport center.
 As a user, I want to click the "Actor" button to create an Actor element on the canvas.
 
 ## Acceptance Criteria
-- [ ] Clicking "Actor" button creates a new Actor element
-- [ ] Element appears at viewport center
-- [ ] Element is a grouped shape (not Figma component)
-- [ ] Element properties:
+- Clicking "Actor" button creates a new Actor element
+- Element appears at viewport center
+- Element is a grouped shape (not Figma component)
+- Element properties:
   - Color: Teal (#50E3C2)
   - Shape: Rectangle
   - Size: 176×80px
   - Font size: 16px
   - Default label: "Actor"
-- [ ] Element stores `type: "actor"` in plugin data
-- [ ] Multiple clicks create multiple elements (may overlap)
+- Element stores `type: "actor"` in plugin data
+- Multiple clicks create multiple elements (may overlap)
 
 ## Dependencies
 - F0.1: OpenPluginPanel

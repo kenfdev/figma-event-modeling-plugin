@@ -1,4 +1,4 @@
-# F8.1: DuplicateElement
+# Duplicate Element
 
 ## Type
 Command
@@ -10,17 +10,17 @@ Duplicate selected element with all plugin data, offset from original.
 As a user, I want to duplicate an element to quickly create similar elements with the same data.
 
 ## Acceptance Criteria
-- [ ] Duplicate button shown in element editor for elements with custom fields (Command, Event, Query)
-- [ ] Clicking Duplicate creates a copy of the selected element
-- [ ] All plugin data is copied:
+- Duplicate button shown in element editor for elements with custom fields (Command, Event, Query)
+- Clicking Duplicate creates a copy of the selected element
+- All plugin data is copied:
   - type
   - name
   - custom fields
   - notes
   - visibility settings
   - external flag (for Events)
-- [ ] Duplicated element is offset from original (not directly on top)
-- [ ] Duplicated element is selected after creation
+- Duplicated element is offset from original (not directly on top)
+- Duplicated element is selected after creation
 
 ## Dependencies
 - F2.1: ViewSelectedElement

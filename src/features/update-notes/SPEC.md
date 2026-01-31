@@ -1,4 +1,4 @@
-# F3.3: UpdateNotes
+# Update Notes
 
 ## Type
 Command
@@ -10,11 +10,11 @@ User edits notes textarea for Command/Event/Query elements.
 As a user, I want to add notes to Command, Event, and Query elements to provide additional context.
 
 ## Acceptance Criteria
-- [ ] Notes textarea shown for Command, Event, and Query elements
-- [ ] Textarea accepts free-form text with no character limit
-- [ ] Notes are stored in plugin data
-- [ ] Changes persist when element is deselected and reselected
-- [ ] Actor elements do NOT show notes field
+- Notes textarea shown for Command, Event, and Query elements
+- Textarea accepts free-form text with no character limit
+- Notes are stored in plugin data
+- Changes persist when element is deselected and reselected
+- Actor elements do NOT show notes field
 
 ## Dependencies
 - F2.1: ViewSelectedElement

@@ -1,4 +1,4 @@
-# F4.1: CreateLane
+# Create Lane
 
 ## Type
 Command
@@ -10,16 +10,16 @@ Create gray lane (half viewport width × 120px) with no label.
 As a user, I want to create horizontal swimlanes to organize my Event Modeling diagram.
 
 ## Acceptance Criteria
-- [ ] Clicking "Lane" button creates a new Lane element
-- [ ] Element appears at viewport center
-- [ ] Element properties:
+- Clicking "Lane" button creates a new Lane element
+- Element appears at viewport center
+- Element properties:
   - Color: Gray fill (5% opacity, light gray)
   - Shape: Rectangle
-  - Width: Half the current viewport width
+  - Width: Half the current viewport width (max 500px)
   - Height: 120px
   - No label by default
-- [ ] Element stores `type: "lane"` in plugin data
-- [ ] Multiple clicks create multiple elements (may overlap)
+- Element stores `type: "lane"` in plugin data
+- Multiple clicks create multiple elements (may overlap)
 
 ## Dependencies
 - F0.1: OpenPluginPanel
@@ -28,4 +28,5 @@ As a user, I want to create horizontal swimlanes to organize my Event Modeling d
 ## Technical Notes
 - Plugin creates lanes but does NOT manage swimlane layout
 - Users position and organize swimlanes manually
-- Width is relative to viewport at creation time
+- Width is relative to viewport at creation time, capped at 500px max
+- Users can manually resize after creation
