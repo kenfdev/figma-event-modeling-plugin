@@ -50,10 +50,10 @@ function ButtonGroup({ title, buttons, onCreateElement, enabledTypes, collapsed,
             <button
               key={btn.type}
               className={`button card-button ${btn.className}`}
+              style={{ backgroundColor: btn.previewColor }}
               onClick={() => onCreateElement(btn.type)}
               disabled={!enabledTypes.has(btn.type)}
             >
-              <div className="card-preview" style={{ backgroundColor: btn.previewColor }} />
               <span className="card-label">{btn.label}</span>
             </button>
           ))}
@@ -230,6 +230,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [editorType, setEditorType] = useState<EditorType>(null)
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
   const [multipleSelected, setMultipleSelected] = useState(false)
+  const [driftDetected, setDriftDetected] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showSettings, setShowSettings] = useState(false)
@@ -254,10 +255,15 @@ export function Panel({ onCreateElement }: PanelProps) {
         if (message.payload?.multiple) {
           setMultipleSelected(true)
           setSelectedElement(null)
+          setDriftDetected(false)
         } else {
           setMultipleSelected(false)
           setSelectedElement(message.payload)
+          setDriftDetected(false)
         }
+      }
+      if (message?.type === 'drift-detected') {
+        setDriftDetected(message.payload?.drifted ?? false)
       }
       if (message?.type === 'export-slice-to-markdown-result') {
         const markdown = message.payload?.markdown
@@ -368,7 +374,7 @@ export function Panel({ onCreateElement }: PanelProps) {
             onToggle={() => setCollapsedSections(prev => ({ ...prev, sections: !prev.sections }))}
           />
 
-          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
+          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} driftDetected={driftDetected} />
 
           {toastMessage && (
             <div className="toast" role="status">{toastMessage}</div>

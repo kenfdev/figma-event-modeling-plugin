@@ -15,6 +15,7 @@ const en = {
     cancel: 'Cancel',
     duplicate: 'Duplicate',
     exportToMarkdown: 'Export to Markdown',
+    syncDrift: 'Sync',
   },
   editor: {
     selectedElement: 'Selected Element',
