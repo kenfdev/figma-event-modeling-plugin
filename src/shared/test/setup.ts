@@ -56,3 +56,35 @@ declare global {
   var __html__: string
 }
 globalThis.__html__ = '<html><body></body></html>'
+
+// Make navigator.clipboard assignable so tests can mock it via Object.assign.
+// @testing-library/user-event v14 installs a clipboard stub with a getter-only
+// descriptor (no setter), which makes Object.assign(navigator, {clipboard: ...})
+// throw. We use a shared backing store so that test overrides persist across
+// property redefinitions by userEvent.
+{
+  const originalDefineProperty = Object.defineProperty
+  // Shared state across all clipboard property definitions
+  let clipboardOverride: unknown = undefined
+  let isOverridden = false
+
+  Object.defineProperty = function patchedDefineProperty(
+    obj: object,
+    prop: PropertyKey,
+    desc: PropertyDescriptor
+  ) {
+    if (obj === navigator && prop === 'clipboard' && desc.get && !desc.set) {
+      const patched = { ...desc }
+      const originalGetter = desc.get
+      patched.get = function() {
+        return isOverridden ? clipboardOverride : originalGetter.call(this)
+      }
+      patched.set = function(v: unknown) {
+        clipboardOverride = v
+        isOverridden = true
+      }
+      return originalDefineProperty.call(Object, obj, prop, patched)
+    }
+    return originalDefineProperty.call(Object, obj, prop, desc)
+  } as typeof Object.defineProperty
+}
