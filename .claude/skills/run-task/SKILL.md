@@ -1,29 +1,71 @@
 ---
 name: run-task
-description: Non-interactive workflow for implementing and reviewing claimed tasks. Use when user says "run-task", "/run-task", or wants to run the next implementation/review cycle. Designed to be executed in a shell loop until complete. Requires tests to be prepared first via /claim-task.
+description: Non-interactive workflow for implementing and reviewing claimed tasks. Use when user says "run-task", "/run-task", or wants to run the next implementation/review cycle. Designed to be executed in a shell loop until complete. Handles non-code tasks automatically. Requires tests to be prepared first via /prepare-task for code tasks.
 ---
 
 # Run Task Skill
 
-A non-interactive state-machine workflow for implementing and reviewing tasks. Designed to run in a shell loop. Requires tests to be prepared first via `/claim-task`.
+A non-interactive state-machine workflow for implementing and reviewing tasks. Designed to run in a shell loop. For code tasks, requires tests to be prepared first via `/prepare-task`. For non-code tasks, auto-claims and executes them directly.
 
 ## Workflow
 
+**Each invocation handles exactly ONE mode. Never combine modes in a single invocation.**
+
 ```
-/run-task
+/run-task (invocation)
     │
     ▼
 Check TaskList for markers in any in_progress task:
     │
-    ├─ "###NEEDS REVIEW###" found → REVIEW MODE
+    ├─ "###TESTS READY###" found → IMPLEMENT MODE → mark ###NEEDS REVIEW### → END RESPONSE
     │
-    ├─ "###TESTS READY###" found → IMPLEMENT MODE
+    ├─ "###NEEDS REVIEW###" found → REVIEW MODE → complete or send back → END RESPONSE
     │
-    ├─ in_progress without marker → ERROR: Run /claim-task first
+    ├─ in_progress without marker → ERROR: Run /prepare-task first → <promise>COMPLETE</promise>
     │
     └─ No in_progress task → Find next pending task
-          └─ ERROR: Run /claim-task first
+          │
+          ├─ Pending non-code task found → NO-CODE MODE → claim, execute, commit, complete → <promise>COMPLETE</promise>
+          │
+          ├─ Pending code task found → ERROR: Run /prepare-task first → <promise>COMPLETE</promise>
+          │
+          ├─ All pending tasks blocked → <promise>COMPLETE</promise>
+          │
+          └─ No pending tasks → <promise>COMPLETE</promise>
 ```
+
+---
+
+## No-Code Mode
+
+Triggered when no in_progress task exists, but a pending unblocked task is found that is a **non-code task**.
+
+A task is a **no-code task** if it does NOT involve writing or modifying application/test source code. Examples:
+- Updating documentation status (e.g., "Mark X as Done in README")
+- Updating markdown files, changelogs, or config files
+- Deleting or renaming files without code changes
+
+### Steps
+
+1. **Claim the task**: Mark it as `in_progress`
+   ```
+   TaskUpdate:
+     taskId: <id>
+     status: "in_progress"
+   ```
+
+2. **Execute the task** directly (e.g., edit markdown files, update status columns, delete files)
+
+3. **Commit the changes** with format: `docs: <description> (#<task-id>)`
+
+4. **Complete the task**:
+   ```
+   TaskUpdate:
+     taskId: <id>
+     status: "completed"
+   ```
+
+5. Output: "No-code task `<id>` completed. <promise>COMPLETE</promise>"
 
 ---
 
@@ -61,19 +103,22 @@ Task:
     Commit with format: <type>: <description> (#<id>)"
 ```
 
-### 3. Mark for review
+### 3. Mark for review and STOP
 
-After the implementer agent finishes:
+After the implementer agent finishes, update ONLY the subject. **Do NOT change the status — it MUST remain `in_progress`.**
 
 ```
 TaskUpdate:
   taskId: <id>
   subject: "###NEEDS REVIEW### <subject without ###TESTS READY###>"
+  (DO NOT set status — leave it as in_progress)
 ```
 
 Output: "Implementation complete. Run `/run-task` again to review."
 
-**STOP after marking for review.**
+**CRITICAL: You MUST end your response here. Do NOT proceed to Review Mode in the same invocation. The review happens in a SEPARATE `/run-task` invocation. If you continue past this point into review, you are violating the workflow.**
+
+**CRITICAL: Do NOT set `status: "completed"` here. The task must stay `in_progress` so the next `/run-task` invocation can find it and enter Review Mode. Setting it to `completed` will break the workflow.**
 
 ---
 
@@ -178,12 +223,16 @@ Task:
 
 ## Error Handling
 
-If no in_progress task with a recognized marker is found:
+If an in_progress task exists but has no recognized marker (`###TESTS READY###` or `###NEEDS REVIEW###`):
+- Output "Task is in_progress but not ready for run-task. Run `/prepare-task` first. <promise>COMPLETE</promise>"
 
-1. Check `TaskList` for any pending tasks
-2. If pending unblocked tasks exist: Output "No task is claimed for implementation. Run `/claim-task` first."
-3. If no pending tasks at all: Output "No pending tasks available. <promise>COMPLETE</promise>"
-4. If all remaining pending tasks are blocked: Output "All remaining tasks are blocked by incomplete dependencies. <promise>COMPLETE</promise>"
+If no in_progress task is found:
+
+1. Check `TaskList` for any pending unblocked tasks
+2. If a pending unblocked **non-code task** exists: Enter **No-Code Mode** (see above)
+3. If a pending unblocked **code task** exists: Output "No task is claimed for implementation. Run `/prepare-task` first. <promise>COMPLETE</promise>"
+4. If no pending tasks at all: Output "No pending tasks available. <promise>COMPLETE</promise>"
+5. If all remaining pending tasks are blocked: Output "All remaining tasks are blocked by incomplete dependencies. <promise>COMPLETE</promise>"
 
 ---
 
@@ -229,9 +278,10 @@ Append to `LESSONS.md` (create it if it doesn't exist). Each entry is grouped by
 
 ## Rules
 
-- **CRITICAL**: ALWAYS emit `<promise>COMPLETE</promise>` when you have no more tasks to do (i.e., task reviewed and closed successfully, or no pending tasks remain). Do NOT emit it at intermediate stop points where more work remains (e.g., after implementation before review, or after review failure).
+- **CRITICAL — ONE MODE PER INVOCATION**: Each `/run-task` invocation handles EXACTLY ONE mode (either No-Code, Implement, OR Review, never multiple). After Implement Mode marks the task `###NEEDS REVIEW###`, you MUST end your response. Do NOT continue into Review Mode in the same invocation.
+- **CRITICAL**: ALWAYS emit `<promise>COMPLETE</promise>` when you have no more tasks to do (i.e., task reviewed and closed successfully, no-code task completed, or no pending tasks remain). Do NOT emit it at intermediate stop points where more work remains (e.g., after implementation before review, or after review failure).
 - NEVER start implementation without `###TESTS READY###` marker
-- NEVER mark completed in implement mode — only after successful review
+- NEVER change task status in implement mode — it MUST stay `in_progress`. Only set `status: "completed"` in review mode after successful review. Setting completed in implement mode breaks the workflow because the next invocation cannot find the task.
 - ALWAYS run tests before commit and before closing
 - ALWAYS commit before marking for review
 - Markers go at START of subject: `###TESTS READY###`, `###NEEDS REVIEW###`

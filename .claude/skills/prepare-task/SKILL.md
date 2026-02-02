@@ -1,16 +1,16 @@
 ---
-name: claim-task
-description: TDD test preparation workflow. Use when user says "claim-task", "/claim-task", or wants to claim and prepare the next available task. Claims a pending task, writes tests, gets user approval before implementation. For no-code tasks, executes the task directly.
+name: prepare-task
+description: TDD test preparation workflow. Use when user says "prepare-task", "/prepare-task", or wants to prepare the next available task. Claims a pending code task, writes tests, and gets user approval before implementation.
 ---
 
-# Claim Task Skill
+# Prepare Task Skill
 
-Claims the next available task. For code tasks, writes tests first (TDD) and gets user approval. For no-code tasks, executes the task directly.
+Claims the next available task and writes tests first (TDD), then gets user approval.
 
 ## Workflow
 
 ```
-/claim-task
+/prepare-task
     │
     ▼
 Check TaskList for in_progress task with ###TESTS PENDING###:
@@ -30,7 +30,7 @@ Use `TaskList`. Look for any task with:
 - Status: `in_progress`
 - Subject contains `###TESTS PENDING###`
 
-If found → Jump to **Step 5** (Resume test approval)
+If found → Jump to **Step 4** (Resume test approval)
 
 ### 2. Find next task
 
@@ -51,27 +51,7 @@ If none available: "No pending tasks available."
      status: "in_progress"
    ```
 
-### 4. Check if this is a no-code task
-
-A task is a **no-code task** if it does NOT involve writing or modifying application/test source code. Examples:
-- Updating documentation status (e.g., "Mark X as Done in README")
-- Updating markdown files, changelogs, or config files
-- Deleting or renaming files without code changes
-
-If the task is no-code:
-1. Skip test writing entirely
-2. Execute the task directly (e.g., edit markdown files, update status columns, delete files)
-3. Commit the changes with format: `docs: <description> (#<task-id>)`
-4. Complete the task:
-   ```
-   TaskUpdate:
-     taskId: <id>
-     status: "completed"
-   ```
-5. Output: "No-code task `<id>` completed."
-6. **STOP here.**
-
-### 5. TDD: Create tests FIRST
+### 4. TDD: Create tests FIRST
 
 This is the critical step. Tests define "done".
 
@@ -100,7 +80,7 @@ This is the critical step. Tests define "done".
      subject: "###TESTS PENDING### <current subject>"
    ```
 
-### 6. Ask user to approve tests
+### 5. Ask user to approve tests
 
 **IMPORTANT**: List all test cases explicitly so the user can review without opening the test file.
 
@@ -145,7 +125,7 @@ This is the critical step. Tests define "done".
 - should lock account after 5 failed attempts
 ```
 
-### 7. Handle response
+### 6. Handle response
 
 **If "Approve tests"**:
 1. Change marker to ready:
@@ -160,7 +140,7 @@ This is the critical step. Tests define "done".
 1. Keep `###TESTS PENDING###` marker
 2. Wait for user feedback
 3. Modify tests based on feedback
-4. Ask for approval again (repeat Step 5)
+4. Ask for approval again (repeat Step 4)
 
 **STOP and wait for user response after asking for approval.**
 
