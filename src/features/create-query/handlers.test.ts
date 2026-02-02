@@ -128,13 +128,13 @@ describe('handleCreateQuery', () => {
     expect(figmaMock.currentPage.appendChild).toHaveBeenCalledWith(mockShape)
   })
 
-  it('locks the created element', async () => {
+  it('does not lock the created element', async () => {
     const mockShape = figmaMock.createShapeWithText()
     figmaMock.createShapeWithText.mockReturnValue(mockShape)
 
     await handleCreateQuery(undefined, { figma: figmaMock as unknown as typeof figma })
 
-    expect(mockShape.locked).toBe(true)
+    expect(mockShape.locked).not.toBe(true)
   })
 
   it('creates multiple elements on multiple calls', async () => {
