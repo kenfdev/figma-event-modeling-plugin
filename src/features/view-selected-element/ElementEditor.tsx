@@ -213,6 +213,16 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
   const showTypeDropdown = typesWithDropdown.includes(selectedElement.type as ElementType)
   const isStructural = structuralTypes.includes(selectedElement.type as StructuralType)
 
+  const currentPluginData: Record<string, string> = {
+    ...selectedElement.pluginData,
+    name,
+    ...(customFields && { customFields }),
+    ...(notes && { notes }),
+    ...(external ? { external: 'true' } : selectedElement.pluginData?.external !== undefined ? { external: 'false' } : {}),
+    ...(fieldsVisible ? { fieldsVisible: 'true' } : selectedElement.pluginData?.fieldsVisible !== undefined ? { fieldsVisible: 'false' } : {}),
+    ...(issueUrl && { issueUrl }),
+  }
+
   return (
     <section className="element-editor" aria-label="Element Editor">
       <h2>{t('editor.selectedElement')}</h2>
@@ -236,7 +246,7 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
       </div>
       {mode === 'raw' ? (
         <div className="element-editor-raw">
-          <pre className="element-editor-json">{JSON.stringify(selectedElement.pluginData ?? {}, null, 2)}</pre>
+          <pre className="element-editor-json">{JSON.stringify(currentPluginData, null, 2)}</pre>
         </div>
       ) : (
       <div className="element-editor-content">

@@ -14,6 +14,7 @@ interface SelectedElement {
   external?: boolean
   fieldsVisible?: boolean
   issueUrl?: string
+  pluginData?: Record<string, string>
 }
 
 function renderEditor(ui: React.ReactElement) {
@@ -749,6 +750,128 @@ describe('ElementEditor', () => {
       )
       const input = screen.getByRole('textbox', { name: /element name/i })
       expect(input).not.toBeDisabled()
+    })
+  })
+
+  describe('Visual/Raw toggle', () => {
+    const pluginData: Record<string, string> = {
+      type: 'command',
+      customFields: 'field1\nfield2',
+      notes: 'some notes',
+    }
+
+    const elementWithPluginData = (): SelectedElement =>
+      createSelectedElement({ pluginData })
+
+    it('shows Visual/Raw toggle when a single element is selected', () => {
+      renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      expect(screen.getByRole('tab', { name: /visual/i })).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: /raw/i })).toBeInTheDocument()
+    })
+
+    it('defaults to Visual mode', () => {
+      renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      const visualTab = screen.getByRole('tab', { name: /visual/i })
+      expect(visualTab).toHaveAttribute('aria-selected', 'true')
+    })
+
+    it('shows the normal editor content in Visual mode', () => {
+      renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      expect(screen.getByRole('textbox', { name: /element name/i })).toBeInTheDocument()
+    })
+
+    it('switches to Raw mode when Raw tab is clicked', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      await user.click(screen.getByRole('tab', { name: /raw/i }))
+      const rawTab = screen.getByRole('tab', { name: /raw/i })
+      expect(rawTab).toHaveAttribute('aria-selected', 'true')
+    })
+
+    it('displays formatted JSON in Raw mode', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      await user.click(screen.getByRole('tab', { name: /raw/i }))
+      const expectedJson = JSON.stringify({ ...pluginData, name: 'Test Element' }, null, 2)
+      expect(screen.getByText(expectedJson)).toBeInTheDocument()
+    })
+
+    it('renders JSON in a pre element for read-only display', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      await user.click(screen.getByRole('tab', { name: /raw/i }))
+      const preElement = screen.getByText(JSON.stringify({ ...pluginData, name: 'Test Element' }, null, 2)).closest('pre')
+      expect(preElement).toBeInTheDocument()
+    })
+
+    it('hides normal editor content in Raw mode', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      await user.click(screen.getByRole('tab', { name: /raw/i }))
+      expect(screen.queryByRole('textbox', { name: /element name/i })).not.toBeInTheDocument()
+    })
+
+    it('switches back to Visual mode when Visual tab is clicked', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      await user.click(screen.getByRole('tab', { name: /raw/i }))
+      await user.click(screen.getByRole('tab', { name: /visual/i }))
+      expect(screen.getByRole('textbox', { name: /element name/i })).toBeInTheDocument()
+    })
+
+    it('resets mode to Visual when selection changes', async () => {
+      const user = userEvent.setup()
+      const { rerender } = renderEditor(
+        <ElementEditor selectedElement={elementWithPluginData()} />
+      )
+      await user.click(screen.getByRole('tab', { name: /raw/i }))
+      // Verify we're in raw mode
+      expect(screen.queryByRole('textbox', { name: /element name/i })).not.toBeInTheDocument()
+
+      // Selection changes to a different element
+      rerender(
+        <TranslationProvider initialLocale="en">
+          <ElementEditor
+            selectedElement={createSelectedElement({ id: 'different-id', pluginData: { type: 'event' } })}
+          />
+        </TranslationProvider>
+      )
+      // Should reset to visual mode
+      expect(screen.getByRole('textbox', { name: /element name/i })).toBeInTheDocument()
+      const visualTab = screen.getByRole('tab', { name: /visual/i })
+      expect(visualTab).toHaveAttribute('aria-selected', 'true')
+    })
+
+    it('does not show toggle when no element is selected', () => {
+      renderEditor(
+        <ElementEditor selectedElement={null} />
+      )
+      expect(screen.queryByRole('tab', { name: /visual/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('tab', { name: /raw/i })).not.toBeInTheDocument()
+    })
+
+    it('does not show toggle when multiple elements are selected', () => {
+      renderEditor(
+        <ElementEditor selectedElement={null} multipleSelected={true} />
+      )
+      expect(screen.queryByRole('tab', { name: /visual/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('tab', { name: /raw/i })).not.toBeInTheDocument()
     })
   })
 })
