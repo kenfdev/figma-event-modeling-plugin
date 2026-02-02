@@ -476,6 +476,51 @@ describe('Panel', () => {
     })
   })
 
+  describe('Copy YAML Template button in Settings', () => {
+    async function openSettings() {
+      const user = userEvent.setup()
+      renderPanel()
+      const settingsButton = screen.getByRole('button', { name: /settings/i })
+      await user.click(settingsButton)
+      return user
+    }
+
+    it('renders a copy template button next to the Import YAML button', async () => {
+      await openSettings()
+      expect(screen.getByRole('button', { name: /copy yaml template/i })).toBeInTheDocument()
+    })
+
+    it('copies YAML template to clipboard when clicked', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      Object.assign(navigator, { clipboard: { writeText } })
+
+      const user = await openSettings()
+      const copyButton = screen.getByRole('button', { name: /copy yaml template/i })
+      await user.click(copyButton)
+
+      expect(writeText).toHaveBeenCalledTimes(1)
+      // Verify it copies the actual YAML template content (starts with 'slice:')
+      expect(writeText.mock.calls[0][0]).toMatch(/^slice: /)
+    })
+
+    it('shows "Copied!" feedback after clicking', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      Object.assign(navigator, { clipboard: { writeText } })
+
+      const user = await openSettings()
+      const copyButton = screen.getByRole('button', { name: /copy yaml template/i })
+      await user.click(copyButton)
+
+      expect(await screen.findByText('Copied!')).toBeInTheDocument()
+    })
+
+    it('shows tooltip text "Copy YAML template" on hover', async () => {
+      await openSettings()
+      const copyButton = screen.getByRole('button', { name: /copy yaml template/i })
+      expect(copyButton).toHaveAttribute('title', 'Copy YAML template')
+    })
+  })
+
   describe('Card-style element preview buttons', () => {
     it('renders each creation button as a card with color-filled background', () => {
       renderPanel()
