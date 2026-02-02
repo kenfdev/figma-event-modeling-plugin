@@ -94,6 +94,18 @@ h2 {
   cursor: not-allowed;
 }
 
+/* Section buttons: simple black border with black text */
+.button-slice,
+.button-gwt {
+  border: 1.5px solid #333 !important;
+}
+
+.button-slice .card-label,
+.button-gwt .card-label {
+  color: #333;
+  text-shadow: none;
+}
+
 /* Element type button classes (used by card-button for identification) */
 
 .help-link {

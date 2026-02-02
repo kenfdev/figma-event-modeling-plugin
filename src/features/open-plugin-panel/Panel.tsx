@@ -28,8 +28,8 @@ const structural: ButtonConfig[] = [
 ]
 
 const sections: ButtonConfig[] = [
-  { type: 'slice', label: 'Slice', className: 'button-slice', previewColor: '#E91E63' },
-  { type: 'gwt', label: 'GWT', className: 'button-gwt', previewColor: '#FF5722' },
+  { type: 'slice', label: 'Slice', className: 'button-slice', previewColor: '#FFFFFF' },
+  { type: 'gwt', label: 'GWT', className: 'button-gwt', previewColor: '#FFFFFF' },
 ]
 
 interface ButtonGroupProps {
