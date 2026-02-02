@@ -18,6 +18,7 @@ export interface FigmaMock {
   viewport: {
     center: { x: number; y: number }
     zoom: number
+    bounds: { x: number; y: number; width: number; height: number }
   }
   createShapeWithText: ReturnType<typeof vi.fn>
   createSection: ReturnType<typeof vi.fn>
@@ -56,6 +57,7 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
     viewport: {
       center: { x: 0, y: 0 },
       zoom: 1,
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
     },
     createShapeWithText: vi.fn(() => ({
       id: 'mock-shape-id',
