@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { handleExportSliceToMarkdown } from './handlers'
 import { createFigmaMock, type FigmaMock } from '../../shared/test/mocks/figma'
+import { serializeFields } from '../update-custom-fields/field-utils'
 
 function createMockNode(
   pluginData: Record<string, string>,
@@ -139,7 +140,10 @@ describe('handleExportSliceToMarkdown', () => {
     const command = createMockNode({
       type: 'command',
       label: 'PlaceOrder',
-      customFields: 'orderId: string\namount: number',
+      customFields: serializeFields([
+        { name: 'orderId', type: 'string' },
+        { name: 'amount', type: 'number' },
+      ]),
     })
     const slice = createMockSlice('OrderSlice', [command])
     figmaMock.currentPage.selection = [slice]

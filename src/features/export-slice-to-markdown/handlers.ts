@@ -1,4 +1,5 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
+import { deserializeFields } from '../update-custom-fields/field-utils'
 
 const ELEMENT_TYPES = ['command', 'event', 'query'] as const
 const SECTION_HEADINGS: Record<string, string> = {
@@ -21,9 +22,16 @@ function formatElement(node: SliceNode): string {
 
   const customFields = node.getPluginData('customFields')
   if (customFields) {
-    for (const line of customFields.split('\n')) {
-      if (line.trim()) {
-        result += `  - ${line.trim()}\n`
+    const fields = deserializeFields(customFields)
+    if (fields.length > 0) {
+      for (const field of fields) {
+        result += `  - ${field.name}: ${field.type}\n`
+      }
+    } else {
+      for (const line of customFields.split('\n')) {
+        if (line.trim()) {
+          result += `  - ${line.trim()}\n`
+        }
       }
     }
   }

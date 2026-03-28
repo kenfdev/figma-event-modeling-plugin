@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { handleImportFromYaml } from './handlers'
 import { createFigmaMock, type FigmaMock } from '../../shared/test/mocks/figma'
 import type { ImportData } from './parser'
+import { serializeFields } from '../update-custom-fields/field-utils'
 
 function createMockSticky(id: string) {
   return {
@@ -159,7 +160,10 @@ describe('handleImportFromYaml', () => {
 
       expect(shapes[0].setPluginData).toHaveBeenCalledWith(
         'customFields',
-        'userId: string\nitems: array'
+        serializeFields([
+          { name: 'userId', type: 'string' },
+          { name: 'items', type: 'array' },
+        ])
       )
     })
 
@@ -283,7 +287,7 @@ describe('handleImportFromYaml', () => {
 
       expect(shapes[0].setPluginData).toHaveBeenCalledWith(
         'customFields',
-        'orderId: string'
+        serializeFields([{ name: 'orderId', type: 'string' }])
       )
       expect(shapes[0].setPluginData).toHaveBeenCalledWith(
         'notes',
@@ -348,7 +352,7 @@ describe('handleImportFromYaml', () => {
 
       expect(shapes[0].setPluginData).toHaveBeenCalledWith(
         'customFields',
-        'orderId: string'
+        serializeFields([{ name: 'orderId', type: 'string' }])
       )
       expect(shapes[0].setPluginData).toHaveBeenCalledWith(
         'notes',
@@ -572,7 +576,10 @@ describe('handleImportFromYaml', () => {
 
       expect(shapes[0].setPluginData).toHaveBeenCalledWith(
         'customFields',
-        'title: string\nitems: array'
+        serializeFields([
+          { name: 'title', type: 'string' },
+          { name: 'items', type: 'array' },
+        ])
       )
     })
 

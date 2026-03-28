@@ -1,5 +1,26 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
 import { parseImportYaml, type ImportData } from './parser'
+import { serializeFields, type CustomField } from '../update-custom-fields/field-utils'
+
+function convertBlockStringToYaml(blockString: string): string {
+  if (!blockString || !blockString.trim()) {
+    return ''
+  }
+  const fields: CustomField[] = []
+  const lines = blockString.split('\n')
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+    const colonIndex = trimmed.indexOf(':')
+    if (colonIndex === -1) continue
+    const name = trimmed.slice(0, colonIndex).trim()
+    const type = trimmed.slice(colonIndex + 1).trim()
+    if (name && type) {
+      fields.push({ name, type })
+    }
+  }
+  return serializeFields(fields)
+}
 
 const ELEMENT_WIDTH = 176
 const ELEMENT_HEIGHT = 80
@@ -143,7 +164,7 @@ export async function handleImportFromYaml(
         shape.setPluginData('type', 'command')
         shape.setPluginData('label', cmd.name)
         if (cmd.fields) {
-          shape.setPluginData('customFields', cmd.fields)
+          shape.setPluginData('customFields', convertBlockStringToYaml(cmd.fields))
         }
         if (cmd.notes) {
           shape.setPluginData('notes', cmd.notes)
@@ -173,7 +194,7 @@ export async function handleImportFromYaml(
         shape.setPluginData('label', evt.name)
         shape.setPluginData('external', evt.external ? 'true' : 'false')
         if (evt.fields) {
-          shape.setPluginData('customFields', evt.fields)
+          shape.setPluginData('customFields', convertBlockStringToYaml(evt.fields))
         }
         if (evt.notes) {
           shape.setPluginData('notes', evt.notes)
@@ -205,7 +226,7 @@ export async function handleImportFromYaml(
         shape.setPluginData('type', 'query')
         shape.setPluginData('label', qry.name)
         if (qry.fields) {
-          shape.setPluginData('customFields', qry.fields)
+          shape.setPluginData('customFields', convertBlockStringToYaml(qry.fields))
         }
         if (qry.notes) {
           shape.setPluginData('notes', qry.notes)
@@ -285,7 +306,7 @@ export async function handleImportFromYaml(
               shape.setPluginData('type', item.type)
               shape.setPluginData('label', item.name)
               if (item.fields) {
-                shape.setPluginData('customFields', item.fields)
+                shape.setPluginData('customFields', convertBlockStringToYaml(item.fields))
               }
               shape.x = GWT_CHILD_SHAPE_PADDING + itemIndex * (ELEMENT_WIDTH + ELEMENT_GAP)
               shape.y = GWT_CHILD_SHAPE_PADDING
