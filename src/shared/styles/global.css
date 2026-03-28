@@ -431,6 +431,104 @@ select.type-badge option {
   margin-top: 4px;
 }
 
+/* Custom Fields Editor */
+.custom-fields-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.custom-field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.custom-field-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  font-size: 11px;
+  font-family: inherit;
+  color: #333;
+  background: #fafafa;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  min-width: 0;
+}
+
+.custom-field-input:hover {
+  border-color: #ccc;
+  background: #fff;
+}
+
+.custom-field-input:focus {
+  outline: none;
+  border-color: #4A90D9;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.12);
+}
+
+.custom-field-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  background: #fafafa;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.custom-field-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #ccc;
+  color: #333;
+}
+
+.custom-field-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.custom-field-btn--delete {
+  color: #cf222e;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.custom-field-btn--delete:hover:not(:disabled) {
+  background: #ffebea;
+  border-color: #f85149;
+  color: #cf222e;
+}
+
+.custom-fields-add-btn {
+  width: 100%;
+  padding: 6px 12px;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px dashed #ccc;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.custom-fields-add-btn:hover {
+  background: #f5f5f5;
+  border-color: #aaa;
+  color: #333;
+}
+
 .element-editor-json {
   background: #f8f9fa;
   border: 1px solid #e8e8e8;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 import { useTranslation } from '../../shared/i18n'
+import { CustomFieldsEditor } from '../update-custom-fields'
 
 export interface SelectedElement {
   id: string
@@ -86,14 +87,13 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     )
   }
 
-  const handleCustomFieldsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newCustomFields = e.target.value
-    setCustomFields(newCustomFields)
+  const handleCustomFieldsChange = (yaml: string) => {
+    setCustomFields(yaml)
     parent.postMessage(
       {
         pluginMessage: {
           type: 'update-custom-fields',
-          payload: { id: selectedElement.id, customFields: newCustomFields },
+          payload: { id: selectedElement.id, customFields: yaml },
         },
       },
       '*'
@@ -270,15 +270,12 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
         </div>
         {showCustomFields && (
           <div className="element-editor-row">
-            <label htmlFor="custom-fields" className="element-editor-label">
+            <label className="element-editor-label">
               {t('editor.customFields')}
             </label>
-            <textarea
-              id="custom-fields"
-              className="element-editor-textarea"
-              value={customFields}
-              onChange={handleCustomFieldsChange}
-              aria-label="Custom fields"
+            <CustomFieldsEditor
+              fields={customFields}
+              onFieldsChange={handleCustomFieldsChange}
             />
           </div>
         )}

@@ -184,35 +184,25 @@ describe('ElementEditor', () => {
     })
   })
 
-  describe('custom fields textarea', () => {
-    it('shows custom fields textarea for command elements', () => {
+  describe('custom fields editor', () => {
+    it('shows custom fields editor for command elements', () => {
       renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
-      expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /add field/i })).toBeInTheDocument()
     })
 
-    it('shows custom fields textarea for event elements', () => {
+    it('shows custom fields editor for event elements', () => {
       renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
-      expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /add field/i })).toBeInTheDocument()
     })
 
-    it('shows custom fields textarea for query elements', () => {
+    it('shows custom fields editor for query elements', () => {
       renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
-      expect(screen.getByRole('textbox', { name: /custom fields/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /add field/i })).toBeInTheDocument()
     })
 
-    it('does NOT show custom fields textarea for actor elements', () => {
+    it('does NOT show custom fields editor for actor elements', () => {
       renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
-      expect(screen.queryByRole('textbox', { name: /custom fields/i })).not.toBeInTheDocument()
-    })
-
-    it('accepts free-form text input', async () => {
-      const user = userEvent.setup()
-      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
-      const textarea = screen.getByRole('textbox', { name: /custom fields/i })
-
-      await user.type(textarea, 'userId: string\namount: number')
-
-      expect(textarea).toHaveValue('userId: string\namount: number')
+      expect(screen.queryByRole('button', { name: /add field/i })).not.toBeInTheDocument()
     })
 
     it('displays existing custom fields from selected element', () => {
@@ -220,30 +210,30 @@ describe('ElementEditor', () => {
         <ElementEditor
           selectedElement={createSelectedElement({
             type: 'event',
-            customFields: 'orderId: string\nstatus: string',
+            customFields: 'fields:\n  - orderId: string\n  - status: string',
           })}
         />
       )
-      const textarea = screen.getByRole('textbox', { name: /custom fields/i })
-      expect(textarea).toHaveValue('orderId: string\nstatus: string')
+      const nameInputs = screen.getAllByRole('textbox', { name: /field name/i })
+      expect(nameInputs).toHaveLength(2)
+      expect(nameInputs[0]).toHaveValue('orderId')
+      expect(nameInputs[1]).toHaveValue('status')
     })
 
-    it('sends update-custom-fields message to sandbox when custom fields change', async () => {
+    it('sends update-custom-fields message when add button is clicked', async () => {
       const user = userEvent.setup()
       renderEditor(
         <ElementEditor
           selectedElement={createSelectedElement({ id: 'node-99', type: 'command' })}
         />
       )
-      const textarea = screen.getByRole('textbox', { name: /custom fields/i })
-
-      await user.type(textarea, 'name: string')
-
+      const addButton = screen.getByRole('button', { name: /add field/i })
+      await user.click(addButton)
       expect(postMessageSpy).toHaveBeenCalledWith(
         {
           pluginMessage: {
             type: 'update-custom-fields',
-            payload: { id: 'node-99', customFields: 'name: string' },
+            payload: { id: 'node-99', customFields: expect.stringContaining(": ''") },
           },
         },
         '*'
@@ -617,14 +607,14 @@ describe('ElementEditor', () => {
     )
 
     it.each(['lane', 'chapter', 'processor', 'screen'] as StructuralType[])(
-      'does NOT show custom fields textarea for %s elements',
+      'does NOT show custom fields editor for %s elements',
       (structuralType) => {
         renderEditor(
           <ElementEditor
             selectedElement={createSelectedElement({ type: structuralType })}
           />
         )
-        expect(screen.queryByRole('textbox', { name: /custom fields/i })).not.toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: /add field/i })).not.toBeInTheDocument()
       }
     )
 
