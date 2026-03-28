@@ -17,6 +17,7 @@ export interface SelectedElement {
 export interface ElementEditorProps {
   selectedElement: SelectedElement | null
   multipleSelected?: boolean
+  selectionCount?: number
 }
 
 const typeLabels: Record<string, string> = {
@@ -35,8 +36,9 @@ const typeLabels: Record<string, string> = {
 const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
 const typesWithDropdown: ElementType[] = ['command', 'event', 'query']
 const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
+const copyToYamlTypes = ['command', 'event', 'query', 'actor', 'gwt']
 
-export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
+export function ElementEditor({ selectedElement, multipleSelected, selectionCount }: ElementEditorProps) {
   const { t } = useTranslation()
   const [name, setName] = useState('')
   const [customFields, setCustomFields] = useState('')
@@ -63,6 +65,20 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     return (
       <section className="element-editor" aria-label="Element Editor">
         <p className="multiple-selected-message">{t('messages.multipleSelected')}</p>
+        {selectionCount === 2 && (
+          <div className="element-editor-content">
+            <div className="element-editor-row">
+              <button
+                type="button"
+                onClick={() => {
+                  parent.postMessage({ pluginMessage: { type: 'connect-elements' } }, '*')
+                }}
+              >
+                {t('buttons.connect')}
+              </button>
+            </div>
+          </div>
+        )}
       </section>
     )
   }
@@ -301,6 +317,27 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
               aria-label={t('buttons.duplicate')}
             >
               {t('buttons.duplicate')}
+            </button>
+          </div>
+        )}
+        {copyToYamlTypes.includes(selectedElement.type) && (
+          <div className="element-editor-row">
+            <button
+              type="button"
+              onClick={() => {
+                parent.postMessage(
+                  {
+                    pluginMessage: {
+                      type: 'copy-element-to-yaml',
+                      payload: { id: selectedElement.id },
+                    },
+                  },
+                  '*'
+                )
+              }}
+              aria-label={t('buttons.copyToYaml')}
+            >
+              {t('buttons.copyToYaml')}
             </button>
           </div>
         )}

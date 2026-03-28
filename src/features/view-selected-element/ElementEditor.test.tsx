@@ -54,6 +54,39 @@ describe('ElementEditor', () => {
     })
   })
 
+  describe('connect button', () => {
+    it('shows connect button when multipleSelected and selectionCount is 2', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={2} />)
+      expect(screen.getByRole('button', { name: /connect/i })).toBeInTheDocument()
+    })
+
+    it('does not show connect button when multipleSelected but selectionCount is 3', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={3} />)
+      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
+    })
+
+    it('does not show connect button when multipleSelected but selectionCount is 1', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={1} />)
+      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
+    })
+
+    it('does not show connect button when single element is selected', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement()} />)
+      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
+    })
+
+    it('sends connect-elements message when clicked', async () => {
+      const user = userEvent.setup()
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={2} />)
+      const button = screen.getByRole('button', { name: /connect/i })
+      await user.click(button)
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        { pluginMessage: { type: 'connect-elements' } },
+        '*'
+      )
+    })
+  })
+
   describe('when no element is selected', () => {
     it('renders nothing when selectedElement is null', () => {
       const { container } = renderEditor(<ElementEditor selectedElement={null} />)
@@ -498,6 +531,56 @@ describe('ElementEditor', () => {
           pluginMessage: {
             type: 'duplicate-element',
             payload: { id: 'node-101' },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
+  describe('copy to YAML button', () => {
+    it.each(['command', 'event', 'query', 'actor'] as const)(
+      'shows copy to YAML button for %s elements',
+      (type) => {
+        renderEditor(<ElementEditor selectedElement={createSelectedElement({ type })} />)
+        expect(screen.getByRole('button', { name: /copy to yaml/i })).toBeInTheDocument()
+      }
+    )
+
+    it('shows copy to YAML button for gwt elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'gwt' as SectionType })} />)
+      expect(screen.getByRole('button', { name: /copy to yaml/i })).toBeInTheDocument()
+    })
+
+    it.each(['lane', 'chapter', 'processor', 'screen'] as StructuralType[])(
+      'does NOT show copy to YAML button for %s elements',
+      (type) => {
+        renderEditor(<ElementEditor selectedElement={createSelectedElement({ type })} />)
+        expect(screen.queryByRole('button', { name: /copy to yaml/i })).not.toBeInTheDocument()
+      }
+    )
+
+    it('does NOT show copy to YAML button for slice elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'slice' as SectionType })} />)
+      expect(screen.queryByRole('button', { name: /copy to yaml/i })).not.toBeInTheDocument()
+    })
+
+    it('sends copy-element-to-yaml message when clicked', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-301', type: 'command' })}
+        />
+      )
+      const button = screen.getByRole('button', { name: /copy to yaml/i })
+
+      await user.click(button)
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'copy-element-to-yaml',
+            payload: { id: 'node-301' },
           },
         },
         '*'

@@ -521,6 +521,50 @@ describe('Panel', () => {
     })
   })
 
+  describe('copy-element-to-yaml-result handler', () => {
+    it('copies YAML to clipboard and shows success toast on success', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      Object.assign(navigator, { clipboard: { writeText } })
+
+      renderPanel()
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'copy-element-to-yaml-result',
+            payload: { yaml: 'name: TestCommand\ntype: command\n' },
+          },
+        },
+      })
+      window.dispatchEvent(messageEvent)
+
+      await vi.waitFor(() => {
+        expect(writeText).toHaveBeenCalledWith('name: TestCommand\ntype: command\n')
+      })
+
+      expect(await screen.findByText(/copied to clipboard/i)).toBeInTheDocument()
+    })
+
+    it('shows failure toast when clipboard write fails', async () => {
+      const writeText = vi.fn().mockRejectedValue(new Error('denied'))
+      Object.assign(navigator, { clipboard: { writeText } })
+
+      renderPanel()
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'copy-element-to-yaml-result',
+            payload: { yaml: 'name: TestCommand\ntype: command\n' },
+          },
+        },
+      })
+      window.dispatchEvent(messageEvent)
+
+      expect(await screen.findByText(/failed to copy/i)).toBeInTheDocument()
+    })
+  })
+
   describe('Card-style element preview buttons', () => {
     it('renders each creation button as a card with color-filled background', () => {
       renderPanel()

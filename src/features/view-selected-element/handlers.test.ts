@@ -268,7 +268,42 @@ describe('handleSelectionChange', () => {
 
     expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
       type: 'selection-changed',
-      payload: { multiple: true },
+      payload: { multiple: true, count: 2 },
+    })
+  })
+
+  it('includes count in payload when 3 elements are selected', () => {
+    const mockNode1 = {
+      id: 'node-1',
+      name: 'First Command',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        return ''
+      }),
+    }
+    const mockNode2 = {
+      id: 'node-2',
+      name: 'Second Event',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'event'
+        return ''
+      }),
+    }
+    const mockNode3 = {
+      id: 'node-3',
+      name: 'Third Query',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'query'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode1, mockNode2, mockNode3]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: { multiple: true, count: 3 },
     })
   })
 
@@ -347,7 +382,7 @@ describe('handleSelectionChange', () => {
 
     expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
       type: 'selection-changed',
-      payload: { multiple: true },
+      payload: { multiple: true, count: 2 },
     })
   })
 

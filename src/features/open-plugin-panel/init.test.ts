@@ -39,9 +39,72 @@ describe('Plugin Initialization', () => {
         expect.anything(),
         expect.objectContaining({
           width: 300,
-          height: 400,
+          height: Math.round(1080 * 0.8),
         })
       )
+    })
+
+    describe('Viewport-based height', () => {
+      it('calculates height as 80% of viewport with no clamping', () => {
+        figmaMock.viewport.bounds.height = 900
+        initializePlugin({ figma: figmaMock as unknown as typeof figma })
+
+        expect(figmaMock.showUI).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            width: 300,
+            height: 720,
+          })
+        )
+      })
+
+      it('clamps height to maximum 1100px for large viewports', () => {
+        figmaMock.viewport.bounds.height = 2000
+        initializePlugin({ figma: figmaMock as unknown as typeof figma })
+
+        expect(figmaMock.showUI).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            width: 300,
+            height: 1100,
+          })
+        )
+      })
+
+      it('clamps height to minimum 400px for small viewports', () => {
+        figmaMock.viewport.bounds.height = 400
+        initializePlugin({ figma: figmaMock as unknown as typeof figma })
+
+        expect(figmaMock.showUI).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            width: 300,
+            height: 400,
+          })
+        )
+      })
+
+      it('keeps width constant across all viewport sizes', () => {
+        figmaMock.viewport.bounds.height = 900
+        initializePlugin({ figma: figmaMock as unknown as typeof figma })
+
+        expect(figmaMock.showUI).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            width: 300,
+          })
+        )
+
+        figmaMock.viewport.bounds.height = 2000
+        initializePlugin({ figma: figmaMock as unknown as typeof figma })
+
+        expect(figmaMock.showUI).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            width: 300,
+          })
+        )
+      })
     })
 
     it('shows UI with title', () => {

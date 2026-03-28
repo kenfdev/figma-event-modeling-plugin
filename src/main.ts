@@ -26,8 +26,10 @@ import { handleCreateGWT } from './features/create-gwt/sandbox'
 import { handleUpdateSliceIssueUrl } from './features/update-slice-issue-url/sandbox'
 import { handleOpenSliceIssueUrl } from './features/open-slice-issue-url/sandbox'
 import { handleDuplicateElement } from './features/duplicate-element/sandbox'
+import { handleConnectElements } from './features/connect-elements/sandbox'
 import { handleExportSliceToMarkdown } from './features/export-slice-to-markdown/sandbox'
 import { handleExportSliceToYaml } from './features/export-slice-to-yaml/sandbox'
+import { handleCopyElementToYaml } from './features/copy-element-to-yaml/sandbox'
 import { handleImportFromYaml } from './features/import-from-yaml/sandbox'
 import { handleChangeElementType } from './features/change-element-type/sandbox'
 import { handleGetLocale, handleSetLocale } from './shared/i18n/sandbox'
@@ -49,8 +51,10 @@ registerHandler('create-gwt', handleCreateGWT)
 registerHandler('update-slice-issue-url', handleUpdateSliceIssueUrl)
 registerHandler('open-slice-issue-url', handleOpenSliceIssueUrl)
 registerHandler('duplicate-element', handleDuplicateElement)
+registerHandler('connect-elements', handleConnectElements)
 registerHandler('export-slice-to-markdown', handleExportSliceToMarkdown)
 registerHandler('export-slice-to-yaml', handleExportSliceToYaml)
+registerHandler('copy-element-to-yaml', handleCopyElementToYaml)
 registerHandler('import-from-yaml', handleImportFromYaml)
 registerHandler('change-element-type', handleChangeElementType)
 registerHandler('get-locale', handleGetLocale)

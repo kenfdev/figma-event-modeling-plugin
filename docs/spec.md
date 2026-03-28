@@ -130,6 +130,10 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F14.1 | RawJsonViewer | Done | `src/features/raw-json-viewer/SPEC.md` |
 | F15.1 | ShowExportToYamlButton | Done | `src/features/export-slice-to-yaml/SPEC.md` |
 | F15.2 | ExportSliceToYaml | Done | `src/features/export-slice-to-yaml/SPEC.md` |
+| F16.1 | TallerPluginPanel | Done | `src/features/open-plugin-panel/SPEC.md` |
+| F16.2 | SimpleScreenElement | Done | `src/features/create-screen/SPEC.md` |
+| F16.3 | ConnectElements | Done | `src/features/connect-elements/SPEC.md` |
+| F16.4 | CopyElementToYaml | Done | `src/features/copy-element-to-yaml/SPEC.md` |
 
 ## Feature Backlog
 
