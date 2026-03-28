@@ -1,0 +1,64 @@
+name: Self-Improve
+description: >
+  Analyzes codebase quality and recent workflow review feedback
+  to identify improvements and write lessons learned.
+version: "1.0"
+start_at: collect_data
+
+states:
+  collect_data:
+    type: task
+    provider: system
+    command: "bash .fdsx/workflows/self-improve/collect_data.sh"
+    result_path: $.run_summary
+    next: analyze
+
+  analyze:
+    type: task
+    profile: generalist
+    prompt_file: analyze.md
+    result_path: $.analysis_output
+    extract:
+      strategy:
+        - keyword
+      pattern: PROBLEMS_FOUND|NO_PROBLEMS
+      result_path: $.analyze_decision
+    retry: 2
+    next: analyze_route
+
+  analyze_route:
+    type: choice
+    choices:
+      - variable: $.analyze_decision
+        operator: equals
+        value: PROBLEMS_FOUND
+        next: research
+    default: update_timestamp_clean
+
+  research:
+    type: task
+    profile: behemoth
+    prompt_file: research.md
+    result_path: $.research_output
+    next: write_lessons
+
+  write_lessons:
+    type: task
+    profile: generalist
+    prompt_file: write_lessons.md
+    result_path: $.lessons
+    next: update_timestamp
+
+  update_timestamp:
+    type: task
+    provider: system
+    command: "mv .fdsx/self-improve-last-run.pending .fdsx/self-improve-last-run 2>/dev/null || true"
+    result_path: $.timestamp_update
+    end: true
+
+  update_timestamp_clean:
+    type: task
+    provider: system
+    command: "mv .fdsx/self-improve-last-run.pending .fdsx/self-improve-last-run 2>/dev/null || true; echo 'Analysis complete. No problems detected.'"
+    result_path: $.timestamp_update
+    end: true

@@ -3,3 +3,14 @@ dist/
 .DS_Store
 *.log
 logs/
+
+# container-wt generated files
+.worktree/.env
+.worktree/.env.app
+.worktree/docker-compose.local.yml
+
+# Personal Dockerfile (gitignored)
+.worktree/Dockerfile.local
+
+# Personal worktreeinclude (not tracked)
+.worktreeinclude.local

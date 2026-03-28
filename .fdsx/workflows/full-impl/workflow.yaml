@@ -1,0 +1,245 @@
+name: full-impl
+description: >
+  Full pipeline: plan -> implement -> parallel review (code quality + security) ->
+  replan (routes by complexity) -> fix-simple (cheap model, escalates to fix-complex
+  on failure) / fix-complex (capable model) -> finalize with PR creation.
+version: "1.0"
+start_at: plan
+max_loop: 25
+
+states:
+  # ──────────────────────────────────────────────
+  # 1. Planning (Claude)
+  # ──────────────────────────────────────────────
+  plan:
+    type: task
+    profile: smarty
+    prompt_file: plan.md
+    result_path: $.plan_output
+    result_file: $.plan_ref
+    extract:
+      strategy: [keyword, regex]
+      pattern: "STEP:1|STEP:2"
+      result_path: $.plan_decision
+    retry: 2
+    next: plan_route
+
+  plan_route:
+    type: choice
+    choices:
+      - variable: $.plan_decision
+        operator: equals
+        value: "STEP:1"
+        next: implement
+    default: abort_blocked
+
+  # ──────────────────────────────────────────────
+  # 2. Implementation (OpenCode / minimax-m2.7)
+  # ──────────────────────────────────────────────
+  implement:
+    type: task
+    profile: doer
+    prompt_file: implement.md
+    result_path: $.implementation_output
+    result_file: $.implementation_ref
+    extract:
+      strategy: [keyword, regex]
+      pattern: "STEP:1|STEP:2"
+      result_path: $.implement_decision
+    retry: 2
+    next: implement_route
+
+  implement_route:
+    type: choice
+    choices:
+      - variable: $.implement_decision
+        operator: equals
+        value: "STEP:1"
+        next: parallel_review
+    default: abort_error
+
+  # ──────────────────────────────────────────────
+  # 3. Parallel Review (Codex / gpt-5.4)
+  # ──────────────────────────────────────────────
+  parallel_review:
+    type: parallel
+    branches:
+      # Branch 1: Code quality review
+      - profile: specialist
+        prompt_file: review-code-quality.md
+        extract:
+          strategy: [keyword, regex]
+          pattern: "approved|needs_fix"
+          result_path: $.verdict
+        retry: 2
+
+      # Branch 2: Security review
+      - profile: specialist
+        prompt_file: review-security.md
+        extract:
+          strategy: [keyword, regex]
+          pattern: "approved|needs_fix"
+          result_path: $.verdict
+        retry: 2
+
+    result_path: $.reviews
+    result_file: $.reviews_ref
+    min_success: 2
+    next: aggregate_reviews
+
+  # ──────────────────────────────────────────────
+  # 3b. Aggregate review results
+  # ──────────────────────────────────────────────
+  aggregate_reviews:
+    type: pass
+    aggregate:
+      source: $.reviews
+      field: verdict
+      strategy: all
+      match: "approved"
+      no_match: "needs_fix"
+      result_path: $.review_decision
+    next: review_route
+
+  review_route:
+    type: choice
+    choices:
+      - variable: $.review_decision
+        operator: equals
+        value: "approved"
+        next: finalize
+    default: replan
+
+  # ──────────────────────────────────────────────
+  # 4. Replan (Claude — analyze review feedback, classify complexity, route)
+  # ──────────────────────────────────────────────
+  replan:
+    type: task
+    profile: smarty
+    prompt_file: replan.md
+    result_path: $.replan_output
+    result_file: $.replan_ref
+    extract:
+      strategy: [keyword, regex]
+      pattern: "STEP:1|STEP:2|STEP:3"
+      result_path: $.replan_decision
+    retry: 2
+    max_iterations: 3
+    next: replan_route
+
+  replan_route:
+    type: choice
+    choices:
+      - variable: $.replan_decision
+        operator: equals
+        value: "STEP:1"
+        next: fix_simple
+      - variable: $.replan_decision
+        operator: equals
+        value: "STEP:2"
+        next: fix_complex
+    default: abort_design_issues
+
+  # ──────────────────────────────────────────────
+  # 5a. Fix — simple (OpenCode / minimax, cheap)
+  # ──────────────────────────────────────────────
+  fix_simple:
+    type: task
+    profile: doer
+    prompt_file: fix.md
+    result_path: $.fix_simple_output
+    result_file: $.fix_simple_ref
+    extract:
+      strategy: [keyword, regex]
+      pattern: "STEP:1|STEP:2|STEP:3"
+      result_path: $.fix_simple_decision
+    retry: 2
+    next: fix_simple_route
+
+  fix_simple_route:
+    type: choice
+    choices:
+      - variable: $.fix_simple_decision
+        operator: equals
+        value: "STEP:1"
+        next: parallel_review
+      - variable: $.fix_simple_decision
+        operator: equals
+        value: "STEP:2"
+        next: parallel_review
+      - variable: $.fix_simple_decision
+        operator: equals
+        value: "STEP:3"
+        next: fix_complex
+    default: fix_complex
+
+  # ──────────────────────────────────────────────
+  # 5b. Fix — complex (Claude / sonnet, capable)
+  # ──────────────────────────────────────────────
+  fix_complex:
+    type: task
+    profile: smarty
+    prompt_file: fix.md
+    result_path: $.fix_complex_output
+    result_file: $.fix_complex_ref
+    extract:
+      strategy: [keyword, regex]
+      pattern: "STEP:1|STEP:2|STEP:3"
+      result_path: $.fix_complex_decision
+    retry: 2
+    next: fix_complex_route
+
+  fix_complex_route:
+    type: choice
+    choices:
+      - variable: $.fix_complex_decision
+        operator: equals
+        value: "STEP:1"
+        next: parallel_review
+      - variable: $.fix_complex_decision
+        operator: equals
+        value: "STEP:2"
+        next: parallel_review
+    default: abort_fix_failed
+
+  # ──────────────────────────────────────────────
+  # 6. Finalize (Claude — commit, push, PR)
+  # ──────────────────────────────────────────────
+  finalize:
+    type: task
+    profile: generalist
+    prompt_file: finalize.md
+    result_path: $.finalize_output
+    retry: 2
+    end: true
+
+  # ──────────────────────────────────────────────
+  # Terminal states
+  # ──────────────────────────────────────────────
+  abort_blocked:
+    type: task
+    provider: system
+    command: "echo 'ABORT: Planner identified unresolved blockers. Please provide clarification and re-run.'"
+    result_path: $.abort_message
+    end: true
+
+  abort_error:
+    type: task
+    provider: system
+    command: "echo 'ABORT: Unrecoverable error during implementation.'"
+    result_path: $.abort_message
+    end: true
+
+  abort_design_issues:
+    type: task
+    provider: system
+    command: "echo 'ABORT: Fundamental design issues found. Please review feedback and re-run with updated guidance.'"
+    result_path: $.abort_message
+    end: true
+
+  abort_fix_failed:
+    type: task
+    provider: system
+    command: "echo 'ABORT: Fix agent could not resolve issues even with the capable model. Please review and provide guidance.'"
+    result_path: $.abort_message
+    end: true

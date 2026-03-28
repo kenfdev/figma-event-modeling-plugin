@@ -1,0 +1,18 @@
+# .worktreeinclude — files to copy from main worktree when creating new worktrees
+#
+# List glob patterns (one per line) for gitignored files that should be copied
+# to new worktrees. These are typically generated config files that aren't
+# tracked in git but are needed for the dev environment to work.
+#
+# Lines starting with # are comments. Empty lines are ignored.
+# Patterns are expanded using bash globbing relative to the repo root.
+# Note: ** (recursive glob) requires bash 4.0+. macOS ships bash 3.2 by default;
+# install bash 5 via Homebrew if you need ** patterns.
+
+# Per-worktree local compose overrides (personal volume mounts, build overrides, etc.)
+.worktree/docker-compose.local.yml
+.fdsx/workflows/**/*
+.fdsx/config.yaml
+
+# If you use a personal Dockerfile, uncomment the next line or add it to .worktreeinclude.local:
+# .worktree/personal/*/Dockerfile

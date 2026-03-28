@@ -1,0 +1,62 @@
+name: Update Docs
+description: >
+  Analyzes fdsx source code against the README.md and updates it
+  to reflect the current codebase.
+version: "1.0"
+start_at: collect_data
+max_loop: 3
+
+states:
+  collect_data:
+    type: task
+    provider: system
+    command: "bash .fdsx/workflows/update-docs/collect_data.sh"
+    result_path: $.collected_data
+    next: analyze
+
+  analyze:
+    type: task
+    profile: smarty
+    prompt_file: analyze.md
+    result_path: $.analysis
+    extract:
+      strategy:
+        - keyword
+      pattern: "CHANGES_NEEDED|UP_TO_DATE"
+      result_path: $.analyze_decision
+    retry: 2
+    next: analyze_route
+
+  analyze_route:
+    type: choice
+    choices:
+      - variable: $.analyze_decision
+        operator: equals
+        value: CHANGES_NEEDED
+        next: update_readme
+    default: done_no_changes
+
+  update_readme:
+    type: task
+    profile: smarty
+    prompt_file: update_readme.md
+    result_path: $.updated_readme
+    result_file: $.readme_file
+    next: apply_updates
+
+  apply_updates:
+    type: task
+    provider: system
+    command: |
+      cp "{readme_file}" "README.md"
+      echo "Updated README.md from {readme_file}"
+      echo "DONE"
+    result_path: $.apply_result
+    end: true
+
+  done_no_changes:
+    type: task
+    provider: system
+    command: "echo 'README.md is already up to date. No changes needed.'"
+    result_path: $.final_message
+    end: true

@@ -1,0 +1,27 @@
+# =============================================================================
+# Team-shared base image. All app and personal Dockerfiles inherit from this.
+#
+# CUSTOMIZE: Add team-wide system dependencies here.
+# Keep this minimal — project-specific deps go in Dockerfile.app.
+# =============================================================================
+
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+  curl \
+  git \
+  ca-certificates \
+  zsh \
+  sudo \
+  && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+RUN groupadd --gid $USER_GID $USERNAME \
+  && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/zsh \
+  && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME
+
+USER $USERNAME
+WORKDIR /workspaces

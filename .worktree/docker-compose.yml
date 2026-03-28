@@ -1,0 +1,79 @@
+# =============================================================================
+# Per-worktree app service (slim mode — no Traefik, no shared network).
+#
+# Usage (from .worktree/ directory):
+#   docker compose up -d --build
+#   docker compose exec app zsh
+#   docker compose down
+#
+# CUSTOMIZE: Change the published port (default 3000) to match your app.
+# CUSTOMIZE: Add shared build cache volumes (see commented examples at bottom).
+# =============================================================================
+
+name: ${PROJECT_NAME}-${BRANCH_NAME}
+
+services:
+  base:
+    image: "${PROJECT_NAME}-dev-base:local"
+    build:
+      context: ..
+      dockerfile: .worktree/Dockerfile.base
+
+  app:
+    depends_on:
+      - base
+    build:
+      context: ..
+      dockerfile: .worktree/Dockerfile.app
+      args:
+        BASE_IMAGE: "${PROJECT_NAME}-dev-base:local"
+    tty: true
+    stdin_open: true
+    container_name: "app-${PROJECT_NAME}-${WORKTREE_NAME}"
+
+    # -------------------------------------------------------------------------
+    # DO NOT EDIT — container-wt core volume mounts
+    # -------------------------------------------------------------------------
+    volumes:
+      # Mount the worktree at the conventional /workspaces path
+      - ${LOCAL_WORKSPACE_FOLDER}:/workspaces/${WORKTREE_NAME}:cached
+      # Mount the git common directory at the same absolute host path so
+      # .git file references (absolute paths) remain valid inside the container
+      - ${GIT_COMMON_DIR}:${GIT_COMMON_DIR}:cached
+
+    # -------------------------------------------------------------------------
+    # CUSTOMIZE — Expose your app port directly (no Traefik in slim mode)
+    # -------------------------------------------------------------------------
+    ports:
+      - "3000:3000"
+
+    # -------------------------------------------------------------------------
+    # DO NOT EDIT — container-wt core environment
+    # -------------------------------------------------------------------------
+    env_file:
+      - .env.app
+    environment:
+      - WORKTREE_NAME=${WORKTREE_NAME}
+      - BRANCH_NAME=${BRANCH_NAME}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - MAIN_REPO_NAME=${MAIN_REPO_NAME}
+    working_dir: /workspaces/${WORKTREE_NAME}
+
+# =============================================================================
+# CUSTOMIZE — Shared build caches (uncomment and adapt for your stack).
+# Named volumes with a fixed `name:` are shared across all worktree containers.
+# Share the package manager CACHE, not node_modules (platform-specific binaries).
+# =============================================================================
+#
+#     # Add these under the `app.volumes` section above:
+#     # - npm-cache:/home/node/.npm
+#     # - go-mod-cache:/go/pkg/mod
+#     # - pip-cache:/home/vscode/.cache/pip
+#
+# volumes:
+#   npm-cache:
+#     name: "${PROJECT_NAME}-npm-cache"
+#   go-mod-cache:
+#     name: "${PROJECT_NAME}-go-mod-cache"
+#   pip-cache:
+#     name: "${PROJECT_NAME}-pip-cache"

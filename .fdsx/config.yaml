@@ -1,0 +1,32 @@
+profiles:
+  smarty:
+    provider: claude
+    model: claude-opus-4-6
+  doer:
+    provider: opencode
+    model: opencode-go/minimax-m2.7
+  specialist:
+    provider: codex
+    model: gpt-5.4
+  generalist:
+    provider: claude
+    model: claude-sonnet-4-6
+  behemoth:
+    provider: gemini
+    model: gemini-2.5-flash
+
+task_splitter:
+  profile: generalist
+workflow_selector:
+  profile: generalist
+workflows_dir: .fdsx/workflows
+auto_workflow: false
+providers:
+  claude:
+    permission_mode: bypassPermissions
+    dangerously_skip_permissions: true
+  codex:
+    dangerously_bypass_approvals_and_sandbox: true
+  opencode:
+    permission: "allow"
+
