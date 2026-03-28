@@ -46,13 +46,13 @@ describe('handleExportSliceToMarkdown', () => {
 
   it('uses payload id to look up the node when provided', async () => {
     const slice = createMockSlice('Payload Slice')
-    figmaMock.getNodeById.mockReturnValue(slice)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(slice)
 
     await handleExportSliceToMarkdown({ id: 'slice-42' }, {
       figma: figmaMock as unknown as typeof figma,
     })
 
-    expect(figmaMock.getNodeById).toHaveBeenCalledWith('slice-42')
+    expect(figmaMock.getNodeByIdAsync).toHaveBeenCalledWith('slice-42')
     expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         payload: expect.objectContaining({

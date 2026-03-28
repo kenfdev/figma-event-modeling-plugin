@@ -11,7 +11,7 @@ export async function handleUpdateCustomFields(
 ): Promise<void> {
   const { id, customFields } = payload as UpdateCustomFieldsPayload
 
-  const node = figma.getNodeById(id)
+  const node = await figma.getNodeByIdAsync(id)
   if (!node) {
     return
   }

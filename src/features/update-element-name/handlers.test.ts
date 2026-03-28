@@ -20,7 +20,7 @@ describe('handleUpdateElementName', () => {
         return ''
       }),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateElementName(
       { id: 'node-1', name: 'New Name' },
@@ -41,7 +41,7 @@ describe('handleUpdateElementName', () => {
         return ''
       }),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateElementName(
       { id: 'node-1', name: 'Updated' },
@@ -62,7 +62,7 @@ describe('handleUpdateElementName', () => {
         return ''
       }),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateElementName(
       { id: 'node-1', name: '' },
@@ -74,7 +74,7 @@ describe('handleUpdateElementName', () => {
   })
 
   it('does nothing when node is not found', async () => {
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
     await handleUpdateElementName(
       { id: 'nonexistent', name: 'New Name' },
@@ -96,7 +96,7 @@ describe('handleUpdateElementName', () => {
         return ''
       }),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateElementName(
       { id: 'node-1', name: 'New Name' },

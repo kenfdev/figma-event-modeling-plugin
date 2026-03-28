@@ -82,7 +82,7 @@ export async function handleExportSliceToMarkdown(
   let slice: SliceNode | null = null
 
   if (payload?.id) {
-    slice = figma.getNodeById(payload.id) as unknown as SliceNode | null
+    slice = (await figma.getNodeByIdAsync(payload.id)) as unknown as SliceNode | null
   }
 
   if (!slice) {

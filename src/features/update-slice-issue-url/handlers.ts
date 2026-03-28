@@ -20,7 +20,7 @@ export async function handleUpdateSliceIssueUrl(
 ): Promise<void> {
   const { id, issueUrl } = payload as UpdateSliceIssueUrlPayload
 
-  const node = figma.getNodeById(id) as
+  const node = (await figma.getNodeByIdAsync(id)) as
     | (SceneNode & { children?: readonly SceneNode[]; appendChild?: (child: SceneNode) => void })
     | null
   if (!node) {

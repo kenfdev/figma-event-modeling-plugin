@@ -16,7 +16,7 @@ export async function handleToggleEventType(
 ): Promise<void> {
   const { id, external } = payload as ToggleEventTypePayload
 
-  const node = figma.getNodeById(id) as SceneNode | null
+  const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
   if (!node) {
     return
   }

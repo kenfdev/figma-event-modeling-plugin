@@ -45,14 +45,14 @@ function findOverlappingScreen(
   return null
 }
 
-export function handleImagePasteIntoScreen(
+export async function handleImagePasteIntoScreen(
   event: DocumentChangeEvent,
   { figma }: MessageHandlerContext
-): void {
+): Promise<void> {
   for (const change of event.documentChanges) {
     if (change.type !== 'CREATE') continue
 
-    const node = figma.getNodeById(change.id) as SceneNode | null
+    const node = (await figma.getNodeByIdAsync(change.id)) as SceneNode | null
     if (!node) continue
     if (!hasImageFill(node)) continue
 

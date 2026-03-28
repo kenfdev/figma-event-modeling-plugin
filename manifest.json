@@ -8,5 +8,6 @@
   "networkAccess": {
     "allowedDomains": ["none"],
     "devAllowedDomains": ["*"]
-  }
+  },
+  "documentAccess": "dynamic-page"
 }

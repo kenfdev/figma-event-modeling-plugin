@@ -14,7 +14,7 @@ export async function handleToggleFieldsVisibility(
 ): Promise<void> {
   const { id } = payload as ToggleFieldsVisibilityPayload
 
-  const node = figma.getNodeById(id) as SceneNode | null
+  const node = (await figma.getNodeByIdAsync(id)) as SceneNode | null
   if (!node) {
     return
   }

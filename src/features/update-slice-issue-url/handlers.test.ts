@@ -17,7 +17,7 @@ describe('handleUpdateSliceIssueUrl', () => {
       children: [],
       appendChild: vi.fn(),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateSliceIssueUrl(
       { id: 'node-1', issueUrl: 'https://github.com/issues/123' },
@@ -38,7 +38,7 @@ describe('handleUpdateSliceIssueUrl', () => {
       children: [],
       appendChild: vi.fn(),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateSliceIssueUrl(
       { id: 'node-1', issueUrl: '' },
@@ -49,7 +49,7 @@ describe('handleUpdateSliceIssueUrl', () => {
   })
 
   it('does nothing when node is not found', async () => {
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
     await handleUpdateSliceIssueUrl(
       { id: 'nonexistent', issueUrl: 'https://github.com/issues/123' },
@@ -68,7 +68,7 @@ describe('handleUpdateSliceIssueUrl', () => {
         children: [],
         appendChild: vi.fn(),
       }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleUpdateSliceIssueUrl(
         { id: 'node-1', issueUrl: 'https://github.com/issues/123' },
@@ -90,7 +90,7 @@ describe('handleUpdateSliceIssueUrl', () => {
         children: [],
         appendChild: vi.fn(),
       }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleUpdateSliceIssueUrl(
         { id: 'node-1', issueUrl: 'https://github.com/issues/123' },
@@ -121,7 +121,7 @@ describe('handleUpdateSliceIssueUrl', () => {
         children: [existingMarker],
         appendChild: vi.fn(),
       }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleUpdateSliceIssueUrl(
         { id: 'node-1', issueUrl: 'https://new-url.com' },
@@ -151,7 +151,7 @@ describe('handleUpdateSliceIssueUrl', () => {
         children: [existingMarker],
         appendChild: vi.fn(),
       }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleUpdateSliceIssueUrl(
         { id: 'node-1', issueUrl: 'https://github.com/issues/456' },
@@ -178,7 +178,7 @@ describe('handleUpdateSliceIssueUrl', () => {
         children: [existingMarker],
         appendChild: vi.fn(),
       }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleUpdateSliceIssueUrl(
         { id: 'node-1', issueUrl: '' },
@@ -196,7 +196,7 @@ describe('handleUpdateSliceIssueUrl', () => {
         children: [],
         appendChild: vi.fn(),
       }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleUpdateSliceIssueUrl(
         { id: 'node-1', issueUrl: '' },
@@ -214,7 +214,7 @@ describe('handleUpdateSliceIssueUrl', () => {
         children: [],
         appendChild: vi.fn(),
       }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleUpdateSliceIssueUrl(
         { id: 'node-1', issueUrl: 'https://github.com/issues/123' },

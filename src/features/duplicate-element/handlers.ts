@@ -6,7 +6,7 @@ export async function handleDuplicateElement(
   payload: { id: string },
   { figma }: MessageHandlerContext
 ): Promise<void> {
-  const node = figma.getNodeById(payload.id)
+  const node = await figma.getNodeByIdAsync(payload.id)
   if (!node) return
 
   const original = node as SceneNode & {

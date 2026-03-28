@@ -43,7 +43,7 @@ describe('handleChangeElementType', () => {
 
   it('updates type plugin data to the new type', async () => {
     const mockNode = createMockNode({ type: 'command' })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'event' },
@@ -55,7 +55,7 @@ describe('handleChangeElementType', () => {
 
   it('updates fill and stroke colors to command colors', async () => {
     const mockNode = createMockNode({ type: 'event' })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'command' },
@@ -72,7 +72,7 @@ describe('handleChangeElementType', () => {
 
   it('updates fill and stroke colors to event colors', async () => {
     const mockNode = createMockNode({ type: 'command' })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'event' },
@@ -89,7 +89,7 @@ describe('handleChangeElementType', () => {
 
   it('updates fill and stroke colors to query colors', async () => {
     const mockNode = createMockNode({ type: 'command' })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'query' },
@@ -106,7 +106,7 @@ describe('handleChangeElementType', () => {
 
   it('clears external flag when converting from event to command', async () => {
     const mockNode = createMockNode({ type: 'event', external: 'true' })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'command' },
@@ -118,7 +118,7 @@ describe('handleChangeElementType', () => {
 
   it('clears external flag when converting from event to query', async () => {
     const mockNode = createMockNode({ type: 'event', external: 'true' })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'query' },
@@ -130,7 +130,7 @@ describe('handleChangeElementType', () => {
 
   it('does not clear external flag when converting from command to event', async () => {
     const mockNode = createMockNode({ type: 'command' })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'event' },
@@ -141,7 +141,7 @@ describe('handleChangeElementType', () => {
   })
 
   it('does nothing when node is not found', async () => {
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
     await handleChangeElementType(
       { id: 'nonexistent', newType: 'command' },
@@ -159,7 +159,7 @@ describe('handleChangeElementType', () => {
       notes: 'some notes',
       fieldsVisible: 'true',
     })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'event' },
@@ -175,7 +175,7 @@ describe('handleChangeElementType', () => {
 
   it('does not change element size', async () => {
     const mockNode = createMockNode({ type: 'command' })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleChangeElementType(
       { id: 'node-1', newType: 'event' },
@@ -193,7 +193,7 @@ describe('handleChangeElementType', () => {
       notes: 'important note',
       fieldsVisible: 'true',
     })
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
     figmaMock.currentPage.selection = [mockNode as unknown as SceneNode]
 
     await handleChangeElementType(

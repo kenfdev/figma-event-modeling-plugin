@@ -20,7 +20,7 @@ describe('handleToggleFieldsVisibility', () => {
       resize: vi.fn(),
       text: { characters: 'Command', fills: [] },
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleFieldsVisibility(
       { id: 'node-1' },
@@ -41,7 +41,7 @@ describe('handleToggleFieldsVisibility', () => {
       resize: vi.fn(),
       text: { characters: 'Command', fills: [] },
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleFieldsVisibility(
       { id: 'node-1' },
@@ -62,7 +62,7 @@ describe('handleToggleFieldsVisibility', () => {
       resize: vi.fn(),
       text: { characters: 'Command', fills: [] },
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleFieldsVisibility(
       { id: 'node-1' },
@@ -73,7 +73,7 @@ describe('handleToggleFieldsVisibility', () => {
   })
 
   it('does nothing when node is not found', async () => {
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
     await handleToggleFieldsVisibility(
       { id: 'nonexistent' },
@@ -94,7 +94,7 @@ describe('handleToggleFieldsVisibility', () => {
       }),
       resize: vi.fn(),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleFieldsVisibility(
       { id: 'node-1' },
@@ -133,7 +133,7 @@ describe('handleToggleFieldsVisibility', () => {
         fieldsVisible: 'false',
         customFields: 'field1: string\nfield2: number',
       })
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleToggleFieldsVisibility(
         { id: 'node-1' },
@@ -150,7 +150,7 @@ describe('handleToggleFieldsVisibility', () => {
         fieldsVisible: 'true',
         label: 'Command',
       })
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleToggleFieldsVisibility(
         { id: 'node-1' },
@@ -165,7 +165,7 @@ describe('handleToggleFieldsVisibility', () => {
         fieldsVisible: 'false',
         customFields: '',
       })
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleToggleFieldsVisibility(
         { id: 'node-1' },
@@ -188,14 +188,14 @@ describe('handleToggleFieldsVisibility', () => {
         id: 'node-2',
       }
 
-      figmaMock.getNodeById.mockReturnValue(oneLineMock)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(oneLineMock)
       await handleToggleFieldsVisibility(
         { id: 'node-1' },
         { figma: figmaMock as unknown as typeof figma }
       )
       const oneLineHeight = oneLineMock.resize.mock.calls[0][1]
 
-      figmaMock.getNodeById.mockReturnValue(threeLineMock)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(threeLineMock)
       await handleToggleFieldsVisibility(
         { id: 'node-2' },
         { figma: figmaMock as unknown as typeof figma }
@@ -210,7 +210,7 @@ describe('handleToggleFieldsVisibility', () => {
         fieldsVisible: 'false',
         customFields: 'field1: string',
       })
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleToggleFieldsVisibility(
         { id: 'node-1' },
@@ -226,7 +226,7 @@ describe('handleToggleFieldsVisibility', () => {
         customFields: 'userId: string\namount: number',
         label: 'UpdateOrder',
       })
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleToggleFieldsVisibility(
         { id: 'node-1' },
@@ -244,7 +244,7 @@ describe('handleToggleFieldsVisibility', () => {
         customFields: 'userId: string',
         label: 'UpdateOrder',
       })
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleToggleFieldsVisibility(
         { id: 'node-1' },
@@ -262,7 +262,7 @@ describe('handleToggleFieldsVisibility', () => {
         }),
         cornerRadius: 0,
       }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleToggleFieldsVisibility(
         { id: 'node-1' },
@@ -277,7 +277,7 @@ describe('handleToggleFieldsVisibility', () => {
         fieldsVisible: 'false',
         customFields: 'field1: string',
       })
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleToggleFieldsVisibility(
         { id: 'node-1' },

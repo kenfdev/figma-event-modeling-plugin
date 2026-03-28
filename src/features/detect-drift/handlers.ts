@@ -63,9 +63,9 @@ export function handleSelectionForDrift({ figma }: MessageHandlerContext): void 
   })
 }
 
-export const handleSyncDrift: MessageHandler = (payload, { figma }) => {
+export const handleSyncDrift: MessageHandler = async (payload, { figma }) => {
   const { id } = payload as { id: string }
-  const node = figma.getNodeById(id)
+  const node = await figma.getNodeByIdAsync(id)
   if (!node) return
 
   const elementType = node.getPluginData('type')

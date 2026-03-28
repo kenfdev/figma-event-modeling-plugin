@@ -30,6 +30,8 @@ export interface FigmaMock {
   group: ReturnType<typeof vi.fn>
   loadFontAsync: ReturnType<typeof vi.fn>
   getNodeById: ReturnType<typeof vi.fn>
+  getNodeByIdAsync: ReturnType<typeof vi.fn>
+  loadAllPagesAsync: ReturnType<typeof vi.fn>
   notify: ReturnType<typeof vi.fn>
   openExternal: ReturnType<typeof vi.fn>
   clientStorage: {
@@ -147,6 +149,8 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
     })),
     loadFontAsync: vi.fn(() => Promise.resolve()),
     getNodeById: vi.fn(),
+    getNodeByIdAsync: vi.fn(() => Promise.resolve(null)),
+    loadAllPagesAsync: vi.fn(() => Promise.resolve()),
     notify: vi.fn(),
     openExternal: vi.fn(() => Promise.resolve()),
     clientStorage: {

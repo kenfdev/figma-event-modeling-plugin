@@ -57,12 +57,16 @@ registerHandler('get-locale', handleGetLocale)
 registerHandler('set-locale', handleSetLocale)
 registerHandler('sync-drift', handleSyncDrift)
 
-export default function main() {
+export default async function main() {
   initializePlugin({ figma })
   registerSelectionChangeListener({ figma })
   figma.on('selectionchange', () => {
     handleSelectionForDrift({ figma })
   })
+
+  // Required for documentchange handler in dynamic-page mode
+  await figma.loadAllPagesAsync()
+
   figma.on('documentchange', (event) => {
     handleImagePasteIntoScreen(event, { figma })
   })

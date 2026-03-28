@@ -11,7 +11,7 @@ export async function handleUpdateElementName(
 ): Promise<void> {
   const { id, name } = payload as UpdateElementNamePayload
 
-  const node = figma.getNodeById(id) as ShapeWithTextNode | null
+  const node = (await figma.getNodeByIdAsync(id)) as ShapeWithTextNode | null
   if (!node) {
     return
   }

@@ -9,17 +9,17 @@ describe('handleImagePasteIntoScreen', () => {
     figmaMock = createFigmaMock()
   })
 
-  it('does nothing when document change has no created nodes', () => {
-    handleImagePasteIntoScreen(
+  it('does nothing when document change has no created nodes', async () => {
+    await handleImagePasteIntoScreen(
       { documentChanges: [{ type: 'PROPERTY_CHANGE', id: '1', properties: [] }] },
       { figma: figmaMock as unknown as typeof figma }
     )
 
     // No resize or move operations expected
-    expect(figmaMock.getNodeById).not.toHaveBeenCalled()
+    expect(figmaMock.getNodeByIdAsync).not.toHaveBeenCalled()
   })
 
-  it('does nothing when created node is not an image fill node', () => {
+  it('does nothing when created node is not an image fill node', async () => {
     const rectNode = {
       id: 'pasted-node',
       type: 'RECTANGLE',
@@ -31,9 +31,9 @@ describe('handleImagePasteIntoScreen', () => {
       resize: vi.fn(),
       parent: null,
     }
-    figmaMock.getNodeById.mockReturnValue(rectNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(rectNode)
 
-    handleImagePasteIntoScreen(
+    await handleImagePasteIntoScreen(
       { documentChanges: [{ type: 'CREATE', id: 'pasted-node' }] },
       { figma: figmaMock as unknown as typeof figma }
     )
@@ -41,7 +41,7 @@ describe('handleImagePasteIntoScreen', () => {
     expect(rectNode.resize).not.toHaveBeenCalled()
   })
 
-  it('does nothing when image node is not overlapping a screen element', () => {
+  it('does nothing when image node is not overlapping a screen element', async () => {
     const imageNode = {
       id: 'pasted-image',
       type: 'RECTANGLE',
@@ -53,12 +53,12 @@ describe('handleImagePasteIntoScreen', () => {
       resize: vi.fn(),
       parent: figmaMock.currentPage,
     }
-    figmaMock.getNodeById.mockReturnValue(imageNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(imageNode)
 
     // No screen groups on the page
     figmaMock.currentPage.children = []
 
-    handleImagePasteIntoScreen(
+    await handleImagePasteIntoScreen(
       { documentChanges: [{ type: 'CREATE', id: 'pasted-image' }] },
       { figma: figmaMock as unknown as typeof figma }
     )
@@ -66,7 +66,7 @@ describe('handleImagePasteIntoScreen', () => {
     expect(imageNode.resize).not.toHaveBeenCalled()
   })
 
-  it('resizes image to fit screen bounds when pasted overlapping a screen', () => {
+  it('resizes image to fit screen bounds when pasted overlapping a screen', async () => {
     const screenRect = {
       id: 'screen-rect',
       type: 'RECTANGLE',
@@ -98,10 +98,10 @@ describe('handleImagePasteIntoScreen', () => {
       parent: figmaMock.currentPage,
     }
 
-    figmaMock.getNodeById.mockReturnValue(imageNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(imageNode)
     figmaMock.currentPage.children = [screenGroup, imageNode]
 
-    handleImagePasteIntoScreen(
+    await handleImagePasteIntoScreen(
       { documentChanges: [{ type: 'CREATE', id: 'pasted-image' }] },
       { figma: figmaMock as unknown as typeof figma }
     )
@@ -110,7 +110,7 @@ describe('handleImagePasteIntoScreen', () => {
     expect(imageNode.resize).toHaveBeenCalledWith(200, 160)
   })
 
-  it('repositions image to align with the screen placeholder rectangle', () => {
+  it('repositions image to align with the screen placeholder rectangle', async () => {
     const screenRect = {
       id: 'screen-rect',
       type: 'RECTANGLE',
@@ -142,10 +142,10 @@ describe('handleImagePasteIntoScreen', () => {
       parent: figmaMock.currentPage,
     }
 
-    figmaMock.getNodeById.mockReturnValue(imageNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(imageNode)
     figmaMock.currentPage.children = [screenGroup, imageNode]
 
-    handleImagePasteIntoScreen(
+    await handleImagePasteIntoScreen(
       { documentChanges: [{ type: 'CREATE', id: 'pasted-image' }] },
       { figma: figmaMock as unknown as typeof figma }
     )
@@ -155,7 +155,7 @@ describe('handleImagePasteIntoScreen', () => {
     expect(imageNode.y).toBe(50)
   })
 
-  it('sets image scale mode to FILL for proper cropping', () => {
+  it('sets image scale mode to FILL for proper cropping', async () => {
     const screenRect = {
       id: 'screen-rect',
       type: 'RECTANGLE',
@@ -188,10 +188,10 @@ describe('handleImagePasteIntoScreen', () => {
       parent: figmaMock.currentPage,
     }
 
-    figmaMock.getNodeById.mockReturnValue(imageNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(imageNode)
     figmaMock.currentPage.children = [screenGroup, imageNode]
 
-    handleImagePasteIntoScreen(
+    await handleImagePasteIntoScreen(
       { documentChanges: [{ type: 'CREATE', id: 'pasted-image' }] },
       { figma: figmaMock as unknown as typeof figma }
     )

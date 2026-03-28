@@ -15,7 +15,7 @@ describe('handleUpdateNotes', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateNotes(
       { id: 'node-1', notes: 'Some important notes\nWith multiple lines' },
@@ -34,7 +34,7 @@ describe('handleUpdateNotes', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateNotes(
       { id: 'node-1', notes: '' },
@@ -45,7 +45,7 @@ describe('handleUpdateNotes', () => {
   })
 
   it('does nothing when node is not found', async () => {
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
     await handleUpdateNotes(
       { id: 'nonexistent', notes: 'some text' },

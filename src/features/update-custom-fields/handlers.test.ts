@@ -15,7 +15,7 @@ describe('handleUpdateCustomFields', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateCustomFields(
       { id: 'node-1', customFields: 'field1: value1\nfield2: value2' },
@@ -34,7 +34,7 @@ describe('handleUpdateCustomFields', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleUpdateCustomFields(
       { id: 'node-1', customFields: '' },
@@ -45,7 +45,7 @@ describe('handleUpdateCustomFields', () => {
   })
 
   it('does nothing when node is not found', async () => {
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
     await handleUpdateCustomFields(
       { id: 'nonexistent', customFields: 'some text' },

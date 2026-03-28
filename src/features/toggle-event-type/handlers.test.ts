@@ -17,7 +17,7 @@ describe('handleToggleEventType', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleEventType(
       { id: 'node-1', external: true },
@@ -35,7 +35,7 @@ describe('handleToggleEventType', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleEventType(
       { id: 'node-1', external: false },
@@ -53,7 +53,7 @@ describe('handleToggleEventType', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleEventType(
       { id: 'node-1', external: true },
@@ -74,7 +74,7 @@ describe('handleToggleEventType', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleEventType(
       { id: 'node-1', external: false },
@@ -95,7 +95,7 @@ describe('handleToggleEventType', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleEventType(
       { id: 'node-1', external: true },
@@ -116,7 +116,7 @@ describe('handleToggleEventType', () => {
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
-    figmaMock.getNodeById.mockReturnValue(mockNode)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
     await handleToggleEventType(
       { id: 'node-1', external: false },
@@ -130,7 +130,7 @@ describe('handleToggleEventType', () => {
   })
 
   it('does nothing when node is not found', async () => {
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
     await handleToggleEventType(
       { id: 'nonexistent', external: true },

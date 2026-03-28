@@ -11,7 +11,7 @@ export async function handleUpdateNotes(
 ): Promise<void> {
   const { id, notes } = payload as UpdateNotesPayload
 
-  const node = figma.getNodeById(id)
+  const node = await figma.getNodeByIdAsync(id)
   if (!node) {
     return
   }

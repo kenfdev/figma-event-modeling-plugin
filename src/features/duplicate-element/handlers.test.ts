@@ -39,7 +39,7 @@ describe('handleDuplicateElement', () => {
   })
 
   it('does nothing when node is not found', async () => {
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
     await handleDuplicateElement(
       { id: 'nonexistent' },
@@ -51,7 +51,7 @@ describe('handleDuplicateElement', () => {
 
   it('clones the selected node', async () => {
     const { node } = createMockNode({ type: 'command', label: 'MyCommand' })
-    figmaMock.getNodeById.mockReturnValue(node)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
     await handleDuplicateElement(
       { id: 'original-node-id' },
@@ -69,7 +69,7 @@ describe('handleDuplicateElement', () => {
       notes: 'some notes',
       fieldsVisible: 'true',
     })
-    figmaMock.getNodeById.mockReturnValue(node)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
     await handleDuplicateElement(
       { id: 'original-node-id' },
@@ -95,7 +95,7 @@ describe('handleDuplicateElement', () => {
       label: 'MyEvent',
       external: 'true',
     })
-    figmaMock.getNodeById.mockReturnValue(node)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
     await handleDuplicateElement(
       { id: 'original-node-id' },
@@ -112,7 +112,7 @@ describe('handleDuplicateElement', () => {
     })
     node.x = 100
     node.y = 200
-    figmaMock.getNodeById.mockReturnValue(node)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
     await handleDuplicateElement(
       { id: 'original-node-id' },
@@ -128,7 +128,7 @@ describe('handleDuplicateElement', () => {
       type: 'query',
       label: 'MyQuery',
     })
-    figmaMock.getNodeById.mockReturnValue(node)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
     await handleDuplicateElement(
       { id: 'original-node-id' },
@@ -143,7 +143,7 @@ describe('handleDuplicateElement', () => {
       type: 'command',
       label: 'Cmd',
     })
-    figmaMock.getNodeById.mockReturnValue(node)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
     await handleDuplicateElement(
       { id: 'original-node-id' },

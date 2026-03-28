@@ -338,49 +338,49 @@ describe('handleSyncDrift', () => {
     }
   }
 
-  it('restores canvas text to plugin data label', () => {
+  it('restores canvas text to plugin data label', async () => {
     const node = createSyncableNode('node-1', {
       label: 'CreateOrder',
       canvasText: 'EditedOnCanvas',
     })
-    figmaMock.getNodeById = vi.fn(() => node) as typeof figmaMock.getNodeById
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
-    handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
+    await handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
 
     expect(node.text.characters).toBe('CreateOrder')
   })
 
-  it('restores original stroke color', () => {
+  it('restores original stroke color', async () => {
     const node = createSyncableNode('node-1', {
       originalStrokeR: '0',
       originalStrokeG: '0.48',
       originalStrokeB: '0.82',
     })
-    figmaMock.getNodeById = vi.fn(() => node) as typeof figmaMock.getNodeById
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
-    handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
+    await handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
 
     expect(node.strokes).toEqual([
       { type: 'SOLID', color: { r: 0, g: 0.48, b: 0.82 } },
     ])
   })
 
-  it('cleans up originalStroke plugin data after sync', () => {
+  it('cleans up originalStroke plugin data after sync', async () => {
     const node = createSyncableNode('node-1')
-    figmaMock.getNodeById = vi.fn(() => node) as typeof figmaMock.getNodeById
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
-    handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
+    await handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
 
     expect(node.setPluginData).toHaveBeenCalledWith('originalStrokeR', '')
     expect(node.setPluginData).toHaveBeenCalledWith('originalStrokeG', '')
     expect(node.setPluginData).toHaveBeenCalledWith('originalStrokeB', '')
   })
 
-  it('sends drift-detected with drifted=false after sync', () => {
+  it('sends drift-detected with drifted=false after sync', async () => {
     const node = createSyncableNode('node-1')
-    figmaMock.getNodeById = vi.fn(() => node) as typeof figmaMock.getNodeById
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
-    handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
+    await handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
 
     expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
       type: 'drift-detected',
@@ -388,24 +388,24 @@ describe('handleSyncDrift', () => {
     })
   })
 
-  it('does nothing if node is not found', () => {
-    figmaMock.getNodeById = vi.fn(() => null) as typeof figmaMock.getNodeById
+  it('does nothing if node is not found', async () => {
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
-    handleSyncDrift({ id: 'nonexistent' }, { figma: figmaMock as unknown as typeof figma })
+    await handleSyncDrift({ id: 'nonexistent' }, { figma: figmaMock as unknown as typeof figma })
 
     expect(figmaMock.ui.postMessage).not.toHaveBeenCalled()
   })
 
-  it('does nothing if node is not a core element type', () => {
+  it('does nothing if node is not a core element type', async () => {
     const node = createSyncableNode('node-1', { type: 'lane' })
-    figmaMock.getNodeById = vi.fn(() => node) as typeof figmaMock.getNodeById
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
-    handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
+    await handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
 
     expect(figmaMock.ui.postMessage).not.toHaveBeenCalled()
   })
 
-  it('does not restore stroke if original stroke data is missing', () => {
+  it('does not restore stroke if original stroke data is missing', async () => {
     const node = createSyncableNode('node-1', {
       originalStrokeR: '',
       originalStrokeG: '',
@@ -413,9 +413,9 @@ describe('handleSyncDrift', () => {
     })
     const originalStrokes = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }]
     node.strokes = [...originalStrokes]
-    figmaMock.getNodeById = vi.fn(() => node) as typeof figmaMock.getNodeById
+    figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
-    handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
+    await handleSyncDrift({ id: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
 
     expect(node.strokes).toEqual(originalStrokes)
   })

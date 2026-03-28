@@ -28,7 +28,7 @@ export async function handleChangeElementType(
   { figma }: MessageHandlerContext
 ): Promise<void> {
   const { id, newType } = payload
-  const node = figma.getNodeById(id)
+  const node = await figma.getNodeByIdAsync(id)
   if (!node) return
 
   const shape = node as ShapeWithTextNode
