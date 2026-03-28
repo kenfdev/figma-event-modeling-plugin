@@ -26,7 +26,7 @@ export function handleSelectionChange({
   if (selection.length > 1) {
     figma.ui.postMessage({
       type: 'selection-changed',
-      payload: { multiple: true },
+      payload: { multiple: true, count: selection.length },
     })
     return
   }
