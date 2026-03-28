@@ -47,7 +47,6 @@ export function handleSelectionChange({
     customFields: node.getPluginData('customFields') || '',
     notes: node.getPluginData('notes') || '',
     external: node.getPluginData('external') === 'true',
-    fieldsVisible: node.getPluginData('fieldsVisible') === 'true',
     issueUrl: node.getPluginData('issueUrl') || '',
   }
 

@@ -23,7 +23,6 @@ const en = {
     customFields: 'Custom Fields',
     notes: 'Notes',
     external: 'External',
-    showFields: 'Show Fields',
     issueUrl: 'Issue URL',
     openInBrowser: 'Open in browser',
     elementType: 'Element type',

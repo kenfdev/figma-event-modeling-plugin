@@ -1,0 +1,5 @@
+- the "Screen" should be a image placeholder. does figma have an object that is a placeholder for images? so if i drag and drop an image inside, it gets replaced with the image.
+- the text of the shape and the custom fields are confusing and they drift. this is a critical problem which need to be fundamentally solved.
+- the custom field should have a better ui element and yaml structure. it should have a field name and the field type. addable with a plus button and deletable with a button as well.
+- the "Name" field is always synced with the text of the shape. it never drifts.
+- let's disable the "Show Fields" functionality. it makes the ux confusing and makes things drift.

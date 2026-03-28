@@ -9,7 +9,6 @@ export interface SelectedElement {
   customFields?: string
   notes?: string
   external?: boolean
-  fieldsVisible?: boolean
   issueUrl?: string
   pluginData?: Record<string, string>
 }
@@ -43,7 +42,6 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
   const [customFields, setCustomFields] = useState('')
   const [notes, setNotes] = useState('')
   const [external, setExternal] = useState(false)
-  const [fieldsVisible, setFieldsVisible] = useState(false)
   const [issueUrl, setIssueUrl] = useState('')
   const [mode, setMode] = useState<'visual' | 'raw'>('visual')
 
@@ -57,10 +55,9 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
       setCustomFields(selectedElement.customFields ?? '')
       setNotes(selectedElement.notes ?? '')
       setExternal(selectedElement.external ?? false)
-      setFieldsVisible(selectedElement.fieldsVisible ?? false)
       setIssueUrl(selectedElement.issueUrl ?? '')
     }
-  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external, selectedElement?.fieldsVisible, selectedElement?.issueUrl])
+  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external, selectedElement?.issueUrl])
 
   if (multipleSelected) {
     return (
@@ -156,19 +153,6 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
     )
   }
 
-  const handleFieldsVisibilityToggle = () => {
-    setFieldsVisible(!fieldsVisible)
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: 'toggle-fields-visibility',
-          payload: { id: selectedElement.id },
-        },
-      },
-      '*'
-    )
-  }
-
   const handleOpenIssueUrl = () => {
     if (!issueUrl) return
     parent.postMessage(
@@ -219,7 +203,6 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
     ...(customFields && { customFields }),
     ...(notes && { notes }),
     ...(external ? { external: 'true' } : selectedElement.pluginData?.external !== undefined ? { external: 'false' } : {}),
-    ...(fieldsVisible ? { fieldsVisible: 'true' } : selectedElement.pluginData?.fieldsVisible !== undefined ? { fieldsVisible: 'false' } : {}),
     ...(issueUrl && { issueUrl }),
   }
 
@@ -336,19 +319,6 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
               onChange={handleNotesChange}
               aria-label="Notes"
             />
-          </div>
-        )}
-        {showCustomFields && (
-          <div className="element-editor-row">
-            <label className="element-editor-label">
-              <input
-                type="checkbox"
-                checked={fieldsVisible}
-                onChange={handleFieldsVisibilityToggle}
-                aria-label={t('editor.showFields')}
-              />
-              {' '}{t('editor.showFields')}
-            </label>
           </div>
         )}
         {showCustomFields && (

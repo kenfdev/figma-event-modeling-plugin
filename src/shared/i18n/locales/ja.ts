@@ -23,7 +23,6 @@ const ja = {
     customFields: 'カスタムフィールド',
     notes: 'メモ',
     external: '外部',
-    showFields: 'フィールドを表示',
     issueUrl: 'Issue URL',
     openInBrowser: 'ブラウザで開く',
     elementType: '要素タイプ',

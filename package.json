@@ -4,7 +4,7 @@
   "description": "FigJam plugin for Event Modeling",
   "type": "module",
   "scripts": {
-    "dev": "plugma dev",
+    "dev": "plugma dev --port 3000",
     "build": "plugma build",
     "release": "plugma build --mode production",
     "test": "vitest",

@@ -13,7 +13,7 @@ import { handleUpdateElementName } from './features/update-element-name/sandbox'
 import { handleUpdateCustomFields } from './features/update-custom-fields/sandbox'
 import { handleUpdateNotes } from './features/update-notes/sandbox'
 import { handleToggleEventType } from './features/toggle-event-type/sandbox'
-import { handleToggleFieldsVisibility } from './features/toggle-fields-visibility/sandbox'
+
 import { handleCreateLane } from './features/create-lane/sandbox'
 import { handleCreateChapter } from './features/create-chapter/sandbox'
 import { handleCreateProcessor } from './features/create-processor/sandbox'
@@ -40,7 +40,6 @@ registerHandler('update-element-name', handleUpdateElementName)
 registerHandler('update-custom-fields', handleUpdateCustomFields)
 registerHandler('update-notes', handleUpdateNotes)
 registerHandler('toggle-event-type', handleToggleEventType)
-registerHandler('toggle-fields-visibility', handleToggleFieldsVisibility)
 registerHandler('create-lane', handleCreateLane)
 registerHandler('create-chapter', handleCreateChapter)
 registerHandler('create-processor', handleCreateProcessor)

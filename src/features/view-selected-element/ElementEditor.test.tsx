@@ -12,7 +12,6 @@ interface SelectedElement {
   customFields?: string
   notes?: string
   external?: boolean
-  fieldsVisible?: boolean
   issueUrl?: string
   pluginData?: Record<string, string>
 }
@@ -41,8 +40,6 @@ describe('ElementEditor', () => {
     name: 'Test Element',
     ...overrides,
   })
-
-  const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
 
   describe('when multiple elements are selected', () => {
     it('shows "Multiple elements selected" message', () => {
@@ -556,80 +553,6 @@ describe('ElementEditor', () => {
     it('does NOT show export button when multiple elements are selected', () => {
       renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} />)
       expect(screen.queryByRole('button', { name: /export to markdown/i })).not.toBeInTheDocument()
-    })
-  })
-
-  describe('fields visibility toggle', () => {
-    it('shows toggle for command elements', () => {
-      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'command' })} />)
-      expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
-    })
-
-    it('shows toggle for event elements', () => {
-      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'event' })} />)
-      expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
-    })
-
-    it('shows toggle for query elements', () => {
-      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'query' })} />)
-      expect(screen.getByRole('checkbox', { name: /show fields/i })).toBeInTheDocument()
-    })
-
-    it('does NOT show toggle for actor elements', () => {
-      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'actor' })} />)
-      expect(screen.queryByRole('checkbox', { name: /show fields/i })).not.toBeInTheDocument()
-    })
-
-    it('toggle is unchecked when fieldsVisible is false', () => {
-      renderEditor(
-        <ElementEditor
-          selectedElement={createSelectedElement({ type: 'command', fieldsVisible: false })}
-        />
-      )
-      const toggle = screen.getByRole('checkbox', { name: /show fields/i })
-      expect(toggle).not.toBeChecked()
-    })
-
-    it('toggle is checked when fieldsVisible is true', () => {
-      renderEditor(
-        <ElementEditor
-          selectedElement={createSelectedElement({ type: 'command', fieldsVisible: true })}
-        />
-      )
-      const toggle = screen.getByRole('checkbox', { name: /show fields/i })
-      expect(toggle).toBeChecked()
-    })
-
-    it('toggle defaults to unchecked when fieldsVisible is undefined', () => {
-      renderEditor(
-        <ElementEditor
-          selectedElement={createSelectedElement({ type: 'command' })}
-        />
-      )
-      const toggle = screen.getByRole('checkbox', { name: /show fields/i })
-      expect(toggle).not.toBeChecked()
-    })
-
-    it('sends toggle-fields-visibility message to sandbox when toggled', async () => {
-      const user = userEvent.setup()
-      renderEditor(
-        <ElementEditor
-          selectedElement={createSelectedElement({ id: 'node-88', type: 'command', fieldsVisible: false })}
-        />
-      )
-      const toggle = screen.getByRole('checkbox', { name: /show fields/i })
-
-      await user.click(toggle)
-
-      expect(postMessageSpy).toHaveBeenCalledWith(
-        {
-          pluginMessage: {
-            type: 'toggle-fields-visibility',
-            payload: { id: 'node-88' },
-          },
-        },
-        '*'
-      )
     })
   })
 

@@ -61,7 +61,6 @@ describe('handleSelectionChange', () => {
         customFields: '',
         notes: '',
         external: false,
-        fieldsVisible: false,
         issueUrl: '',
       },
     })
@@ -89,7 +88,6 @@ describe('handleSelectionChange', () => {
         customFields: '',
         notes: '',
         external: false,
-        fieldsVisible: false,
         issueUrl: '',
       },
     })
@@ -117,7 +115,6 @@ describe('handleSelectionChange', () => {
         customFields: '',
         notes: '',
         external: false,
-        fieldsVisible: false,
         issueUrl: '',
       },
     })
@@ -145,7 +142,6 @@ describe('handleSelectionChange', () => {
         customFields: '',
         notes: '',
         external: false,
-        fieldsVisible: false,
         issueUrl: '',
       },
     })
@@ -293,7 +289,6 @@ describe('handleSelectionChange', () => {
         customFields: 'field1: value1\nfield2: value2',
         notes: '',
         external: false,
-        fieldsVisible: false,
         issueUrl: '',
       },
     })
@@ -321,7 +316,6 @@ describe('handleSelectionChange', () => {
         customFields: '',
         notes: '',
         external: false,
-        fieldsVisible: false,
         issueUrl: '',
       },
     })
@@ -434,33 +428,6 @@ describe('handleSelectionChange', () => {
     )
   })
 
-  it('includes fieldsVisible=true when plugin data is "true"', () => {
-    const mockNode = {
-      id: 'node-1',
-      name: 'CreateOrder',
-      getPluginData: vi.fn((key: string) => {
-        if (key === 'type') return 'command'
-        if (key === 'fieldsVisible') return 'true'
-        if (key === 'customFields') return ''
-        if (key === 'notes') return ''
-        return ''
-      }),
-    }
-    figmaMock.currentPage.selection = [mockNode]
-
-    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
-
-    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'selection-changed',
-        payload: expect.objectContaining({
-          id: 'node-1',
-          fieldsVisible: true,
-        }),
-      })
-    )
-  })
-
   it('includes issueUrl in payload when slice element has issueUrl stored', () => {
     const mockNode = {
       id: 'node-1',
@@ -507,32 +474,6 @@ describe('handleSelectionChange', () => {
           id: 'node-1',
           type: 'slice',
           issueUrl: '',
-        }),
-      })
-    )
-  })
-
-  it('includes fieldsVisible=false when plugin data is unset (default)', () => {
-    const mockNode = {
-      id: 'node-1',
-      name: 'CreateOrder',
-      getPluginData: vi.fn((key: string) => {
-        if (key === 'type') return 'command'
-        if (key === 'customFields') return ''
-        if (key === 'notes') return ''
-        return ''
-      }),
-    }
-    figmaMock.currentPage.selection = [mockNode]
-
-    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
-
-    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'selection-changed',
-        payload: expect.objectContaining({
-          id: 'node-1',
-          fieldsVisible: false,
         }),
       })
     )
