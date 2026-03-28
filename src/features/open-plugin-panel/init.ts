@@ -6,10 +6,12 @@ export interface InitializePluginContext {
 }
 
 export function initializePlugin({ figma }: InitializePluginContext): void {
-  // Show the UI panel
+  const viewportHeight = figma.viewport.bounds.height
+  const height = Math.min(1100, Math.max(400, Math.round(viewportHeight * 0.8)))
+
   figma.showUI(__html__, {
     width: 300,
-    height: 400,
+    height,
     title: 'Event Modeling',
     themeColors: true,
   })
