@@ -66,14 +66,18 @@ export function ElementEditor({ selectedElement, multipleSelected, selectionCoun
       <section className="element-editor" aria-label="Element Editor">
         <p className="multiple-selected-message">{t('messages.multipleSelected')}</p>
         {selectionCount === 2 && (
-          <button
-            type="button"
-            onClick={() => {
-              parent.postMessage({ pluginMessage: { type: 'connect-elements' } }, '*')
-            }}
-          >
-            {t('buttons.connect')}
-          </button>
+          <div className="element-editor-content">
+            <div className="element-editor-row">
+              <button
+                type="button"
+                onClick={() => {
+                  parent.postMessage({ pluginMessage: { type: 'connect-elements' } }, '*')
+                }}
+              >
+                {t('buttons.connect')}
+              </button>
+            </div>
+          </div>
         )}
       </section>
     )
