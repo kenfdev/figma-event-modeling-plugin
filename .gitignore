@@ -4,6 +4,9 @@ dist/
 *.log
 logs/
 
+# FDSX agent artifacts
+.fdsx/
+
 # container-wt generated files
 .worktree/.env
 .worktree/.env.app

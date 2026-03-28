@@ -128,6 +128,8 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F0.3 | PanelUXRedesign | Done | `src/features/open-plugin-panel/SPEC.md` |
 | F13.2 | DetectDrift | Removed | `src/features/detect-drift/SPEC.md` |
 | F14.1 | RawJsonViewer | Done | `src/features/raw-json-viewer/SPEC.md` |
+| F15.1 | ShowExportToYamlButton | Done | `src/features/export-slice-to-yaml/SPEC.md` |
+| F15.2 | ExportSliceToYaml | Done | `src/features/export-slice-to-yaml/SPEC.md` |
 
 ## Feature Backlog
 

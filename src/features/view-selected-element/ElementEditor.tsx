@@ -351,6 +351,23 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
             >
               {t('buttons.exportToMarkdown')}
             </button>
+            <button
+              type="button"
+              aria-label={t('buttons.exportToYaml')}
+              onClick={() => {
+                parent.postMessage(
+                  {
+                    pluginMessage: {
+                      type: 'export-slice-to-yaml',
+                      payload: { id: selectedElement.id },
+                    },
+                  },
+                  '*'
+                )
+              }}
+            >
+              {t('buttons.exportToYaml')}
+            </button>
           </div>
         )}
       </div>

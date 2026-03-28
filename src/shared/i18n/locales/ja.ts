@@ -15,6 +15,7 @@ const ja = {
     cancel: 'キャンセル',
     duplicate: '複製',
     exportToMarkdown: 'Markdownにエクスポート',
+    exportToYaml: 'YAMLにエクスポート',
   },
   editor: {
     selectedElement: '選択中の要素',

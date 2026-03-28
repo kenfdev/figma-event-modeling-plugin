@@ -15,6 +15,7 @@ const en = {
     cancel: 'Cancel',
     duplicate: 'Duplicate',
     exportToMarkdown: 'Export to Markdown',
+    exportToYaml: 'Export to YAML',
   },
   editor: {
     selectedElement: 'Selected Element',

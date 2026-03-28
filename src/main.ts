@@ -27,6 +27,7 @@ import { handleUpdateSliceIssueUrl } from './features/update-slice-issue-url/san
 import { handleOpenSliceIssueUrl } from './features/open-slice-issue-url/sandbox'
 import { handleDuplicateElement } from './features/duplicate-element/sandbox'
 import { handleExportSliceToMarkdown } from './features/export-slice-to-markdown/sandbox'
+import { handleExportSliceToYaml } from './features/export-slice-to-yaml/sandbox'
 import { handleImportFromYaml } from './features/import-from-yaml/sandbox'
 import { handleChangeElementType } from './features/change-element-type/sandbox'
 import { handleGetLocale, handleSetLocale } from './shared/i18n/sandbox'
@@ -49,6 +50,7 @@ registerHandler('update-slice-issue-url', handleUpdateSliceIssueUrl)
 registerHandler('open-slice-issue-url', handleOpenSliceIssueUrl)
 registerHandler('duplicate-element', handleDuplicateElement)
 registerHandler('export-slice-to-markdown', handleExportSliceToMarkdown)
+registerHandler('export-slice-to-yaml', handleExportSliceToYaml)
 registerHandler('import-from-yaml', handleImportFromYaml)
 registerHandler('change-element-type', handleChangeElementType)
 registerHandler('get-locale', handleGetLocale)
