@@ -538,6 +538,56 @@ describe('ElementEditor', () => {
     })
   })
 
+  describe('copy to YAML button', () => {
+    it.each(['command', 'event', 'query', 'actor'] as const)(
+      'shows copy to YAML button for %s elements',
+      (type) => {
+        renderEditor(<ElementEditor selectedElement={createSelectedElement({ type })} />)
+        expect(screen.getByRole('button', { name: /copy to yaml/i })).toBeInTheDocument()
+      }
+    )
+
+    it('shows copy to YAML button for gwt elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'gwt' as SectionType })} />)
+      expect(screen.getByRole('button', { name: /copy to yaml/i })).toBeInTheDocument()
+    })
+
+    it.each(['lane', 'chapter', 'processor', 'screen'] as StructuralType[])(
+      'does NOT show copy to YAML button for %s elements',
+      (type) => {
+        renderEditor(<ElementEditor selectedElement={createSelectedElement({ type })} />)
+        expect(screen.queryByRole('button', { name: /copy to yaml/i })).not.toBeInTheDocument()
+      }
+    )
+
+    it('does NOT show copy to YAML button for slice elements', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement({ type: 'slice' as SectionType })} />)
+      expect(screen.queryByRole('button', { name: /copy to yaml/i })).not.toBeInTheDocument()
+    })
+
+    it('sends copy-element-to-yaml message when clicked', async () => {
+      const user = userEvent.setup()
+      renderEditor(
+        <ElementEditor
+          selectedElement={createSelectedElement({ id: 'node-301', type: 'command' })}
+        />
+      )
+      const button = screen.getByRole('button', { name: /copy to yaml/i })
+
+      await user.click(button)
+
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'copy-element-to-yaml',
+            payload: { id: 'node-301' },
+          },
+        },
+        '*'
+      )
+    })
+  })
+
   describe('export button', () => {
     it('shows export button when a slice is selected', () => {
       renderEditor(

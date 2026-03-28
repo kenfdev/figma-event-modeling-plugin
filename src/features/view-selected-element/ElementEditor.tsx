@@ -36,6 +36,7 @@ const typeLabels: Record<string, string> = {
 const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
 const typesWithDropdown: ElementType[] = ['command', 'event', 'query']
 const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
+const copyToYamlTypes = ['command', 'event', 'query', 'actor', 'gwt']
 
 export function ElementEditor({ selectedElement, multipleSelected, selectionCount }: ElementEditorProps) {
   const { t } = useTranslation()
@@ -312,6 +313,27 @@ export function ElementEditor({ selectedElement, multipleSelected, selectionCoun
               aria-label={t('buttons.duplicate')}
             >
               {t('buttons.duplicate')}
+            </button>
+          </div>
+        )}
+        {copyToYamlTypes.includes(selectedElement.type) && (
+          <div className="element-editor-row">
+            <button
+              type="button"
+              onClick={() => {
+                parent.postMessage(
+                  {
+                    pluginMessage: {
+                      type: 'copy-element-to-yaml',
+                      payload: { id: selectedElement.id },
+                    },
+                  },
+                  '*'
+                )
+              }}
+              aria-label={t('buttons.copyToYaml')}
+            >
+              {t('buttons.copyToYaml')}
             </button>
           </div>
         )}

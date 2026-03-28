@@ -16,6 +16,7 @@ const en = {
     duplicate: 'Duplicate',
     exportToMarkdown: 'Export to Markdown',
     exportToYaml: 'Export to YAML',
+    copyToYaml: 'Copy to YAML',
     connect: 'Connect',
   },
   editor: {

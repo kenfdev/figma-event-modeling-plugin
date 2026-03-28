@@ -305,6 +305,16 @@ export function Panel({ onCreateElement }: PanelProps) {
           })
         }
       }
+      if (message?.type === 'copy-element-to-yaml-result') {
+        const yaml = message.payload?.yaml
+        if (yaml) {
+          copyToClipboard(yaml).then(() => {
+            showToast(t('messages.copiedToClipboard'))
+          }).catch(() => {
+            showToast(t('messages.failedToCopy'))
+          })
+        }
+      }
     }
 
     window.addEventListener('message', handleMessage)
