@@ -16,7 +16,6 @@ export interface SelectedElement {
 export interface ElementEditorProps {
   selectedElement: SelectedElement | null
   multipleSelected?: boolean
-  driftDetected?: boolean
 }
 
 const typeLabels: Record<string, string> = {
@@ -36,7 +35,7 @@ const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
 const typesWithDropdown: ElementType[] = ['command', 'event', 'query']
 const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
 
-export function ElementEditor({ selectedElement, multipleSelected, driftDetected }: ElementEditorProps) {
+export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
   const { t } = useTranslation()
   const [name, setName] = useState('')
   const [customFields, setCustomFields] = useState('')
@@ -123,18 +122,6 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
         pluginMessage: {
           type: 'toggle-event-type',
           payload: { id: selectedElement.id, external: newExternal },
-        },
-      },
-      '*'
-    )
-  }
-
-  const handleSyncDrift = () => {
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: 'sync-drift',
-          payload: { id: selectedElement.id },
         },
       },
       '*'
@@ -254,18 +241,6 @@ export function ElementEditor({ selectedElement, multipleSelected, driftDetected
             </span>
           )}
         </div>
-        {driftDetected && (
-          <div className="element-editor-row">
-            <button
-              type="button"
-              className="sync-drift-button"
-              onClick={handleSyncDrift}
-              aria-label={t('buttons.syncDrift')}
-            >
-              {t('buttons.syncDrift')}
-            </button>
-          </div>
-        )}
         {selectedElement.type === 'event' && (
           <div className="element-editor-row">
             <label className="element-editor-label">
