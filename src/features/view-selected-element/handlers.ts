@@ -1,6 +1,8 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 
+const CORE_ELEMENT_TYPES: readonly ElementType[] = ['command', 'event', 'query', 'actor']
+
 export interface SelectionChangePayload {
   id: string
   type: ElementType | StructuralType | SectionType
@@ -40,10 +42,23 @@ export function handleSelectionChange({
     return
   }
 
+  let name = node.name
+
+  if (CORE_ELEMENT_TYPES.includes(elementType as ElementType)) {
+    const canvasText = (node as ShapeWithTextNode).text?.characters
+    if (canvasText !== undefined) {
+      const pluginLabel = node.getPluginData('label')
+      if (canvasText !== pluginLabel) {
+        node.setPluginData('label', canvasText)
+      }
+      name = canvasText
+    }
+  }
+
   const payload: Record<string, unknown> = {
     id: node.id,
     type: elementType as ElementType | StructuralType | SectionType,
-    name: node.name,
+    name,
     customFields: node.getPluginData('customFields') || '',
     notes: node.getPluginData('notes') || '',
     external: node.getPluginData('external') === 'true',

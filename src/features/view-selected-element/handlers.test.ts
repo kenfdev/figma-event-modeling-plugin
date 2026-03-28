@@ -42,7 +42,9 @@ describe('handleSelectionChange', () => {
   it('sends element data when selected node is a plugin element (command)', () => {
     const mockNode = {
       id: 'node-1',
-      name: 'My Command',
+      name: 'Layer Name',
+      text: { characters: 'My Command', fills: [] },
+      setPluginData: vi.fn(),
       getPluginData: vi.fn((key: string) => {
         if (key === 'type') return 'command'
         return ''
@@ -69,7 +71,9 @@ describe('handleSelectionChange', () => {
   it('sends element data when selected node is a plugin element (event)', () => {
     const mockNode = {
       id: 'node-1',
-      name: 'My Event',
+      name: 'Layer Name',
+      text: { characters: 'My Event', fills: [] },
+      setPluginData: vi.fn(),
       getPluginData: vi.fn((key: string) => {
         if (key === 'type') return 'event'
         return ''
@@ -123,7 +127,9 @@ describe('handleSelectionChange', () => {
   it('sends element data when selected node is a plugin element (actor)', () => {
     const mockNode = {
       id: 'node-1',
-      name: 'My Actor',
+      name: 'Layer Name',
+      text: { characters: 'My Actor', fills: [] },
+      setPluginData: vi.fn(),
       getPluginData: vi.fn((key: string) => {
         if (key === 'type') return 'actor'
         return ''
@@ -624,6 +630,113 @@ describe('handleSelectionChange', () => {
     expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
       type: 'selection-changed',
       payload: null,
+    })
+  })
+
+  it('syncs canvas text to plugin data when text differs from label', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'Layer Name',
+      text: { characters: 'Canvas Text', fills: [] },
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        if (key === 'label') return 'Old Label'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(mockNode.setPluginData).toHaveBeenCalledWith('label', 'Canvas Text')
+  })
+
+  it('does not sync plugin data when canvas text matches label', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'Layer Name',
+      text: { characters: 'Same Text', fills: [] },
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        if (key === 'label') return 'Same Text'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(mockNode.setPluginData).not.toHaveBeenCalled()
+  })
+
+  it('uses node.name for non-core elements instead of text.characters', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'Lane Name',
+      text: { characters: 'Should Not Use This', fills: [] },
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'lane'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        name: 'Lane Name',
+      }),
+    })
+    expect(mockNode.setPluginData).not.toHaveBeenCalled()
+  })
+
+  it('uses canvas text as name for core elements even when layer name differs', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'Layer Name',
+      text: { characters: 'Actual Canvas Text', fills: [] },
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'event'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        name: 'Actual Canvas Text',
+      }),
+    })
+  })
+
+  it('falls back to node.name when core element has no text property', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'Fallback Name',
+      setPluginData: vi.fn(),
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'command'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        name: 'Fallback Name',
+      }),
     })
   })
 })
