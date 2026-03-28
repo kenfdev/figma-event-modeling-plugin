@@ -108,7 +108,7 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F3.2 | UpdateCustomFields | Done | `src/features/update-custom-fields/SPEC.md` |
 | F3.3 | UpdateNotes | Done | `src/features/update-notes/SPEC.md` |
 | F3.4 | ToggleEventType | | `src/features/toggle-event-type/SPEC.md` |
-| F3.5 | ToggleFieldsVisibility | Done | `src/features/toggle-fields-visibility/SPEC.md` |
+| F3.5 | ToggleFieldsVisibility | Removed | `src/features/toggle-fields-visibility/SPEC.md` |
 | F4.1 | CreateLane | Done | `src/features/create-lane/SPEC.md` |
 | F4.2 | CreateChapter | Done | `src/features/create-chapter/SPEC.md` |
 | F4.3 | CreateProcessor | Done | `src/features/create-processor/SPEC.md` |
@@ -126,7 +126,7 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F11.1 | ChangeElementType | Done | `src/features/change-element-type/SPEC.md` |
 | F12.1 | Internationalization | Done | `src/shared/i18n/SPEC.md` |
 | F0.3 | PanelUXRedesign | Done | `src/features/open-plugin-panel/SPEC.md` |
-| F13.2 | DetectDrift | Done | `src/features/detect-drift/SPEC.md` |
+| F13.2 | DetectDrift | Removed | `src/features/detect-drift/SPEC.md` |
 | F14.1 | RawJsonViewer | Done | `src/features/raw-json-viewer/SPEC.md` |
 
 ## Feature Backlog

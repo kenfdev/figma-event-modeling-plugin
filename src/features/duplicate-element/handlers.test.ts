@@ -67,7 +67,6 @@ describe('handleDuplicateElement', () => {
       label: 'MyCommand',
       customFields: 'field1\nfield2',
       notes: 'some notes',
-      fieldsVisible: 'true',
     })
     figmaMock.getNodeByIdAsync.mockResolvedValue(node)
 
@@ -83,10 +82,6 @@ describe('handleDuplicateElement', () => {
       'field1\nfield2'
     )
     expect(clonedNode.setPluginData).toHaveBeenCalledWith('notes', 'some notes')
-    expect(clonedNode.setPluginData).toHaveBeenCalledWith(
-      'fieldsVisible',
-      'true'
-    )
   })
 
   it('copies external flag for event elements', async () => {

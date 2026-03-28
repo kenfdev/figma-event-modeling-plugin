@@ -15,7 +15,6 @@ describe('handleChangeElementType', () => {
     label?: string
     customFields?: string
     notes?: string
-    fieldsVisible?: string
   }) {
     return {
       id: 'node-1',
@@ -33,7 +32,6 @@ describe('handleChangeElementType', () => {
         if (key === 'label') return overrides.label ?? 'Element'
         if (key === 'customFields') return overrides.customFields ?? ''
         if (key === 'notes') return overrides.notes ?? ''
-        if (key === 'fieldsVisible') return overrides.fieldsVisible ?? ''
         return ''
       }),
       resize: vi.fn(),
@@ -151,13 +149,12 @@ describe('handleChangeElementType', () => {
     expect(figmaMock.ui.postMessage).not.toHaveBeenCalled()
   })
 
-  it('preserves element name, custom fields, notes, and fieldsVisible (does not overwrite them)', async () => {
+  it('preserves element name, custom fields, and notes (does not overwrite them)', async () => {
     const mockNode = createMockNode({
       type: 'command',
       label: 'PlaceOrder',
       customFields: 'orderId: string',
       notes: 'some notes',
-      fieldsVisible: 'true',
     })
     figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
@@ -170,7 +167,6 @@ describe('handleChangeElementType', () => {
     expect(mockNode.setPluginData).not.toHaveBeenCalledWith('label', expect.anything())
     expect(mockNode.setPluginData).not.toHaveBeenCalledWith('customFields', expect.anything())
     expect(mockNode.setPluginData).not.toHaveBeenCalledWith('notes', expect.anything())
-    expect(mockNode.setPluginData).not.toHaveBeenCalledWith('fieldsVisible', expect.anything())
   })
 
   it('does not change element size', async () => {
@@ -191,7 +187,6 @@ describe('handleChangeElementType', () => {
       label: 'PlaceOrder',
       customFields: 'orderId: string',
       notes: 'important note',
-      fieldsVisible: 'true',
     })
     figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
     figmaMock.currentPage.selection = [mockNode as unknown as SceneNode]

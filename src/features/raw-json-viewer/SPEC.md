@@ -13,7 +13,7 @@ As a power user or developer, I want to see the raw plugin data stored on an ele
 - When a single element with plugin data is selected, the element editor shows a "Visual / Raw" toggle at the top
 - Default mode is "Visual" (the current element editor view)
 - Switching to "Raw" mode replaces the element editor contents with a read-only JSON display
-- The JSON display shows all plugin data keys and values for the selected element as a single JSON object (e.g., `{ "type": "command", "name": "CreateOrder", "fields": "...", "notes": "...", "fieldsVisible": "false" }`)
+- The JSON display shows all plugin data keys and values for the selected element as a single JSON object (e.g., `{ "type": "command", "name": "CreateOrder", "fields": "...", "notes": "..." }`)
 - JSON is formatted with indentation for readability
 - The JSON view is read-only — no editing allowed
 - Switching back to "Visual" returns to the normal element editor

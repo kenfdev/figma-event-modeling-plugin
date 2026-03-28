@@ -563,11 +563,10 @@ describe('handleSelectionChange', () => {
     )
   })
 
-  it('includes pluginData with all keys including external and fieldsVisible', () => {
+  it('includes pluginData with all keys including external', () => {
     const data: Record<string, string> = {
       type: 'event',
       external: 'true',
-      fieldsVisible: 'true',
       customFields: 'amount: number',
       notes: 'domain event',
     }
@@ -588,7 +587,6 @@ describe('handleSelectionChange', () => {
           pluginData: {
             type: 'event',
             external: 'true',
-            fieldsVisible: 'true',
             customFields: 'amount: number',
             notes: 'domain event',
           },

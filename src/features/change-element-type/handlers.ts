@@ -55,7 +55,6 @@ export async function handleChangeElementType(
       customFields: shape.getPluginData('customFields') || '',
       notes: shape.getPluginData('notes') || '',
       external: shape.getPluginData('external') === 'true',
-      fieldsVisible: shape.getPluginData('fieldsVisible') === 'true',
       issueUrl: shape.getPluginData('issueUrl') || '',
     },
   })

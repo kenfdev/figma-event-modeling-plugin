@@ -291,7 +291,7 @@ h2 {
 }
 
 /* Element editor buttons */
-.element-editor-row > button:not(.sync-drift-button) {
+.element-editor-row > button {
   width: 100%;
   padding: 7px 14px;
   background: #fff;
@@ -305,13 +305,13 @@ h2 {
   letter-spacing: 0.01em;
 }
 
-.element-editor-row > button:not(.sync-drift-button):hover {
+.element-editor-row > button:hover {
   background: #f5f5f5;
   border-color: #ccc;
   color: #333;
 }
 
-.element-editor-row > button:not(.sync-drift-button):active {
+.element-editor-row > button:active {
   background: #ececec;
 }
 
@@ -590,26 +590,6 @@ select.type-badge option {
 .settings-row select:focus {
   outline: none;
   border-color: #4A90D9;
-}
-
-/* Sync drift button */
-.sync-drift-button {
-  width: 100%;
-  padding: 7px 14px;
-  background: #CF222E;
-  color: #fff;
-  border: 1px solid #b91c27;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, box-shadow 0.15s;
-  letter-spacing: 0.01em;
-}
-
-.sync-drift-button:hover {
-  background: #b91c27;
-  box-shadow: 0 1px 3px rgba(207, 34, 46, 0.2);
 }
 
 /* Multiple selected message */
