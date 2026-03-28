@@ -17,6 +17,7 @@ export interface SelectedElement {
 export interface ElementEditorProps {
   selectedElement: SelectedElement | null
   multipleSelected?: boolean
+  selectionCount?: number
 }
 
 const typeLabels: Record<string, string> = {
@@ -36,7 +37,7 @@ const typesWithCustomFields: ElementType[] = ['command', 'event', 'query']
 const typesWithDropdown: ElementType[] = ['command', 'event', 'query']
 const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
 
-export function ElementEditor({ selectedElement, multipleSelected }: ElementEditorProps) {
+export function ElementEditor({ selectedElement, multipleSelected, selectionCount }: ElementEditorProps) {
   const { t } = useTranslation()
   const [name, setName] = useState('')
   const [customFields, setCustomFields] = useState('')
@@ -63,6 +64,16 @@ export function ElementEditor({ selectedElement, multipleSelected }: ElementEdit
     return (
       <section className="element-editor" aria-label="Element Editor">
         <p className="multiple-selected-message">{t('messages.multipleSelected')}</p>
+        {selectionCount === 2 && (
+          <button
+            type="button"
+            onClick={() => {
+              parent.postMessage({ pluginMessage: { type: 'connect-elements' } }, '*')
+            }}
+          >
+            {t('buttons.connect')}
+          </button>
+        )}
       </section>
     )
   }

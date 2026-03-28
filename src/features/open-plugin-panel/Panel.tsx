@@ -253,6 +253,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [editorType, setEditorType] = useState<EditorType>(null)
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
   const [multipleSelected, setMultipleSelected] = useState(false)
+  const [selectionCount, setSelectionCount] = useState(0)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showSettings, setShowSettings] = useState(false)
@@ -277,9 +278,11 @@ export function Panel({ onCreateElement }: PanelProps) {
         if (message.payload?.multiple) {
           setMultipleSelected(true)
           setSelectedElement(null)
+          setSelectionCount(message.payload?.count ?? 0)
         } else {
           setMultipleSelected(false)
           setSelectedElement(message.payload)
+          setSelectionCount(0)
         }
       }
       if (message?.type === 'export-slice-to-markdown-result') {
@@ -401,7 +404,7 @@ export function Panel({ onCreateElement }: PanelProps) {
             onToggle={() => setCollapsedSections(prev => ({ ...prev, sections: !prev.sections }))}
           />
 
-          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} />
+          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} selectionCount={selectionCount} />
 
           {toastMessage && (
             <div className="toast" role="status">{toastMessage}</div>

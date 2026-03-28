@@ -16,6 +16,7 @@ const ja = {
     duplicate: '複製',
     exportToMarkdown: 'Markdownにエクスポート',
     exportToYaml: 'YAMLにエクスポート',
+    connect: '接続',
   },
   editor: {
     selectedElement: '選択中の要素',

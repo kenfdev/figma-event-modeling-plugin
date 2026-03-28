@@ -54,6 +54,39 @@ describe('ElementEditor', () => {
     })
   })
 
+  describe('connect button', () => {
+    it('shows connect button when multipleSelected and selectionCount is 2', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={2} />)
+      expect(screen.getByRole('button', { name: /connect/i })).toBeInTheDocument()
+    })
+
+    it('does not show connect button when multipleSelected but selectionCount is 3', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={3} />)
+      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
+    })
+
+    it('does not show connect button when multipleSelected but selectionCount is 1', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={1} />)
+      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
+    })
+
+    it('does not show connect button when single element is selected', () => {
+      renderEditor(<ElementEditor selectedElement={createSelectedElement()} />)
+      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
+    })
+
+    it('sends connect-elements message when clicked', async () => {
+      const user = userEvent.setup()
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={2} />)
+      const button = screen.getByRole('button', { name: /connect/i })
+      await user.click(button)
+      expect(postMessageSpy).toHaveBeenCalledWith(
+        { pluginMessage: { type: 'connect-elements' } },
+        '*'
+      )
+    })
+  })
+
   describe('when no element is selected', () => {
     it('renders nothing when selectedElement is null', () => {
       const { container } = renderEditor(<ElementEditor selectedElement={null} />)
