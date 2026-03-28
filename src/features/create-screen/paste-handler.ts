@@ -21,25 +21,24 @@ function findOverlappingScreen(
   page: PageNode
 ): { group: SceneNode; rect: SceneNode } | null {
   for (const child of page.children) {
-    if (child.type !== 'GROUP') continue
+    if (child.type !== 'SHAPE_WITH_TEXT') continue
     if (child.getPluginData('type') !== 'screen') continue
     if (child.id === imageNode.id) continue
 
     // Check bounding box overlap
     const ix = (imageNode as RectangleNode).x
     const iy = (imageNode as RectangleNode).y
-    const gx = (child as GroupNode).x
-    const gy = (child as GroupNode).y
-    const gw = (child as GroupNode).width
-    const gh = (child as GroupNode).height
+    const gx = (child as ShapeWithTextNode).x
+    const gy = (child as ShapeWithTextNode).y
+    const gw = (child as ShapeWithTextNode).width
+    const gh = (child as ShapeWithTextNode).height
 
     const overlaps =
       ix < gx + gw && ix + (imageNode as RectangleNode).width > gx &&
       iy < gy + gh && iy + (imageNode as RectangleNode).height > gy
 
     if (overlaps) {
-      const rect = (child as GroupNode).children[0]
-      return { group: child, rect }
+      return { group: child, rect: child }
     }
   }
   return null
@@ -66,9 +65,9 @@ export async function handleImagePasteIntoScreen(
     // Resize image to fit screen placeholder
     ;(node as RectangleNode).resize(rectWidth, rectHeight)
 
-    // Reposition to align with screen group
-    ;(node as RectangleNode).x = (group as GroupNode).x
-    ;(node as RectangleNode).y = (group as GroupNode).y
+    // Reposition to align with screen shape
+    ;(node as RectangleNode).x = (group as ShapeWithTextNode).x
+    ;(node as RectangleNode).y = (group as ShapeWithTextNode).y
 
     // Set scale mode to FILL for proper cropping
     const fills = (node as RectangleNode).fills as Paint[]
