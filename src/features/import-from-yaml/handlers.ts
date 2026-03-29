@@ -28,10 +28,10 @@ const ELEMENT_CORNER_RADIUS = 0
 const TEXT_COLOR = { r: 1, g: 1, b: 1 }
 
 const COMMAND_FILL = { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 }
-const COMMAND_STROKE = { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 }
+const COMMAND_STROKE = { r: 0, g: 0x7a / 255, b: 0xd2 / 255 }
 
 const EVENT_INTERNAL_FILL = { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 }
-const EVENT_INTERNAL_STROKE = { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 }
+const EVENT_INTERNAL_STROKE = { r: 0xeb / 255, g: 0x75 / 255, b: 0 }
 const EVENT_EXTERNAL_FILL = { r: 0x9b / 255, g: 0x59 / 255, b: 0xb6 / 255 }
 const EVENT_EXTERNAL_STROKE = { r: 0x7d / 255, g: 0x3c / 255, b: 0x98 / 255 }
 
@@ -39,7 +39,7 @@ const QUERY_FILL = { r: 0x7e / 255, g: 0xd3 / 255, b: 0x21 / 255 }
 const QUERY_STROKE = { r: 0x5b / 255, g: 0xa5 / 255, b: 0x18 / 255 }
 
 const ERROR_FILL = { r: 0xff / 255, g: 0x44 / 255, b: 0x44 / 255 }
-const ERROR_STROKE = { r: 0xcc / 255, g: 0x00 / 255, b: 0x00 / 255 }
+const ERROR_STROKE = { r: 0xcc / 255, g: 0, b: 0 }
 
 const GWT_PARENT_WIDTH = 400
 const GWT_PARENT_HEIGHT = 600
@@ -155,7 +155,7 @@ export async function handleImportFromYaml(
         const shape = figma.createShapeWithText()
         shape.shapeType = 'ROUNDED_RECTANGLE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
-        shape.cornerRadius = ELEMENT_CORNER_RADIUS
+        ;(shape as any).cornerRadius = ELEMENT_CORNER_RADIUS
         shape.fills = [{ type: 'SOLID', color: COMMAND_FILL }]
         shape.strokes = [{ type: 'SOLID', color: COMMAND_STROKE }]
         shape.strokeWeight = 2
@@ -182,7 +182,7 @@ export async function handleImportFromYaml(
         const shape = figma.createShapeWithText()
         shape.shapeType = 'ROUNDED_RECTANGLE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
-        shape.cornerRadius = ELEMENT_CORNER_RADIUS
+        ;(shape as any).cornerRadius = ELEMENT_CORNER_RADIUS
         const fillColor = evt.external ? EVENT_EXTERNAL_FILL : EVENT_INTERNAL_FILL
         const strokeColor = evt.external ? EVENT_EXTERNAL_STROKE : EVENT_INTERNAL_STROKE
         shape.fills = [{ type: 'SOLID', color: fillColor }]
@@ -217,7 +217,7 @@ export async function handleImportFromYaml(
         const shape = figma.createShapeWithText()
         shape.shapeType = 'ROUNDED_RECTANGLE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
-        shape.cornerRadius = ELEMENT_CORNER_RADIUS
+        ;(shape as any).cornerRadius = ELEMENT_CORNER_RADIUS
         shape.fills = [{ type: 'SOLID', color: QUERY_FILL }]
         shape.strokes = [{ type: 'SOLID', color: QUERY_STROKE }]
         shape.strokeWeight = 2
@@ -276,7 +276,7 @@ export async function handleImportFromYaml(
               const shape = figma.createShapeWithText()
               shape.shapeType = 'ROUNDED_RECTANGLE'
               shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
-              shape.cornerRadius = ELEMENT_CORNER_RADIUS
+              ;(shape as any).cornerRadius = ELEMENT_CORNER_RADIUS
 
               let fillColor, strokeColor
               switch (item.type) {

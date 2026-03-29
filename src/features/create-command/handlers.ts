@@ -3,7 +3,7 @@ import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
 const COMMAND_WIDTH = 176
 const COMMAND_HEIGHT = 80
 const COMMAND_FILL_COLOR = { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 }
-const COMMAND_STROKE_COLOR = { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 }
+const COMMAND_STROKE_COLOR = { r: 0, g: 0x7a / 255, b: 0xd2 / 255 }
 const COMMAND_CORNER_RADIUS = 0
 const COMMAND_TEXT_COLOR = { r: 1, g: 1, b: 1 }
 
@@ -15,7 +15,7 @@ export async function handleCreateCommand(
 
   shape.shapeType = 'ROUNDED_RECTANGLE'
   shape.resize(COMMAND_WIDTH, COMMAND_HEIGHT)
-  shape.cornerRadius = COMMAND_CORNER_RADIUS
+  ;(shape as any).cornerRadius = COMMAND_CORNER_RADIUS
   shape.fills = [{ type: 'SOLID', color: COMMAND_FILL_COLOR }]
   shape.strokes = [{ type: 'SOLID', color: COMMAND_STROKE_COLOR }]
   shape.strokeWeight = 2

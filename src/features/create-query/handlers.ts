@@ -15,7 +15,7 @@ export async function handleCreateQuery(
 
   shape.shapeType = 'ROUNDED_RECTANGLE'
   shape.resize(QUERY_WIDTH, QUERY_HEIGHT)
-  shape.cornerRadius = QUERY_CORNER_RADIUS
+  ;(shape as any).cornerRadius = QUERY_CORNER_RADIUS
   shape.fills = [{ type: 'SOLID', color: QUERY_FILL_COLOR }]
   shape.strokes = [{ type: 'SOLID', color: QUERY_STROKE_COLOR }]
   shape.strokeWeight = 2

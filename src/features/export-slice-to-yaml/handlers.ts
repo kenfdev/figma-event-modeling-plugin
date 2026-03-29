@@ -112,7 +112,7 @@ function formatGwtSection(node: SliceNode): ExportGwt {
     description,
     given,
     when,
-    then,
+    then, // eslint-disable-line eslint-plugin-unicorn/no-thenable
   }
 }
 

@@ -20,7 +20,7 @@ type FlattenKeys<T, Prefix extends string = ''> = T extends Record<string, unkno
 
 export type TranslationKey = FlattenKeys<TranslationMap>
 
-const locales: Record<Locale, TranslationMap> = { en, ja }
+const locales: Record<Locale, TranslationMap> = { en, ja: ja as unknown as TranslationMap }
 
 function getNestedValue(obj: Record<string, unknown>, path: string): string {
   const parts = path.split('.')

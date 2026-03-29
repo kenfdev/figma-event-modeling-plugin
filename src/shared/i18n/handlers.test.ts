@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createFigmaMock, type FigmaMock } from '../test/mocks/figma'
 import { handleGetLocale, handleSetLocale } from './handlers'
 

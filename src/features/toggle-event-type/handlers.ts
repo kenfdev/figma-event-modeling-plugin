@@ -6,7 +6,7 @@ interface ToggleEventTypePayload {
 }
 
 const INTERNAL_FILL_COLOR = { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 }
-const INTERNAL_STROKE_COLOR = { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 }
+const INTERNAL_STROKE_COLOR = { r: 0xeb / 255, g: 0x75 / 255, b: 0 }
 const EXTERNAL_FILL_COLOR = { r: 0x9b / 255, g: 0x59 / 255, b: 0xb6 / 255 }
 const EXTERNAL_STROKE_COLOR = { r: 0x7d / 255, g: 0x3c / 255, b: 0x98 / 255 }
 

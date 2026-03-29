@@ -4,6 +4,7 @@ import {
   initializePlugin,
   registerHandler,
 } from './features/open-plugin-panel/sandbox'
+import type { MessageHandler } from './features/open-plugin-panel/sandbox'
 import { handleCreateCommand } from './features/create-command/sandbox'
 import { handleCreateEvent } from './features/create-event/sandbox'
 import { handleCreateQuery } from './features/create-query/sandbox'
@@ -49,16 +50,16 @@ registerHandler('create-screen', handleCreateScreen)
 registerHandler('create-slice', handleCreateSlice)
 registerHandler('create-gwt', handleCreateGWT)
 registerHandler('update-slice-issue-url', handleUpdateSliceIssueUrl)
-registerHandler('open-slice-issue-url', handleOpenSliceIssueUrl)
-registerHandler('duplicate-element', handleDuplicateElement)
+registerHandler('open-slice-issue-url', handleOpenSliceIssueUrl as MessageHandler)
+registerHandler('duplicate-element', handleDuplicateElement as MessageHandler)
 registerHandler('connect-elements', handleConnectElements)
-registerHandler('export-slice-to-markdown', handleExportSliceToMarkdown)
-registerHandler('export-slice-to-yaml', handleExportSliceToYaml)
-registerHandler('copy-element-to-yaml', handleCopyElementToYaml)
+registerHandler('export-slice-to-markdown', handleExportSliceToMarkdown as MessageHandler)
+registerHandler('export-slice-to-yaml', handleExportSliceToYaml as MessageHandler)
+registerHandler('copy-element-to-yaml', handleCopyElementToYaml as MessageHandler)
 registerHandler('import-from-yaml', handleImportFromYaml)
-registerHandler('change-element-type', handleChangeElementType)
+registerHandler('change-element-type', handleChangeElementType as MessageHandler)
 registerHandler('get-locale', handleGetLocale)
-registerHandler('set-locale', handleSetLocale)
+registerHandler('set-locale', handleSetLocale as MessageHandler)
 
 export default async function main() {
   initializePlugin({ figma })
@@ -67,7 +68,7 @@ export default async function main() {
   // Required for documentchange handler in dynamic-page mode
   await figma.loadAllPagesAsync()
 
-  figma.on('documentchange', (event) => {
+  figma.on('documentchange', (event: DocumentChangeEvent) => {
     handleImagePasteIntoScreen(event, { figma })
   })
 }

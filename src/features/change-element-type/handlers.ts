@@ -6,11 +6,11 @@ const COLOR_MAP: Record<
 > = {
   command: {
     fill: { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 },
-    stroke: { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 },
+    stroke: { r: 0, g: 0x7a / 255, b: 0xd2 / 255 },
   },
   event: {
     fill: { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 },
-    stroke: { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 },
+    stroke: { r: 0xeb / 255, g: 0x75 / 255, b: 0 },
   },
   query: {
     fill: { r: 0x7e / 255, g: 0xd3 / 255, b: 0x21 / 255 },

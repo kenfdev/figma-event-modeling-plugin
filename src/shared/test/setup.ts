@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const require: (id: string) => any
+
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 import { createFigmaMock } from './mocks/figma'
@@ -42,7 +45,7 @@ try {
 }
 
 // Set up Figma global mock
-globalThis.figma = createFigmaMock()
+;(globalThis as any).figma = createFigmaMock()
 
 // Mock parent.postMessage for UI-to-sandbox communication
 globalThis.parent = {
@@ -51,11 +54,8 @@ globalThis.parent = {
 
 // Mock __html__ global variable (provided by Figma plugin bundler)
 // This is the HTML content that gets passed to figma.showUI()
-declare global {
-  // eslint-disable-next-line no-var
-  var __html__: string
-}
-globalThis.__html__ = '<html><body></body></html>'
+// __html__ is already declared in @figma/plugin-typings as const, so we use a type assertion
+;(globalThis as any).__html__ = '<html><body></body></html>'
 
 // Make navigator.clipboard assignable so tests can mock it via Object.assign.
 // @testing-library/user-event v14 installs a clipboard stub with a getter-only

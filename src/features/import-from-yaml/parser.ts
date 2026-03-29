@@ -179,7 +179,7 @@ export function parseImportYaml(input: string): ParseResult {
         ...(g.description !== undefined && { description: g.description as string }),
         given,
         when,
-        then,
+        then, // eslint-disable-line eslint-plugin-unicorn/no-thenable
       })
     }
 
