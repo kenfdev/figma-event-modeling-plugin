@@ -77,7 +77,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('My Slice')
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -96,7 +96,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('OrderSlice', [command])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -111,7 +111,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('OrderSlice', [event])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -126,7 +126,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('OrderSlice', [query])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -148,7 +148,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('OrderSlice', [command])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -168,7 +168,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('OrderSlice', [command])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -206,7 +206,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('OrderSlice', [gwt])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -258,7 +258,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('TestSlice', [gwt])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -298,7 +298,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('TestSlice', [gwt])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -325,7 +325,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('TestSlice', [gwt])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -343,7 +343,7 @@ describe('handleExportSliceToMarkdown', () => {
     const slice = createMockSlice('MixedSlice', [unknownNode])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -368,7 +368,7 @@ describe('handleExportSliceToMarkdown', () => {
     ])
     figmaMock.currentPage.selection = [slice]
 
-    await handleExportSliceToMarkdown(undefined, {
+    await handleExportSliceToMarkdown(undefined as any, {
       figma: figmaMock as unknown as typeof figma,
     })
 

@@ -15,7 +15,7 @@ export async function handleCreateActor(
 
   shape.shapeType = 'ROUNDED_RECTANGLE'
   shape.resize(ACTOR_WIDTH, ACTOR_HEIGHT)
-  shape.cornerRadius = ACTOR_CORNER_RADIUS
+  ;(shape as any).cornerRadius = ACTOR_CORNER_RADIUS
   shape.fills = [{ type: 'SOLID', color: ACTOR_FILL_COLOR }]
   shape.strokes = [{ type: 'SOLID', color: ACTOR_STROKE_COLOR }]
   shape.strokeWeight = 2

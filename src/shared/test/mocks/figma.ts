@@ -1,17 +1,20 @@
 import { vi } from 'vitest'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockFn = ReturnType<typeof vi.fn<(...args: any[]) => any>>
+
 export interface FigmaMock {
   editorType: 'figjam' | 'figma'
-  showUI: ReturnType<typeof vi.fn>
-  closePlugin: ReturnType<typeof vi.fn>
-  on: ReturnType<typeof vi.fn>
+  showUI: MockFn
+  closePlugin: MockFn
+  on: MockFn
   ui: {
-    postMessage: ReturnType<typeof vi.fn>
-    resize: ReturnType<typeof vi.fn>
+    postMessage: MockFn
+    resize: MockFn
     onmessage: ((msg: unknown) => void) | null
   }
   currentPage: {
-    appendChild: ReturnType<typeof vi.fn>
+    appendChild: MockFn
     children: unknown[]
     selection: unknown[]
   }
@@ -20,23 +23,23 @@ export interface FigmaMock {
     zoom: number
     bounds: { x: number; y: number; width: number; height: number }
   }
-  createShapeWithText: ReturnType<typeof vi.fn>
-  createSection: ReturnType<typeof vi.fn>
-  createSticky: ReturnType<typeof vi.fn>
-  createConnector: ReturnType<typeof vi.fn>
-  createRectangle: ReturnType<typeof vi.fn>
-  createNodeFromSvg: ReturnType<typeof vi.fn>
-  createText: ReturnType<typeof vi.fn>
-  group: ReturnType<typeof vi.fn>
-  loadFontAsync: ReturnType<typeof vi.fn>
-  getNodeById: ReturnType<typeof vi.fn>
-  getNodeByIdAsync: ReturnType<typeof vi.fn>
-  loadAllPagesAsync: ReturnType<typeof vi.fn>
-  notify: ReturnType<typeof vi.fn>
-  openExternal: ReturnType<typeof vi.fn>
+  createShapeWithText: MockFn
+  createSection: MockFn
+  createSticky: MockFn
+  createConnector: MockFn
+  createRectangle: MockFn
+  createNodeFromSvg: MockFn
+  createText: MockFn
+  group: MockFn
+  loadFontAsync: MockFn
+  getNodeById: MockFn
+  getNodeByIdAsync: MockFn
+  loadAllPagesAsync: MockFn
+  notify: MockFn
+  openExternal: MockFn
   clientStorage: {
-    getAsync: ReturnType<typeof vi.fn>
-    setAsync: ReturnType<typeof vi.fn>
+    getAsync: MockFn
+    setAsync: MockFn
   }
 }
 
@@ -163,5 +166,5 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
 
 // Re-export for convenience
 export function resetFigmaMock(): void {
-  globalThis.figma = createFigmaMock()
+  ;(globalThis as any).figma = createFigmaMock()
 }

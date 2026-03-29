@@ -254,7 +254,7 @@ describe('handleImportFromYaml', () => {
         { type: 'SOLID', color: { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 } },
       ])
       expect(shapes[0].strokes).toEqual([
-        { type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 } },
+        { type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0 } },
       ])
     })
 
@@ -381,7 +381,7 @@ describe('handleImportFromYaml', () => {
             name: 'Order Scenario',
             given: [{ name: 'OrderSubmitted event', type: 'event' }],
             when: [{ name: 'CreateOrder command', type: 'command' }],
-            then: [{ name: 'OrderCreated event', type: 'event' }],
+            then: [{ name: 'OrderCreated event', type: 'event' }], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -398,7 +398,7 @@ describe('handleImportFromYaml', () => {
             name: 'Order Creation Scenario',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -415,7 +415,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -431,7 +431,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [{ name: 'OrderSubmitted', type: 'event' as const }],
             when: [{ name: 'CreateOrder', type: 'command' as const }],
-            then: [{ name: 'OrderCreated', type: 'event' as const }],
+            then: [{ name: 'OrderCreated', type: 'event' as const }], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -450,7 +450,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [{ name: 'OrderSubmitted', type: 'event' as const }],
             when: [{ name: 'CreateOrder', type: 'command' as const }],
-            then: [{ name: 'OrderCreated', type: 'event' as const }],
+            then: [{ name: 'OrderCreated', type: 'event' as const }], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -472,7 +472,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [{ name: 'CreateOrder', type: 'command' as const }],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -482,7 +482,7 @@ describe('handleImportFromYaml', () => {
         { type: 'SOLID', color: { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 } },
       ])
       expect(shapes[0].strokes).toEqual([
-        { type: 'SOLID', color: { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 } },
+        { type: 'SOLID', color: { r: 0, g: 0x7a / 255, b: 0xd2 / 255 } },
       ])
     })
 
@@ -494,7 +494,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [{ name: 'OrderCreated', type: 'event' as const }],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -512,7 +512,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [],
-            then: [{ name: 'GetStatus', type: 'query' as const }],
+            then: [{ name: 'GetStatus', type: 'query' as const }], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -530,7 +530,7 @@ describe('handleImportFromYaml', () => {
             name: 'Error Scenario',
             given: [],
             when: [],
-            then: [{ name: 'DuplicateTitleError', type: 'error' as const }],
+            then: [{ name: 'DuplicateTitleError', type: 'error' as const }], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -539,7 +539,7 @@ describe('handleImportFromYaml', () => {
         { type: 'SOLID', color: { r: 0xff / 255, g: 0x44 / 255, b: 0x44 / 255 } },
       ])
       expect(shapes[0].strokes).toEqual([
-        { type: 'SOLID', color: { r: 0xcc / 255, g: 0x00 / 255, b: 0x00 / 255 } },
+        { type: 'SOLID', color: { r: 0xcc / 255, g: 0, b: 0 } },
       ])
     })
 
@@ -551,7 +551,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [{ name: 'CreateOrder', type: 'command' as const }],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -569,7 +569,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [{ name: 'CreateOrder', type: 'command' as const, fields: 'title: string\nitems: array' }],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -594,7 +594,7 @@ describe('handleImportFromYaml', () => {
               { name: 'EventB', type: 'event' as const },
             ],
             when: [{ name: 'CommandA', type: 'command' as const }],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -618,7 +618,7 @@ describe('handleImportFromYaml', () => {
             description: 'Roadmaps with exact same title are not allowed.',
             given: [],
             when: [{ name: 'CreateRoadmap', type: 'command' as const }],
-            then: [{ name: 'DuplicateTitleError', type: 'error' as const }],
+            then: [{ name: 'DuplicateTitleError', type: 'error' as const }], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -642,7 +642,7 @@ describe('handleImportFromYaml', () => {
             description: 'Test description',
             given: [{ name: 'OrderSubmitted', type: 'event' as const }],
             when: [{ name: 'CreateOrder', type: 'command' as const }],
-            then: [{ name: 'OrderCreated', type: 'event' as const }],
+            then: [{ name: 'OrderCreated', type: 'event' as const }], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -666,7 +666,7 @@ describe('handleImportFromYaml', () => {
             description: 'Some description text',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -690,7 +690,7 @@ describe('handleImportFromYaml', () => {
             name: 'No Description',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -708,7 +708,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [{ name: 'OrderSubmitted', type: 'event' as const }],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -727,7 +727,7 @@ describe('handleImportFromYaml', () => {
             name: 'Empty Scenario',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -745,7 +745,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -765,7 +765,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -909,7 +909,7 @@ describe('handleImportFromYaml', () => {
         commands: [{ name: 'Cmd1' }],
         events: [{ name: 'Evt1', external: false }],
         gwt: [
-          { name: 'Scenario', given: [], when: [], then: [] },
+          { name: 'Scenario', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
         ],
       })
 
@@ -1015,7 +1015,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -1033,8 +1033,8 @@ describe('handleImportFromYaml', () => {
       await callHandler({
         slice: 'S',
         gwt: [
-          { name: 'Scenario 1', given: [], when: [], then: [] },
-          { name: 'Scenario 2', given: [], when: [], then: [] },
+          { name: 'Scenario 1', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
+          { name: 'Scenario 2', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
         ],
       })
 
@@ -1056,7 +1056,7 @@ describe('handleImportFromYaml', () => {
         slice: 'S',
         commands: [{ name: 'Cmd1' }],
         gwt: [
-          { name: 'Scenario', given: [], when: [], then: [] },
+          { name: 'Scenario', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
         ],
       })
 
@@ -1124,7 +1124,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -1145,7 +1145,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [],
             when: [],
-            then: [],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })
@@ -1240,7 +1240,7 @@ describe('handleImportFromYaml', () => {
         slice: 'S',
         commands: [{ name: 'Cmd1' }],
         gwt: [
-          { name: 'Scenario', given: [], when: [], then: [] },
+          { name: 'Scenario', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
         ],
       })
 
@@ -1303,7 +1303,7 @@ describe('handleImportFromYaml', () => {
             name: 'Scenario',
             given: [{ name: 'OrderSubmitted', type: 'event' as const }],
             when: [{ name: 'CreateOrder', type: 'command' as const }],
-            then: [{ name: 'OrderCreated', type: 'event' as const }],
+            then: [{ name: 'OrderCreated', type: 'event' as const }], // eslint-disable-line eslint-plugin-unicorn/no-thenable
           },
         ],
       })

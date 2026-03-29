@@ -72,7 +72,7 @@ describe('handleCreateEvent', () => {
     await handleCreateEvent(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(mockShape.strokes).toEqual([
-      { type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 } },
+      { type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0 } },
     ])
     expect(mockShape.strokeWeight).toBe(2)
   })

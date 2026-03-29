@@ -97,7 +97,7 @@ function formatGwtSectionForCopy(node: ElementNode): CopyGwt {
     description,
     given,
     when,
-    then,
+    then, // eslint-disable-line eslint-plugin-unicorn/no-thenable
   }
 }
 

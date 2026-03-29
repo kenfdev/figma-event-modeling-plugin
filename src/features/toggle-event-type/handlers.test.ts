@@ -13,7 +13,7 @@ describe('handleToggleEventType', () => {
     const mockNode = {
       id: 'node-1',
       fills: [{ type: 'SOLID', color: { r: 1, g: 0.62, b: 0.26 } }],
-      strokes: [{ type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 } }],
+      strokes: [{ type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0 } }],
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
@@ -49,7 +49,7 @@ describe('handleToggleEventType', () => {
     const mockNode = {
       id: 'node-1',
       fills: [{ type: 'SOLID', color: { r: 1, g: 0.62, b: 0.26 } }],
-      strokes: [{ type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 } }],
+      strokes: [{ type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0 } }],
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
@@ -91,7 +91,7 @@ describe('handleToggleEventType', () => {
     const mockNode = {
       id: 'node-1',
       fills: [{ type: 'SOLID', color: { r: 1, g: 0.62, b: 0.26 } }],
-      strokes: [{ type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 } }],
+      strokes: [{ type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0 } }],
       setPluginData: vi.fn(),
       getPluginData: vi.fn(() => ''),
     }
@@ -126,7 +126,7 @@ describe('handleToggleEventType', () => {
     const stroke = mockNode.strokes[0]
     expect(stroke.color.r).toBeCloseTo(0xeb / 255, 2)
     expect(stroke.color.g).toBeCloseTo(0x75 / 255, 2)
-    expect(stroke.color.b).toBeCloseTo(0x00 / 255, 2)
+    expect(stroke.color.b).toBeCloseTo(0, 2)
   })
 
   it('does nothing when node is not found', async () => {

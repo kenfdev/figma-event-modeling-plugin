@@ -72,7 +72,7 @@ describe('handleCreateCommand', () => {
     await handleCreateCommand(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(mockShape.strokes).toEqual([
-      { type: 'SOLID', color: { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 } },
+      { type: 'SOLID', color: { r: 0, g: 0x7a / 255, b: 0xd2 / 255 } },
     ])
     expect(mockShape.strokeWeight).toBe(2)
   })

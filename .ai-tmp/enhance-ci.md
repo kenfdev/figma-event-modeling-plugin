@@ -1,0 +1,2 @@
+- add ci to ensure the quality per PR and the main branch
+- add ci to automate the figma plugin release process as much as possible. also add document to make it easy to understand how the release process is.

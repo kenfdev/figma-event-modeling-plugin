@@ -32,7 +32,7 @@ describe('Platform Error Display', () => {
   const simulatePlatformMessage = (editorType: 'figma' | 'figjam') => {
     if (messageHandler) {
       act(() => {
-        messageHandler({
+        messageHandler!({
           data: {
             pluginMessage: {
               type: 'platform-detected',

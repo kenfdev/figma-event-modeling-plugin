@@ -13,7 +13,7 @@ export async function handleCreateScreen(
 
   shape.shapeType = 'SQUARE'
   shape.resize(SCREEN_WIDTH, SCREEN_HEIGHT)
-  shape.cornerRadius = 4
+  ;(shape as any).cornerRadius = 4
   shape.fills = [{ type: 'SOLID', color: GRAY_FILL_COLOR }]
 
   await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })

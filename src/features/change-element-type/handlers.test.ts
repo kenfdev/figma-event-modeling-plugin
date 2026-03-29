@@ -64,7 +64,7 @@ describe('handleChangeElementType', () => {
       { type: 'SOLID', color: { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 } },
     ])
     expect(mockNode.strokes).toEqual([
-      { type: 'SOLID', color: { r: 0x00 / 255, g: 0x7a / 255, b: 0xd2 / 255 } },
+      { type: 'SOLID', color: { r: 0, g: 0x7a / 255, b: 0xd2 / 255 } },
     ])
   })
 
@@ -81,7 +81,7 @@ describe('handleChangeElementType', () => {
       { type: 'SOLID', color: { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 } },
     ])
     expect(mockNode.strokes).toEqual([
-      { type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0x00 / 255 } },
+      { type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0 } },
     ])
   })
 
