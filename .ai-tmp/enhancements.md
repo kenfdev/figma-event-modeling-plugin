@@ -1,4 +1,0 @@
-- make the default height of the panel to be 80% of the viewport. with a reasonable max height (maybe around 1000 or so. give me suggestions)
-- make the "screen" component just 1 shape. no groups are necessary because it is often going to be replaced by a screenshot or something else. keeping it as a group is troublesome
-- when exactly 2 shapes are selected, create a feature called "connect" which creates a line connection between the 2 shapes. the arrow goes from the 1st selected shape to the 2nd. it should have the "curve" style and in black color.
-- all the shapes should have "Copy to Yaml" to copy it in Yaml. currently "Slice" can only be copied.

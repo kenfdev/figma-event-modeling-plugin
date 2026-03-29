@@ -7,6 +7,9 @@ logs/
 # FDSX agent artifacts
 .fdsx/
 
+# AI temporary files
+.ai-tmp/
+
 # container-wt generated files
 .worktree/.env
 .worktree/.env.app
