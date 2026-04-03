@@ -38,7 +38,7 @@ export async function handleUpdateSliceIssueUrl(
       marker.characters = '🔗'
       marker.fontSize = 14
       marker.x = 8
-      marker.y = 8
+      marker.y = 40
       marker.hyperlink = { type: 'URL', value: issueUrl }
       marker.setPluginData('isIssueMarker', 'true')
       if (node.appendChild) {

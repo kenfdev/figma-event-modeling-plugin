@@ -223,7 +223,7 @@ describe('handleUpdateSliceIssueUrl', () => {
 
       const mockTextNode = figmaMock.createText.mock.results[0].value
       expect(mockTextNode.x).toBe(8)
-      expect(mockTextNode.y).toBe(8)
+      expect(mockTextNode.y).toBe(40)
     })
   })
 })
