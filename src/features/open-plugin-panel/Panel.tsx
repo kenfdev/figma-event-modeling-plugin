@@ -139,15 +139,6 @@ interface SettingsPanelProps {
 
 function SettingsPanel({ onBack }: SettingsPanelProps) {
   const { locale, setLocale, t } = useTranslation()
-  const [showImportTextarea, setShowImportTextarea] = useState(false)
-  const [importYaml, setImportYaml] = useState('')
-  const [templateCopied, setTemplateCopied] = useState(false)
-
-  const handleCopyTemplate = async () => {
-    await copyToClipboard(YAML_TEMPLATE)
-    setTemplateCopied(true)
-    setTimeout(() => setTemplateCopied(false), 2000)
-  }
 
   const handleLocaleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value as Locale
@@ -180,66 +171,6 @@ function SettingsPanel({ onBack }: SettingsPanelProps) {
             <option value="ja">日本語</option>
           </select>
         </div>
-        <div className="section">
-          <h2>{t('sections.import')}</h2>
-          {!showImportTextarea ? (
-            <div className="button-group">
-              <button
-                className="button"
-                onClick={() => setShowImportTextarea(true)}
-              >
-                {t('buttons.importYaml')}
-              </button>
-              <button
-                className="button copy-template-button"
-                onClick={handleCopyTemplate}
-                title="Copy YAML template"
-                aria-label="Copy YAML template"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>
-              </button>
-              {templateCopied && <span className="copied-feedback">Copied!</span>}
-            </div>
-          ) : (
-            <div className="import-form">
-              <textarea
-                className="import-textarea"
-                placeholder={t('placeholders.pasteYaml')}
-                value={importYaml}
-                onChange={(e) => setImportYaml(e.target.value)}
-                rows={8}
-              />
-              <div className="button-group">
-                <button
-                  className="button"
-                  disabled={!importYaml.trim()}
-                  onClick={() => {
-                    parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: importYaml } } }, '*')
-                    setImportYaml('')
-                    setShowImportTextarea(false)
-                  }}
-                >
-                  {t('buttons.import')}
-                </button>
-                <button
-                  className="button import-cancel-button"
-                  onClick={() => {
-                    setImportYaml('')
-                    setShowImportTextarea(false)
-                  }}
-                >
-                  {t('buttons.cancel')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )
@@ -257,7 +188,10 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showSettings, setShowSettings] = useState(false)
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({ other: true })
+  const [importYaml, setImportYaml] = useState('')
+  const [importError, setImportError] = useState<string | null>(null)
+  const [templateCopied, setTemplateCopied] = useState(false)
   const { t } = useTranslation()
 
   const showToast = (message: string) => {
@@ -315,6 +249,13 @@ export function Panel({ onCreateElement }: PanelProps) {
           })
         }
       }
+      if (message?.type === 'import-from-yaml-error') {
+        setImportError(message.payload?.error ?? 'Import failed')
+      }
+      if (message?.type === 'import-from-yaml-success') {
+        setImportYaml('')
+        setImportError(null)
+      }
     }
 
     window.addEventListener('message', handleMessage)
@@ -349,6 +290,19 @@ export function Panel({ onCreateElement }: PanelProps) {
     if (messageType) {
       parent.postMessage({ pluginMessage: { type: messageType } }, '*')
     }
+  }
+
+  const handleCopyTemplate = async () => {
+    await copyToClipboard(YAML_TEMPLATE)
+    setTemplateCopied(true)
+    setTimeout(() => setTemplateCopied(false), 2000)
+  }
+
+  const handleImport = () => {
+    if (!importYaml.trim()) return
+    parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: importYaml } } }, '*')
+    setImportError(null)
+    // Do NOT clear importYaml here — wait for success signal
   }
 
   // Types with implemented handlers
@@ -413,6 +367,53 @@ export function Panel({ onCreateElement }: PanelProps) {
             collapsed={!!collapsedSections['sections']}
             onToggle={() => setCollapsedSections(prev => ({ ...prev, sections: !prev.sections }))}
           />
+
+          <div className="section">
+            <h2 onClick={() => setCollapsedSections(prev => ({ ...prev, other: !prev.other }))} style={{ cursor: 'pointer' }}>
+              {collapsedSections['other'] ? '▸' : '▾'} {t('sections.other')}
+            </h2>
+            {!collapsedSections['other'] && (
+              <div className="import-form">
+                <textarea
+                  className="import-textarea"
+                  placeholder={t('placeholders.pasteYaml')}
+                  value={importYaml}
+                  onChange={(e) => {
+                    setImportYaml(e.target.value)
+                    setImportError(null)
+                  }}
+                  rows={6}
+                />
+                {importError && (
+                  <div className="import-error" role="alert">{importError}</div>
+                )}
+                <div className="button-group">
+                  <button
+                    className="button"
+                    disabled={!importYaml.trim()}
+                    onClick={handleImport}
+                  >
+                    {t('buttons.import')}
+                  </button>
+                  <button
+                    className="button copy-template-button"
+                    onClick={handleCopyTemplate}
+                    title="Copy YAML template"
+                    aria-label="Copy YAML template"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                  </button>
+                  {templateCopied && <span className="copied-feedback">Copied!</span>}
+                </div>
+              </div>
+            )}
+          </div>
 
           <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} selectionCount={selectionCount} />
 

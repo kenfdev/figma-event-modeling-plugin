@@ -373,6 +373,7 @@ export async function handleImportFromYaml(
 
     // Select the slice after import
     figma.currentPage.selection = [slice]
+    figma.ui.postMessage({ type: 'import-from-yaml-success' })
   } catch (error) {
     figma.ui.postMessage({
       type: 'import-from-yaml-error',

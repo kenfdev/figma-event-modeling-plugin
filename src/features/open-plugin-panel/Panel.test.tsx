@@ -376,12 +376,6 @@ describe('Panel', () => {
     })
   })
 
-  it('does not render Import section in main panel (moved to Settings)', () => {
-    renderPanel()
-    expect(screen.queryByRole('heading', { name: /import/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /import yaml/i })).not.toBeInTheDocument()
-  })
-
   describe('Collapsible sections', () => {
     it('renders all three sections expanded by default', () => {
       renderPanel()
@@ -476,17 +470,141 @@ describe('Panel', () => {
     })
   })
 
-  describe('Copy YAML Template button in Settings', () => {
-    async function openSettings() {
+  describe('Import YAML in main panel', () => {
+    async function expandOtherSection() {
       const user = userEvent.setup()
       renderPanel()
-      const settingsButton = screen.getByRole('button', { name: /settings/i })
-      await user.click(settingsButton)
+      const otherHeading = screen.getByRole('heading', { name: /Other/ })
+      await user.click(otherHeading)
       return user
     }
 
-    it('renders a copy template button next to the Import YAML button', async () => {
-      await openSettings()
+    it('renders Other section collapsed by default', () => {
+      renderPanel()
+      expect(screen.getByRole('heading', { name: /Other/ })).toBeInTheDocument()
+      expect(screen.queryByPlaceholderText(/paste yaml here/i)).not.toBeInTheDocument()
+    })
+
+    it('expands Other section and shows textarea when heading is clicked', async () => {
+      await expandOtherSection()
+      expect(screen.getByPlaceholderText(/paste yaml here/i)).toBeInTheDocument()
+    })
+
+    it('sends import-from-yaml message when Import is clicked', async () => {
+      const user = await expandOtherSection()
+
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 'slice: Test')
+      await user.click(screen.getByRole('button', { name: /^import$/i }))
+
+      expect(parent.postMessage).toHaveBeenCalledWith(
+        { pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: 'slice: Test' } } },
+        '*'
+      )
+    })
+
+    it('displays error when import-from-yaml-error message is received', async () => {
+      const user = await expandOtherSection()
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-from-yaml-error',
+            payload: { error: 'Invalid YAML syntax' },
+          },
+        },
+      })
+      window.dispatchEvent(messageEvent)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Invalid YAML syntax')
+    })
+
+    it('clears error when textarea is edited', async () => {
+      const user = await expandOtherSection()
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-from-yaml-error',
+            payload: { error: 'Some error' },
+          },
+        },
+      })
+      window.dispatchEvent(messageEvent)
+
+      await vi.waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument()
+      })
+
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 's')
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
+    it('clears error on successful import', async () => {
+      const user = await expandOtherSection()
+
+      // Set up an error first
+      const errorEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-from-yaml-error',
+            payload: { error: 'Some error' },
+          },
+        },
+      })
+      window.dispatchEvent(errorEvent)
+
+      await vi.waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument()
+      })
+
+      // Type new YAML and click Import
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 'slice: Test')
+      await user.click(screen.getByRole('button', { name: /^import$/i }))
+
+      // Simulate success signal from sandbox
+      const successEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: { type: 'import-from-yaml-success' },
+        },
+      })
+      window.dispatchEvent(successEvent)
+
+      await vi.waitFor(() => {
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+        expect(screen.getByPlaceholderText(/paste yaml here/i)).toHaveValue('')
+      })
+    })
+
+    it('preserves textarea content on failed import', async () => {
+      const user = await expandOtherSection()
+
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 'slice: Test')
+      await user.click(screen.getByRole('button', { name: /^import$/i }))
+
+      const errorEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-from-yaml-error',
+            payload: { error: 'Invalid YAML' },
+          },
+        },
+      })
+      window.dispatchEvent(errorEvent)
+
+      await vi.waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument()
+        expect(screen.getByPlaceholderText(/paste yaml here/i)).toHaveValue('slice: Test')
+      })
+    })
+
+    it('disables Import button when textarea is empty', async () => {
+      await expandOtherSection()
+      expect(screen.getByRole('button', { name: /^import$/i })).toBeDisabled()
+    })
+
+    it('renders a copy template button in Other section', async () => {
+      await expandOtherSection()
       expect(screen.getByRole('button', { name: /copy yaml template/i })).toBeInTheDocument()
     })
 
@@ -494,20 +612,19 @@ describe('Panel', () => {
       const writeText = vi.fn().mockResolvedValue(undefined)
       Object.assign(navigator, { clipboard: { writeText } })
 
-      const user = await openSettings()
+      const user = await expandOtherSection()
       const copyButton = screen.getByRole('button', { name: /copy yaml template/i })
       await user.click(copyButton)
 
       expect(writeText).toHaveBeenCalledTimes(1)
-      // Verify it copies the actual YAML template content (starts with 'slice:')
       expect(writeText.mock.calls[0][0]).toMatch(/^slice: /)
     })
 
-    it('shows "Copied!" feedback after clicking', async () => {
+    it('shows "Copied!" feedback after clicking copy template', async () => {
       const writeText = vi.fn().mockResolvedValue(undefined)
       Object.assign(navigator, { clipboard: { writeText } })
 
-      const user = await openSettings()
+      const user = await expandOtherSection()
       const copyButton = screen.getByRole('button', { name: /copy yaml template/i })
       await user.click(copyButton)
 
@@ -515,7 +632,7 @@ describe('Panel', () => {
     })
 
     it('shows tooltip text "Copy YAML template" on hover', async () => {
-      await openSettings()
+      await expandOtherSection()
       const copyButton = screen.getByRole('button', { name: /copy yaml template/i })
       expect(copyButton).toHaveAttribute('title', 'Copy YAML template')
     })
