@@ -77,6 +77,23 @@ parent.postMessage({ pluginMessage: { type: 'action-name', payload: data } }, '*
 figma.ui.postMessage({ type: 'response-type', payload: data })
 ```
 
+### Sandbox Message Contract
+
+Every sandbox message handler must emit exactly one `figma.ui.postMessage(...)` call on both success and error paths. This keeps the UI synchronized with sandbox state.
+
+**Naming convention**: `<action>-success` / `<action>-error`
+
+```typescript
+// CORRECT: always posts a response
+figma.ui.postMessage({ type: 'selection-changed', payload: ... })
+return
+
+// WRONG: silently returns without posting
+if (!node) return
+await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
+node.text.characters = name
+```
+
 ### Plugin Data Storage
 
 Elements store metadata in Figma's plugin data system:
@@ -115,6 +132,18 @@ beforeEach(() => {
   resetFigmaMock() // Reset to fresh mock
 })
 ```
+
+### React act(...) Warnings
+
+`act()` warnings indicate real async issues in tests, not cosmetic noise. Fix the underlying async patterns rather than suppressing them.
+
+Preferred utilities:
+- `findBy*` queries (automatically wait)
+- `waitForElementToBeRemoved`
+- `waitFor`
+- `act(() => vi.advanceTimersByTime(n))` for timer-based code
+
+Last resort only: `vi.spyOn(console, 'error')` suppression.
 
 ## Element Types
 
