@@ -36,9 +36,9 @@ export async function handleUpdateSliceIssueUrl(
       await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
       const marker = figma.createText()
       marker.characters = '🔗'
-      marker.fontSize = 14
+      marker.fontSize = 20
       marker.x = 8
-      marker.y = 40
+      marker.y = 65
       marker.hyperlink = { type: 'URL', value: issueUrl }
       marker.setPluginData('isIssueMarker', 'true')
       if (node.appendChild) {
