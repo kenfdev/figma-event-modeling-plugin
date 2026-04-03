@@ -550,6 +550,15 @@ select.type-badge option {
   gap: 8px;
 }
 
+.import-error {
+  color: #d32f2f;
+  background: #fdecea;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
 .import-textarea {
   width: 100%;
   padding: 8px;

@@ -21,7 +21,6 @@ function createMockShape(id: string) {
   return {
     id,
     shapeType: '',
-    cornerRadius: 0,
     x: 0,
     y: 0,
     resize: vi.fn(),
@@ -150,6 +149,15 @@ describe('handleImportFromYaml', () => {
       expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'command')
     })
 
+    it('uses SQUARE shape type', async () => {
+      await callHandler({
+        slice: 'S',
+        commands: [{ name: 'CreateOrder' }],
+      })
+
+      expect(shapes[0].shapeType).toBe('SQUARE')
+    })
+
     it('stores custom fields in plugin data when provided', async () => {
       await callHandler({
         slice: 'S',
@@ -211,6 +219,15 @@ describe('handleImportFromYaml', () => {
       })
 
       expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'event')
+    })
+
+    it('uses SQUARE shape type', async () => {
+      await callHandler({
+        slice: 'S',
+        events: [{ name: 'OrderCreated', external: false }],
+      })
+
+      expect(shapes[0].shapeType).toBe('SQUARE')
     })
 
     it('sets the event name as text and label', async () => {
@@ -327,6 +344,15 @@ describe('handleImportFromYaml', () => {
       })
 
       expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'query')
+    })
+
+    it('uses SQUARE shape type', async () => {
+      await callHandler({
+        slice: 'S',
+        queries: [{ name: 'GetOrderStatus' }],
+      })
+
+      expect(shapes[0].shapeType).toBe('SQUARE')
     })
 
     it('sets the query name as text and label', async () => {
@@ -559,6 +585,22 @@ describe('handleImportFromYaml', () => {
       expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'command')
       expect(shapes[0].setPluginData).toHaveBeenCalledWith('label', 'CreateOrder')
       expect(shapes[0].text.characters).toBe('CreateOrder')
+    })
+
+    it('uses SQUARE shape type for GWT element shapes', async () => {
+      await callHandler({
+        slice: 'S',
+        gwt: [
+          {
+            name: 'Scenario',
+            given: [],
+            when: [{ name: 'CreateOrder', type: 'command' as const }],
+            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
+          },
+        ],
+      })
+
+      expect(shapes[0].shapeType).toBe('SQUARE')
     })
 
     it('stores fields as plugin data on GWT element shapes when provided', async () => {
@@ -897,8 +939,8 @@ describe('handleImportFromYaml', () => {
       // The command's y (section-relative) should be offset down from the slice padding
       // to leave room for Screen/Processor elements above.
       const commandRelativeY = shapes[0].y
-      // Reserved space should be at least 240px (doubled from ~120px) above the command row
-      expect(commandRelativeY).toBeGreaterThanOrEqual(240)
+      // Reserved space should be at least 400px above the command row
+      expect(commandRelativeY).toBeGreaterThanOrEqual(400)
     })
 
     it('leaves sufficient gap between event row and GWT sections', async () => {

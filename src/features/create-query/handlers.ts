@@ -4,7 +4,6 @@ const QUERY_WIDTH = 176
 const QUERY_HEIGHT = 80
 const QUERY_FILL_COLOR = { r: 0x7e / 255, g: 0xd3 / 255, b: 0x21 / 255 }
 const QUERY_STROKE_COLOR = { r: 0x5b / 255, g: 0xa5 / 255, b: 0x18 / 255 }
-const QUERY_CORNER_RADIUS = 0
 const QUERY_TEXT_COLOR = { r: 1, g: 1, b: 1 }
 
 export async function handleCreateQuery(
@@ -13,9 +12,8 @@ export async function handleCreateQuery(
 ): Promise<void> {
   const shape = figma.createShapeWithText()
 
-  shape.shapeType = 'ROUNDED_RECTANGLE'
+  shape.shapeType = 'SQUARE'
   shape.resize(QUERY_WIDTH, QUERY_HEIGHT)
-  ;(shape as any).cornerRadius = QUERY_CORNER_RADIUS
   shape.fills = [{ type: 'SOLID', color: QUERY_FILL_COLOR }]
   shape.strokes = [{ type: 'SOLID', color: QUERY_STROKE_COLOR }]
   shape.strokeWeight = 2

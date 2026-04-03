@@ -78,6 +78,7 @@ describe('handleUpdateSliceIssueUrl', () => {
       expect(figmaMock.loadFontAsync).toHaveBeenCalled()
       expect(figmaMock.createText).toHaveBeenCalled()
       const mockTextNode = figmaMock.createText.mock.results[0].value
+      expect(mockTextNode.fontSize).toBe(20)
       expect(mockTextNode.setPluginData).toHaveBeenCalledWith('isIssueMarker', 'true')
       expect(mockNode.appendChild).toHaveBeenCalledWith(mockTextNode)
     })
@@ -223,7 +224,7 @@ describe('handleUpdateSliceIssueUrl', () => {
 
       const mockTextNode = figmaMock.createText.mock.results[0].value
       expect(mockTextNode.x).toBe(8)
-      expect(mockTextNode.y).toBe(8)
+      expect(mockTextNode.y).toBe(65)
     })
   })
 })

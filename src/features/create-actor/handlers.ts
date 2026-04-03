@@ -4,7 +4,6 @@ const ACTOR_WIDTH = 176
 const ACTOR_HEIGHT = 80
 const ACTOR_FILL_COLOR = { r: 0x50 / 255, g: 0xe3 / 255, b: 0xc2 / 255 }
 const ACTOR_STROKE_COLOR = { r: 0x3b / 255, g: 0xb8 / 255, b: 0x9e / 255 }
-const ACTOR_CORNER_RADIUS = 0
 const ACTOR_TEXT_COLOR = { r: 1, g: 1, b: 1 }
 
 export async function handleCreateActor(
@@ -13,9 +12,8 @@ export async function handleCreateActor(
 ): Promise<void> {
   const shape = figma.createShapeWithText()
 
-  shape.shapeType = 'ROUNDED_RECTANGLE'
+  shape.shapeType = 'SQUARE'
   shape.resize(ACTOR_WIDTH, ACTOR_HEIGHT)
-  ;(shape as any).cornerRadius = ACTOR_CORNER_RADIUS
   shape.fills = [{ type: 'SOLID', color: ACTOR_FILL_COLOR }]
   shape.strokes = [{ type: 'SOLID', color: ACTOR_STROKE_COLOR }]
   shape.strokeWeight = 2

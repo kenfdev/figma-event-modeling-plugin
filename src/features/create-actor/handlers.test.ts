@@ -27,13 +27,13 @@ describe('handleCreateActor', () => {
     })
   })
 
-  it('sets the shape type to ROUNDED_RECTANGLE', async () => {
+  it('sets the shape type to SQUARE', async () => {
     const mockShape = figmaMock.createShapeWithText()
     figmaMock.createShapeWithText.mockReturnValue(mockShape)
 
     await handleCreateActor(undefined, { figma: figmaMock as unknown as typeof figma })
 
-    expect(mockShape.shapeType).toBe('ROUNDED_RECTANGLE')
+    expect(mockShape.shapeType).toBe('SQUARE')
   })
 
   it('resizes the element to 176x80', async () => {
@@ -43,15 +43,6 @@ describe('handleCreateActor', () => {
     await handleCreateActor(undefined, { figma: figmaMock as unknown as typeof figma })
 
     expect(mockShape.resize).toHaveBeenCalledWith(176, 80)
-  })
-
-  it('sets corner radius to 0', async () => {
-    const mockShape = figmaMock.createShapeWithText()
-    figmaMock.createShapeWithText.mockReturnValue(mockShape)
-
-    await handleCreateActor(undefined, { figma: figmaMock as unknown as typeof figma })
-
-    expect(mockShape.cornerRadius).toBe(0)
   })
 
   it('sets fill color to #50E3C2 (teal)', async () => {

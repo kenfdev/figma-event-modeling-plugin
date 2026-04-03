@@ -7,6 +7,7 @@ const en = {
     coreShapes: 'Core Shapes',
     structural: 'Structural',
     sections: 'Sections',
+    other: 'Other',
     import: 'Import',
   },
   buttons: {

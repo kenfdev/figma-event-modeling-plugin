@@ -24,7 +24,6 @@ function convertBlockStringToYaml(blockString: string): string {
 
 const ELEMENT_WIDTH = 176
 const ELEMENT_HEIGHT = 80
-const ELEMENT_CORNER_RADIUS = 0
 const TEXT_COLOR = { r: 1, g: 1, b: 1 }
 
 const COMMAND_FILL = { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 }
@@ -51,7 +50,7 @@ const GWT_CHILD_NAMES = ['Given', 'When', 'Then'] as const
 const ELEMENT_GAP = 20
 const GROUP_GAP = 60
 const ROW_GAP = 240
-const RESERVED_TOP_SPACE = 240
+const RESERVED_TOP_SPACE = 400
 const SLICE_WIDTH = 400
 const SLICE_HEIGHT = 120
 const COLUMN_GAP = 40
@@ -153,9 +152,8 @@ export async function handleImportFromYaml(
     if (data.commands) {
       data.commands.forEach((cmd, index) => {
         const shape = figma.createShapeWithText()
-        shape.shapeType = 'ROUNDED_RECTANGLE'
+        shape.shapeType = 'SQUARE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
-        ;(shape as any).cornerRadius = ELEMENT_CORNER_RADIUS
         shape.fills = [{ type: 'SOLID', color: COMMAND_FILL }]
         shape.strokes = [{ type: 'SOLID', color: COMMAND_STROKE }]
         shape.strokeWeight = 2
@@ -180,9 +178,8 @@ export async function handleImportFromYaml(
     if (data.events) {
       data.events.forEach((evt, index) => {
         const shape = figma.createShapeWithText()
-        shape.shapeType = 'ROUNDED_RECTANGLE'
+        shape.shapeType = 'SQUARE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
-        ;(shape as any).cornerRadius = ELEMENT_CORNER_RADIUS
         const fillColor = evt.external ? EVENT_EXTERNAL_FILL : EVENT_INTERNAL_FILL
         const strokeColor = evt.external ? EVENT_EXTERNAL_STROKE : EVENT_INTERNAL_STROKE
         shape.fills = [{ type: 'SOLID', color: fillColor }]
@@ -215,9 +212,8 @@ export async function handleImportFromYaml(
 
       data.queries.forEach((qry, index) => {
         const shape = figma.createShapeWithText()
-        shape.shapeType = 'ROUNDED_RECTANGLE'
+        shape.shapeType = 'SQUARE'
         shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
-        ;(shape as any).cornerRadius = ELEMENT_CORNER_RADIUS
         shape.fills = [{ type: 'SOLID', color: QUERY_FILL }]
         shape.strokes = [{ type: 'SOLID', color: QUERY_STROKE }]
         shape.strokeWeight = 2
@@ -274,9 +270,8 @@ export async function handleImportFromYaml(
           if (items) {
             items.forEach((item, itemIndex) => {
               const shape = figma.createShapeWithText()
-              shape.shapeType = 'ROUNDED_RECTANGLE'
+              shape.shapeType = 'SQUARE'
               shape.resize(ELEMENT_WIDTH, ELEMENT_HEIGHT)
-              ;(shape as any).cornerRadius = ELEMENT_CORNER_RADIUS
 
               let fillColor, strokeColor
               switch (item.type) {
@@ -378,6 +373,7 @@ export async function handleImportFromYaml(
 
     // Select the slice after import
     figma.currentPage.selection = [slice]
+    figma.ui.postMessage({ type: 'import-from-yaml-success' })
   } catch (error) {
     figma.ui.postMessage({
       type: 'import-from-yaml-error',

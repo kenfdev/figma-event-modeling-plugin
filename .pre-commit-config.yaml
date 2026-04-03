@@ -1,0 +1,21 @@
+repos:
+  - repo: local
+    hooks:
+      - id: typecheck
+        name: TypeScript type check
+        entry: npx tsc --noEmit
+        language: system
+        pass_filenames: false
+        types: [typescript, tsx]
+  - repo: https://github.com/oxc-project/mirrors-oxlint
+    rev: v0.16.7
+    hooks:
+      - id: oxlint
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-yaml

@@ -7,6 +7,7 @@ const ja = {
     coreShapes: '基本シェイプ',
     structural: '構造',
     sections: 'セクション',
+    other: 'その他',
     import: 'インポート',
   },
   buttons: {

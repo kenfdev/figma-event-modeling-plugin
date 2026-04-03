@@ -9,8 +9,14 @@ export default defineConfig({
     setupFiles: ['./src/shared/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
-      reporter: ['text', 'html'],
+      reporter: ['text', 'html', 'lcov'],
       exclude: ['node_modules/', 'src/shared/test/'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 70,
+        statements: 80,
+      },
     },
   },
 })
