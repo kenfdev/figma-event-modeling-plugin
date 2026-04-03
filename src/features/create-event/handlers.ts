@@ -4,7 +4,6 @@ const EVENT_WIDTH = 176
 const EVENT_HEIGHT = 80
 const EVENT_FILL_COLOR = { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 }
 const EVENT_STROKE_COLOR = { r: 0xeb / 255, g: 0x75 / 255, b: 0 }
-const EVENT_CORNER_RADIUS = 0
 const EVENT_TEXT_COLOR = { r: 1, g: 1, b: 1 }
 
 export async function handleCreateEvent(
@@ -13,9 +12,8 @@ export async function handleCreateEvent(
 ): Promise<void> {
   const shape = figma.createShapeWithText()
 
-  shape.shapeType = 'ROUNDED_RECTANGLE'
+  shape.shapeType = 'SQUARE'
   shape.resize(EVENT_WIDTH, EVENT_HEIGHT)
-  ;(shape as any).cornerRadius = EVENT_CORNER_RADIUS
   shape.fills = [{ type: 'SOLID', color: EVENT_FILL_COLOR }]
   shape.strokes = [{ type: 'SOLID', color: EVENT_STROKE_COLOR }]
   shape.strokeWeight = 2
