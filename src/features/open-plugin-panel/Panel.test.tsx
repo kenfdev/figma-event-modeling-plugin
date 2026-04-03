@@ -503,7 +503,7 @@ describe('Panel', () => {
     })
 
     it('displays error when import-from-yaml-error message is received', async () => {
-      const user = await expandOtherSection()
+      await expandOtherSection()
 
       const messageEvent = new MessageEvent('message', {
         data: {
