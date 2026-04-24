@@ -1513,8 +1513,8 @@ describe('handleImportFromYaml', () => {
   })
 
   describe('import-resolution-answered', () => {
-    let handleImportResolutionAnswered: (payload: unknown) => Promise<void>
-    let handleImportFromYaml: (payload: unknown) => Promise<void>
+    let handleImportResolutionAnswered: (payload: unknown, context: any) => Promise<void>
+    let handleImportFromYaml: (payload: unknown, context: any) => Promise<void>
 
     beforeEach(async () => {
       vi.resetModules()
@@ -1554,7 +1554,7 @@ describe('handleImportFromYaml', () => {
   })
 
   describe('focus-node', () => {
-    let handleFocusNode: (payload: unknown) => Promise<void>
+    let handleFocusNode: (payload: unknown, context: any) => Promise<void>
 
     beforeEach(async () => {
       vi.resetModules()

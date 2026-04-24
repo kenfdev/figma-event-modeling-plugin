@@ -4,7 +4,7 @@ interface FigmaCreateConnector {
     connectorStart: unknown
     connectorEnd: unknown
     connectorLineType: string
-    strokes: unknown[]
+    strokes: readonly unknown[]
   }
 }
 
@@ -16,7 +16,7 @@ export function createConnector(
   figma: FigmaCreateConnector,
   source: NodeLike,
   target: NodeLike
-): { id: string; connectorStart: unknown; connectorEnd: unknown; connectorLineType: string; strokes: unknown[] } {
+) {
   const connector = figma.createConnector()
   connector.connectorStart = { endpointNodeId: source.id, magnet: 'AUTO' }
   connector.connectorEnd = { endpointNodeId: target.id, magnet: 'AUTO' }

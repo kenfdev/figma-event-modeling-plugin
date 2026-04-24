@@ -15,7 +15,7 @@ describe('createConnector', () => {
 
     const connector = createConnector(figmaMock, source, target)
 
-    expect(connector.connectorStart.endpointNodeId).toBe('source-id')
+    expect((connector.connectorStart as any).endpointNodeId).toBe('source-id')
   })
 
   it('sets connectorEnd.endpointNodeId to target id', () => {
@@ -24,7 +24,7 @@ describe('createConnector', () => {
 
     const connector = createConnector(figmaMock, source, target)
 
-    expect(connector.connectorEnd.endpointNodeId).toBe('target-id')
+    expect((connector.connectorEnd as any).endpointNodeId).toBe('target-id')
   })
 
   it('sets connectorStart.magnet to AUTO', () => {
@@ -33,7 +33,7 @@ describe('createConnector', () => {
 
     const connector = createConnector(figmaMock, source, target)
 
-    expect(connector.connectorStart.magnet).toBe('AUTO')
+    expect((connector.connectorStart as any).magnet).toBe('AUTO')
   })
 
   it('sets connectorEnd.magnet to AUTO', () => {
@@ -42,7 +42,7 @@ describe('createConnector', () => {
 
     const connector = createConnector(figmaMock, source, target)
 
-    expect(connector.connectorEnd.magnet).toBe('AUTO')
+    expect((connector.connectorEnd as any).magnet).toBe('AUTO')
   })
 
   it('sets connectorLineType to CURVED', () => {
