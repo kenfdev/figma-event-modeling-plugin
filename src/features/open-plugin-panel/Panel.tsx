@@ -3,6 +3,8 @@ import type { ElementType, StructuralType, SectionType } from '../../shared/type
 import { ElementEditor, type SelectedElement } from '../view-selected-element'
 import { useTranslation, type Locale } from '../../shared/i18n'
 import { YAML_TEMPLATE } from '../import-from-yaml/template'
+import { parseImportYaml } from '../import-from-yaml/parser'
+import { ResolutionFlow, type PendingResolution } from '../import-from-yaml'
 
 type EditorType = 'figma' | 'figjam' | null
 
@@ -192,6 +194,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [importYaml, setImportYaml] = useState('')
   const [importError, setImportError] = useState<string | null>(null)
   const [templateCopied, setTemplateCopied] = useState(false)
+  const [pending, setPending] = useState<PendingResolution[] | null>(null)
   const { t } = useTranslation()
 
   const showToast = (message: string) => {
@@ -251,10 +254,15 @@ export function Panel({ onCreateElement }: PanelProps) {
       }
       if (message?.type === 'import-from-yaml-error') {
         setImportError(message.payload?.error ?? 'Import failed')
+        setPending(null)
       }
       if (message?.type === 'import-from-yaml-success') {
         setImportYaml('')
         setImportError(null)
+        setPending(null)
+      }
+      if (message?.type === 'import-resolution-needed') {
+        setPending(message.payload?.pending ?? [])
       }
     }
 
@@ -298,11 +306,27 @@ export function Panel({ onCreateElement }: PanelProps) {
     setTimeout(() => setTemplateCopied(false), 2000)
   }
 
+  const handleResolutionDone = (answers: Array<{ kind: 'connect'; candidateNodeId: string } | { kind: 'create' } | { kind: 'skip' }>) => {
+    parent.postMessage({ pluginMessage: { type: 'import-resolution-answered', payload: { answers } } }, '*')
+    setPending(null)
+  }
+
+  const handleResolutionFocus = (nodeId: string) => {
+    parent.postMessage({ pluginMessage: { type: 'focus-node', payload: { nodeId } } }, '*')
+  }
+
   const handleImport = () => {
     if (!importYaml.trim()) return
-    parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: importYaml } } }, '*')
+    const result = parseImportYaml(importYaml)
+    if (!result.success) {
+      setImportError(result.error)
+      return
+    }
+    if (result.warnings.length > 0) {
+      result.warnings.forEach(w => console.warn(w))
+    }
+    parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: { data: result.data } } }, '*')
     setImportError(null)
-    // Do NOT clear importYaml here — wait for success signal
   }
 
   // Types with implemented handlers
@@ -374,43 +398,53 @@ export function Panel({ onCreateElement }: PanelProps) {
             </h2>
             {!collapsedSections['other'] && (
               <div className="import-form">
-                <textarea
-                  className="import-textarea"
-                  placeholder={t('placeholders.pasteYaml')}
-                  value={importYaml}
-                  onChange={(e) => {
-                    setImportYaml(e.target.value)
-                    setImportError(null)
-                  }}
-                  rows={6}
-                />
-                {importError && (
-                  <div className="import-error" role="alert">{importError}</div>
+                {pending !== null ? (
+                  <ResolutionFlow
+                    pending={pending}
+                    onDone={handleResolutionDone}
+                    onFocus={handleResolutionFocus}
+                  />
+                ) : (
+                  <>
+                    <textarea
+                      className="import-textarea"
+                      placeholder={t('placeholders.pasteYaml')}
+                      value={importYaml}
+                      onChange={(e) => {
+                        setImportYaml(e.target.value)
+                        setImportError(null)
+                      }}
+                      rows={6}
+                    />
+                    {importError && (
+                      <div className="import-error" role="alert">{importError}</div>
+                    )}
+                    <div className="button-group">
+                      <button
+                        className="button"
+                        disabled={!importYaml.trim()}
+                        onClick={handleImport}
+                      >
+                        {t('buttons.import')}
+                      </button>
+                      <button
+                        className="button copy-template-button"
+                        onClick={handleCopyTemplate}
+                        title="Copy YAML template"
+                        aria-label="Copy YAML template"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                          <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                      </button>
+                      {templateCopied && <span className="copied-feedback">Copied!</span>}
+                    </div>
+                  </>
                 )}
-                <div className="button-group">
-                  <button
-                    className="button"
-                    disabled={!importYaml.trim()}
-                    onClick={handleImport}
-                  >
-                    {t('buttons.import')}
-                  </button>
-                  <button
-                    className="button copy-template-button"
-                    onClick={handleCopyTemplate}
-                    title="Copy YAML template"
-                    aria-label="Copy YAML template"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                      <polyline points="10 9 9 9 8 9" />
-                    </svg>
-                  </button>
-                  {templateCopied && <span className="copied-feedback">Copied!</span>}
-                </div>
               </div>
             )}
           </div>
