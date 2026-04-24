@@ -17,11 +17,13 @@ export interface FigmaMock {
     appendChild: MockFn
     children: unknown[]
     selection: unknown[]
+    findAll: MockFn
   }
   viewport: {
     center: { x: number; y: number }
     zoom: number
     bounds: { x: number; y: number; width: number; height: number }
+    scrollAndZoomIntoView: MockFn
   }
   createShapeWithText: MockFn
   createSection: MockFn
@@ -58,11 +60,13 @@ export function createFigmaMock(overrides?: Partial<FigmaMock>): FigmaMock {
       appendChild: vi.fn(),
       children: [],
       selection: [],
+      findAll: vi.fn(() => []),
     },
     viewport: {
       center: { x: 0, y: 0 },
       zoom: 1,
       bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      scrollAndZoomIntoView: vi.fn(),
     },
     createShapeWithText: vi.fn(() => ({
       id: 'mock-shape-id',
