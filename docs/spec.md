@@ -121,7 +121,7 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F8.1 | DuplicateElement | Done | `src/features/duplicate-element/SPEC.md` |
 | F9.1 | ShowExportButton | Done | `src/features/export-slice-to-markdown/SPEC.md` |
 | F9.2 | ExportSliceToMarkdown | Done | `src/features/export-slice-to-markdown/SPEC.md` |
-| F10.1 | ImportFromYaml | Done | `src/features/import-from-yaml/SPEC.md` |
+| F10.1 | ImportFromYaml (screen, produces, from_events, connectors, resolution flow) | Done | `src/features/import-from-yaml/SPEC.md` |
 | F2.4 | ViewStructuralElementType | Done | `src/features/view-selected-element/SPEC.md` |
 | F11.1 | ChangeElementType | Done | `src/features/change-element-type/SPEC.md` |
 | F12.1 | Internationalization | Done | `src/shared/i18n/SPEC.md` |
