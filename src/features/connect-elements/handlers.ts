@@ -1,4 +1,5 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
+import { createConnector } from '../../shared/figma/connectors'
 
 export async function handleConnectElements(
   _payload: unknown,
@@ -11,9 +12,5 @@ export async function handleConnectElements(
     return
   }
 
-  const connector = figma.createConnector()
-  connector.connectorStart = { endpointNodeId: selection[0].id, magnet: 'AUTO' }
-  connector.connectorEnd = { endpointNodeId: selection[1].id, magnet: 'AUTO' }
-  connector.connectorLineType = 'CURVED'
-  connector.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }]
+  createConnector(figma, selection[0], selection[1])
 }
