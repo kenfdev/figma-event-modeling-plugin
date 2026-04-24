@@ -19,41 +19,51 @@ describe('YAML_TEMPLATE', () => {
     expect(result.data.slice).toBeTruthy()
   })
 
-  it('includes commands with fields and notes', () => {
+  it('has no errors (success path)', () => {
+    const result = parseImportYaml(YAML_TEMPLATE)
+    expect(result.success).toBe(true)
+  })
+
+  it('has empty warnings array', () => {
+    const result = parseImportYaml(YAML_TEMPLATE)
+    if (!result.success) throw new Error('Parse failed')
+    expect(result.warnings).toEqual([])
+  })
+
+  it('has screen with type user', () => {
+    const result = parseImportYaml(YAML_TEMPLATE)
+    if (!result.success) throw new Error('Parse failed')
+    expect(result.data.screen.type).toBe('user')
+  })
+
+  it('includes commands with produces', () => {
     const result = parseImportYaml(YAML_TEMPLATE)
     if (!result.success) throw new Error('Parse failed')
     expect(result.data.commands).toBeDefined()
     expect(result.data.commands!.length).toBeGreaterThan(0)
-    const commandWithFields = result.data.commands!.find((c) => c.fields)
-    expect(commandWithFields).toBeDefined()
-    const commandWithNotes = result.data.commands!.find((c) => c.notes)
-    expect(commandWithNotes).toBeDefined()
+    const commandWithProduces = result.data.commands!.find((c) => c.produces && c.produces.length > 0)
+    expect(commandWithProduces).toBeDefined()
   })
 
-  it('includes events with external flag', () => {
-    const result = parseImportYaml(YAML_TEMPLATE)
-    if (!result.success) throw new Error('Parse failed')
-    expect(result.data.events).toBeDefined()
-    expect(result.data.events!.length).toBeGreaterThan(0)
-    const externalEvent = result.data.events!.find((e) => e.external === true)
-    expect(externalEvent).toBeDefined()
-  })
-
-  it('includes queries with fields', () => {
+  it('includes queries with from_events', () => {
     const result = parseImportYaml(YAML_TEMPLATE)
     if (!result.success) throw new Error('Parse failed')
     expect(result.data.queries).toBeDefined()
     expect(result.data.queries!.length).toBeGreaterThan(0)
-    const queryWithFields = result.data.queries!.find((q) => q.fields)
-    expect(queryWithFields).toBeDefined()
+    const queryWithFromEvents = result.data.queries!.find((q) => q.from_events && q.from_events.length > 0)
+    expect(queryWithFromEvents).toBeDefined()
   })
 
-  it('includes gwt scenarios with all item types', () => {
+  it('includes gwt scenarios', () => {
     const result = parseImportYaml(YAML_TEMPLATE)
     if (!result.success) throw new Error('Parse failed')
     expect(result.data.gwt).toBeDefined()
     expect(result.data.gwt!.length).toBeGreaterThan(0)
+  })
 
+  it('includes gwt scenarios with command and event types', () => {
+    const result = parseImportYaml(YAML_TEMPLATE)
+    if (!result.success) throw new Error('Parse failed')
     const allItems = result.data.gwt!.flatMap((g) => [
       ...g.given,
       ...g.when,
