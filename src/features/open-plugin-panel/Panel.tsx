@@ -325,7 +325,7 @@ export function Panel({ onCreateElement }: PanelProps) {
     if (result.warnings.length > 0) {
       result.warnings.forEach(w => console.warn(w))
     }
-    parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: { data: result.data } } }, '*')
+    parent.postMessage({ pluginMessage: { type: 'import-from-yaml', payload: result.data } }, '*')
     setImportError(null)
   }
 

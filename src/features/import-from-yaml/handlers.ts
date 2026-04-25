@@ -3,6 +3,7 @@ import { parseImportYaml, type ImportData } from './parser'
 import { serializeFields, type CustomField } from '../update-custom-fields/field-utils'
 import { normalizeName } from './name-match'
 import { createConnector } from '../../shared/figma/connectors'
+import { createProcessorGroup } from '../create-processor/handlers'
 
 function convertBlockStringToYaml(blockString: string): string {
   if (!blockString || !blockString.trim()) {
@@ -55,15 +56,16 @@ const GWT_CHILD_NAMES = ['Given', 'When', 'Then'] as const
 const ELEMENT_GAP = 20
 const GROUP_GAP = 60
 const ROW_GAP = 240
-const RESERVED_TOP_SPACE = 400
 const SLICE_WIDTH = 400
 const SLICE_HEIGHT = 120
 const COLUMN_GAP = 40
+const TOP_ROW_VERTICAL_OFFSET = 50
 const GWT_VERTICAL_OFFSET = 80
 const GWT_CHILD_SHAPE_PADDING = 40
 const GWT_DESCRIPTION_WIDTH = 200
 const GWT_DESCRIPTION_GAP = 20
 const SLICE_PADDING = 20
+const SLICE_TOP_PADDING = 60
 
 export interface CandidateEvent {
   nodeId: string
@@ -158,7 +160,7 @@ export async function handleImportFromYaml(
         + queryCount * ELEMENT_WIDTH + (queryCount > 1 ? (queryCount - 1) * ELEMENT_GAP : 0)
       : 0
 
-    const topRowY = center.y + SLICE_HEIGHT / 2 + COLUMN_GAP + RESERVED_TOP_SPACE
+    const topRowY = center.y + SLICE_HEIGHT / 2 + COLUMN_GAP
     const topRowStartX = center.x - topRowWidth / 2
 
     const needsFont = !!data.screen || commandCount > 0 || queryCount > 0 || (data.gwt?.some(g => g.given.length > 0 || g.when.length > 0 || g.then.length > 0))
@@ -172,23 +174,50 @@ export async function handleImportFromYaml(
     const producedEventNodeMap = new Map<string, string>()
 
     if (data.screen) {
-      const screenShape = figma.createShapeWithText()
-      screenShape.shapeType = 'SQUARE'
-      screenShape.resize(SCREEN_WIDTH, SCREEN_HEIGHT)
-      screenShape.fills = [{ type: 'SOLID', color: SCREEN_FILL }]
-      const screenLabel = data.screen.name ?? (data.screen.type === 'user' ? 'Screen' : 'Processor')
-      screenShape.text.characters = screenLabel
-      screenShape.text.fills = [{ type: 'SOLID', color: SCREEN_TEXT_COLOR }]
-      screenShape.setPluginData('type', data.screen.type === 'user' ? 'screen' : 'processor')
-      screenShape.setPluginData('label', screenLabel)
-
       const cmdColumnCenterX = topRowWidth > 0 ? topRowStartX + topRowWidth / 2 : center.x
-      screenShape.x = cmdColumnCenterX - SCREEN_WIDTH / 2
-      screenShape.y = topRowY - SCREEN_HEIGHT - COLUMN_GAP
 
-      slice.appendChild(screenShape)
-      sliceChildren.push({ node: screenShape, x: screenShape.x, y: screenShape.y, width: SCREEN_WIDTH, height: SCREEN_HEIGHT })
+      if (data.screen.type === 'system') {
+        const processorLabel = data.screen.name ?? 'Processor'
+        const processorGroup = await createProcessorGroup(figma as any, {
+          label: processorLabel,
+          parent: slice as any,
+        })
+
+        const groupWidth = processorGroup.width
+        const groupHeight = processorGroup.height
+        processorGroup.x = cmdColumnCenterX - groupWidth / 2
+        processorGroup.y = topRowY - groupHeight - COLUMN_GAP
+
+        sliceChildren.push({
+          node: processorGroup,
+          x: processorGroup.x,
+          y: processorGroup.y,
+          width: groupWidth,
+          height: groupHeight,
+        })
+      } else {
+        const screenShape = figma.createShapeWithText()
+        screenShape.shapeType = 'SQUARE'
+        screenShape.resize(SCREEN_WIDTH, SCREEN_HEIGHT)
+        screenShape.fills = [{ type: 'SOLID', color: SCREEN_FILL }]
+        const screenLabel = data.screen.name ?? 'Screen'
+        screenShape.text.characters = screenLabel
+        screenShape.text.fills = [{ type: 'SOLID', color: SCREEN_TEXT_COLOR }]
+        screenShape.setPluginData('type', 'screen')
+        screenShape.setPluginData('label', screenLabel)
+
+        screenShape.x = cmdColumnCenterX - SCREEN_WIDTH / 2
+        screenShape.y = topRowY - SCREEN_HEIGHT - COLUMN_GAP
+
+        slice.appendChild(screenShape)
+        sliceChildren.push({ node: screenShape, x: screenShape.x, y: screenShape.y, width: SCREEN_WIDTH, height: SCREEN_HEIGHT })
+      }
     }
+
+    const commandStartX = topRowStartX
+      + queryCount * ELEMENT_WIDTH
+      + (queryCount > 1 ? (queryCount - 1) * ELEMENT_GAP : 0)
+      + (queryCount > 0 ? GROUP_GAP : 0)
 
     if (data.commands) {
       data.commands.forEach((cmd, index) => {
@@ -208,8 +237,8 @@ export async function handleImportFromYaml(
         if (cmd.notes) {
           shape.setPluginData('notes', cmd.notes)
         }
-        shape.x = topRowStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
-        shape.y = topRowY
+        shape.x = commandStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
+        shape.y = topRowY + TOP_ROW_VERTICAL_OFFSET
         slice.appendChild(shape)
         sliceChildren.push({ node: shape, x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
         commandNodeMap.set(normalizeName(cmd.name), shape.id)
@@ -255,9 +284,6 @@ export async function handleImportFromYaml(
 
     if (data.queries) {
       const queryStartX = topRowStartX
-        + commandCount * ELEMENT_WIDTH
-        + (commandCount > 1 ? (commandCount - 1) * ELEMENT_GAP : 0)
-        + (commandCount > 0 ? GROUP_GAP : 0)
 
       data.queries.forEach((qry, index) => {
         const shape = figma.createShapeWithText()
@@ -277,7 +303,7 @@ export async function handleImportFromYaml(
           shape.setPluginData('notes', qry.notes)
         }
         shape.x = queryStartX + index * (ELEMENT_WIDTH + ELEMENT_GAP)
-        shape.y = topRowY
+        shape.y = topRowY + TOP_ROW_VERTICAL_OFFSET
         slice.appendChild(shape)
         sliceChildren.push({ node: shape, x: shape.x, y: shape.y, width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT })
         queryNodeMap.set(normalizeName(qry.name), shape.id)
@@ -287,10 +313,13 @@ export async function handleImportFromYaml(
     if (data.gwt) {
       const hasTopRow = topRowItemCount > 0
       const hasBottomRow = eventCount > 0
-      const rowCount = (hasTopRow ? 1 : 0) + (hasBottomRow ? 1 : 0)
-      const gwtStartY = rowCount > 0
-        ? topRowY + (rowCount > 1 ? 2 : 1) * ELEMENT_HEIGHT + (rowCount > 1 ? ROW_GAP : 0) + GWT_VERTICAL_OFFSET
-        : topRowY
+      let gwtStartY = topRowY
+      if (hasBottomRow) {
+        const lastRowY = hasTopRow ? topRowY + ELEMENT_HEIGHT + ROW_GAP : topRowY
+        gwtStartY = lastRowY + ELEMENT_HEIGHT + GWT_VERTICAL_OFFSET
+      } else if (hasTopRow) {
+        gwtStartY = topRowY + TOP_ROW_VERTICAL_OFFSET + ELEMENT_HEIGHT + GWT_VERTICAL_OFFSET
+      }
 
       const contentLeftXCandidates: number[] = []
       if (topRowItemCount > 0) contentLeftXCandidates.push(topRowStartX)
@@ -393,15 +422,13 @@ export async function handleImportFromYaml(
         maxBottom = Math.max(maxBottom, child.y + child.height)
       }
 
-      minY -= RESERVED_TOP_SPACE
-
       const contentWidth = maxRight - minX
       const contentHeight = maxBottom - minY
       const finalWidth = contentWidth + SLICE_PADDING * 2
-      const finalHeight = contentHeight + SLICE_PADDING * 2
+      const finalHeight = contentHeight + SLICE_TOP_PADDING + SLICE_PADDING
 
       slice.x = minX - SLICE_PADDING
-      slice.y = minY - SLICE_PADDING
+      slice.y = minY - SLICE_TOP_PADDING
       slice.resizeWithoutConstraints(finalWidth, finalHeight)
 
       for (const child of sliceChildren) {
@@ -416,7 +443,12 @@ export async function handleImportFromYaml(
         if (queryNodeId) {
           const screenShape = sliceChildren.find(c => c.node.getPluginData('type') === 'screen' || c.node.getPluginData('type') === 'processor')?.node
           if (screenShape) {
-            createConnector(figma as any, { id: queryNodeId } as any, { id: screenShape.id } as any)
+            createConnector(
+              figma as any,
+              { id: queryNodeId } as any,
+              { id: screenShape.id } as any,
+              { magnetSource: 'TOP', magnetTarget: 'BOTTOM' }
+            )
           }
         }
       }
@@ -428,7 +460,12 @@ export async function handleImportFromYaml(
         if (cmdNodeId) {
           const screenShape = sliceChildren.find(c => c.node.getPluginData('type') === 'screen' || c.node.getPluginData('type') === 'processor')?.node
           if (screenShape) {
-            createConnector(figma as any, { id: screenShape.id } as any, { id: cmdNodeId } as any)
+            createConnector(
+              figma as any,
+              { id: screenShape.id } as any,
+              { id: cmdNodeId } as any,
+              { magnetSource: 'BOTTOM', magnetTarget: 'TOP' }
+            )
           }
         }
       }
@@ -438,7 +475,12 @@ export async function handleImportFromYaml(
       const cmdNodeId = commandNodeMap.get(normalizeName(prod.commandName))
       const eventNodeId = producedEventNodeMap.get(normalizeName(prod.eventName))
       if (cmdNodeId && eventNodeId) {
-        createConnector(figma as any, { id: cmdNodeId } as any, { id: eventNodeId } as any)
+        createConnector(
+          figma as any,
+          { id: cmdNodeId } as any,
+          { id: eventNodeId } as any,
+          { magnetSource: 'BOTTOM', magnetTarget: 'TOP' }
+        )
       }
     }
 
@@ -449,7 +491,12 @@ export async function handleImportFromYaml(
             const eventNodeId = producedEventNodeMap.get(normalizeName(eventName))
             const queryNodeId = queryNodeMap.get(normalizeName(qry.name))
             if (eventNodeId && queryNodeId) {
-              createConnector(figma as any, { id: eventNodeId } as any, { id: queryNodeId } as any)
+              createConnector(
+                figma as any,
+                { id: eventNodeId } as any,
+                { id: queryNodeId } as any,
+                { magnetSource: 'TOP', magnetTarget: 'BOTTOM' }
+              )
             }
           }
         }
@@ -570,7 +617,12 @@ export async function handleImportResolutionAnswered(
 
         const candidateNode = figma.getNodeById(answer.candidateNodeId) as any
         if (candidateNode && candidateNode.getPluginData && candidateNode.getPluginData('type') === 'event') {
-          createConnector(figma as any, candidateNode, { id: queryNodeId } as any)
+          createConnector(
+            figma as any,
+            candidateNode,
+            { id: queryNodeId } as any,
+            { magnetSource: 'TOP', magnetTarget: 'BOTTOM' }
+          )
         }
       } else if (answer.resolution === 'create') {
         const pendingEntry = pendingImport.pending.find(
@@ -602,7 +654,12 @@ export async function handleImportResolutionAnswered(
           eventNodeId = newEvent.id
         }
 
-        createConnector(figma as any, { id: eventNodeId } as any, { id: queryNodeId } as any)
+        createConnector(
+          figma as any,
+          { id: eventNodeId } as any,
+          { id: queryNodeId } as any,
+          { magnetSource: 'TOP', magnetTarget: 'BOTTOM' }
+        )
       }
     }
 

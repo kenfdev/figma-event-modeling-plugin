@@ -20,10 +20,13 @@ As a user, I want to copy a YAML template to my clipboard so I can quickly start
 - YAML is validated against the new schema; specific errors reported for invalid content
 - Valid YAML creates:
   - Slice section with specified name
-  - Screen element (type: user → Screen; type: system → Processor) placed in top row above Commands, horizontally centered
-  - Command elements from `commands` array
-  - Event elements created from `commands[].produces` (one event per name, placed in Events column)
-  - Query elements from `queries` array
+  - Screen element placed above the queries+commands top row, horizontally centered across that whole row:
+    - `type: user` → gray rounded Screen square (200×160)
+    - `type: system` → black gear-icon Processor group (reuses the standalone `create-processor` visual: 48px gear with label below)
+  - `screen.name` overrides the default label for both user (default "Screen") and system (default "Processor")
+  - Query elements from `queries` array, placed to the **left** of Commands in the top row
+  - Command elements from `commands` array, placed to the right of Queries in the top row
+  - Event elements created from `commands[].produces` (one event per name, placed in Events row)
   - GWT sections from `gwt` array with Given/When/Then child sections containing colored element shapes
 - Connectors drawn automatically in the correct direction:
   - Query → Screen (for each name in screen.reads)
@@ -107,14 +110,16 @@ gwt:
 - `executes` (optional): array of command names this screen executes
 
 ### Connector Directions (FR-5)
-| Relationship | Connector Direction |
-|---|---|
-| screen.reads[] | Query → Screen |
-| screen.executes[] | Screen → Command |
-| commands[].produces[] | Command → Event |
-| queries[].from_events[] (same-slice) | Event → Query |
-| queries[].from_events[] (cross-slice, confirmed) | Event → Query |
-| queries[].from_events[] (no-match, created) | Event → Query |
+| Relationship | Connector Direction | Source magnet | Target magnet |
+|---|---|---|---|
+| screen.reads[] | Query → Screen | TOP | BOTTOM |
+| screen.executes[] | Screen → Command | BOTTOM | TOP |
+| commands[].produces[] | Command → Event | BOTTOM | TOP |
+| queries[].from_events[] (same-slice) | Event → Query | TOP | BOTTOM |
+| queries[].from_events[] (cross-slice, confirmed) | Event → Query | TOP | BOTTOM |
+| queries[].from_events[] (no-match, created) | Event → Query | TOP | BOTTOM |
+
+Magnets are pinned (rather than `AUTO`) so connectors enter/leave each shape on the side that matches the canonical Event Modeling top-to-bottom flow.
 
 No connectors are drawn to/from Actor elements or inside GWT sections.
 

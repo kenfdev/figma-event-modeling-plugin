@@ -68,18 +68,32 @@ function createMockConnector(id: string) {
   }
 }
 
+function createMockGroup(id: string) {
+  return {
+    id,
+    x: 0,
+    y: 0,
+    width: 70,
+    height: 70,
+    setPluginData: vi.fn(),
+    getPluginData: vi.fn(() => ''),
+  }
+}
+
 describe('handleImportFromYaml', () => {
   let figmaMock: FigmaMock
   let shapes: ReturnType<typeof createMockShape>[]
   let sections: ReturnType<typeof createMockSection>[]
   let stickies: ReturnType<typeof createMockSticky>[]
   let connectors: ReturnType<typeof createMockConnector>[]
+  let groups: ReturnType<typeof createMockGroup>[]
 
   beforeEach(() => {
     shapes = []
     sections = []
     stickies = []
     connectors = []
+    groups = []
     figmaMock = createFigmaMock()
     figmaMock.createShapeWithText.mockImplementation(() => {
       const shape = createMockShape(`shape-${shapes.length}`)
@@ -100,6 +114,11 @@ describe('handleImportFromYaml', () => {
       const connector = createMockConnector(`connector-${connectors.length}`)
       connectors.push(connector)
       return connector
+    })
+    figmaMock.group.mockImplementation(() => {
+      const group = createMockGroup(`group-${groups.length}`)
+      groups.push(group)
+      return group
     })
   })
 
@@ -473,22 +492,57 @@ describe('handleImportFromYaml', () => {
       expect(shapes[0].text.characters).toBe('Screen')
     })
 
-    it('creates a shape for screen.type=system', async () => {
+    it('creates a Processor gear group (not a square shape) for screen.type=system', async () => {
       await callHandler({
         slice: 'S',
         screen: { type: 'system' },
       })
 
-      expect(figmaMock.createShapeWithText).toHaveBeenCalled()
+      expect(figmaMock.createNodeFromSvg).toHaveBeenCalled()
+      expect(figmaMock.createText).toHaveBeenCalled()
+      expect(figmaMock.group).toHaveBeenCalled()
+      // No Screen square should be created when type is system
+      expect(figmaMock.createShapeWithText).not.toHaveBeenCalled()
     })
 
-    it('stores type "processor" in plugin data for system screen', async () => {
+    it('stores type "processor" in plugin data on the gear group for system screen', async () => {
       await callHandler({
         slice: 'S',
         screen: { type: 'system' },
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'processor')
+      expect(groups[0].setPluginData).toHaveBeenCalledWith('type', 'processor')
+    })
+
+    it('uses default label "Processor" on the gear when screen.name not provided', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'system' },
+      })
+
+      expect(groups[0].setPluginData).toHaveBeenCalledWith('label', 'Processor')
+    })
+
+    it('uses screen.name as the gear label when screen.type=system and name provided', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'system', name: 'OrderProcessor' },
+      })
+
+      expect(groups[0].setPluginData).toHaveBeenCalledWith('label', 'OrderProcessor')
+    })
+
+    it('parents the Processor group under the slice section', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'system' },
+      })
+
+      // First group call passes the slice section as parent
+      expect(figmaMock.group).toHaveBeenCalledWith(
+        expect.any(Array),
+        sections[0]
+      )
     })
 
     it('uses SQUARE shape type for screen/processor', async () => {
@@ -881,10 +935,10 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      // shapes[0] = element inside Given child section
+      // shapes[0] = screen, shapes[1] = element inside Given child section
       // The shape should have ~40px padding from the top and left of the child section
-      expect(shapes[0].x).toBeGreaterThanOrEqual(40)
-      expect(shapes[0].y).toBeGreaterThanOrEqual(40)
+      expect(shapes[1].x).toBeGreaterThanOrEqual(40)
+      expect(shapes[1].y).toBeGreaterThanOrEqual(40)
     })
 
     it('uses plain section name when GWT items are empty', async () => {
@@ -1005,7 +1059,7 @@ describe('handleImportFromYaml', () => {
       expect(shapes[1].y).toBe(shapes[2].y)
     })
 
-    it('places commands on the left and queries on the right in the top row', async () => {
+    it('places queries on the left and commands on the right in the top row', async () => {
       figmaMock.viewport.center = { x: 500, y: 300 }
 
       await callHandler({
@@ -1016,11 +1070,11 @@ describe('handleImportFromYaml', () => {
       })
 
       // shapes[1] = command, shapes[2] = query (shapes[0] is screen)
-      // Commands should be to the left of queries
-      expect(shapes[1].x).toBeLessThan(shapes[2].x)
+      // Queries should be to the left of commands
+      expect(shapes[2].x).toBeLessThan(shapes[1].x)
     })
 
-    it('reserves vertical space above command/query row for screen/processor elements', async () => {
+    it('places the screen above the command/query row with a gap', async () => {
       figmaMock.viewport.center = { x: 500, y: 300 }
 
       await callHandler({
@@ -1029,13 +1083,11 @@ describe('handleImportFromYaml', () => {
         commands: [{ name: 'Cmd1' }],
       })
 
-      // The command should not be at the very top of the slice content area.
-      // There should be reserved space above the command/query row.
-      // The command's y (section-relative) should be offset down from the slice padding
-      // to leave room for Screen/Processor elements above.
+      // shapes[0] = screen, shapes[1] = command
+      // The command's y should be the screen's y + screen height + a column gap.
+      const screenRelativeY = shapes[0].y
       const commandRelativeY = shapes[1].y
-      // Reserved space should be at least 400px above the command row
-      expect(commandRelativeY).toBeGreaterThanOrEqual(400)
+      expect(commandRelativeY).toBeGreaterThan(screenRelativeY + 160)
     })
 
     it('handles only commands without queries in the top row', async () => {
@@ -1053,7 +1105,7 @@ describe('handleImportFromYaml', () => {
       expect(shapes[2].x).toBeGreaterThan(shapes[1].x)
     })
 
-    it('separates commands and queries with a larger gap in the top row', async () => {
+    it('separates queries and commands with a larger gap in the top row', async () => {
       figmaMock.viewport.center = { x: 500, y: 300 }
 
       await callHandler({
@@ -1064,11 +1116,12 @@ describe('handleImportFromYaml', () => {
       })
 
       // shapes[1] = Cmd1, shapes[2] = Cmd2, shapes[3] = Qry1 (shapes[0] is screen)
+      // Queries are now placed to the left of commands.
       const gapBetweenCommands = shapes[2].x - shapes[1].x
-      const gapBetweenCmdAndQry = shapes[3].x - shapes[2].x
+      const gapBetweenQryAndCmd = shapes[1].x - shapes[3].x
 
-      // Gap between last command and first query should be larger than gap between commands
-      expect(gapBetweenCmdAndQry).toBeGreaterThan(gapBetweenCommands)
+      // Gap between query group and first command should be larger than gap between commands
+      expect(gapBetweenQryAndCmd).toBeGreaterThan(gapBetweenCommands)
     })
 
     it('stacks multiple GWT sections vertically', async () => {
@@ -1376,7 +1429,7 @@ describe('handleImportFromYaml', () => {
       })
     })
 
-    it('creates connectors for screen.reads (Query->Screen)', async () => {
+    it('creates connectors for screen.reads (Query->Screen) with TOP->BOTTOM magnets', async () => {
       await callHandler({
         slice: 'S',
         screen: { type: 'user', reads: ['GetOrderStatus'] },
@@ -1384,9 +1437,12 @@ describe('handleImportFromYaml', () => {
       })
 
       expect(figmaMock.createConnector).toHaveBeenCalled()
+      const connector = connectors[0]
+      expect((connector.connectorStart as any).magnet).toBe('TOP')
+      expect((connector.connectorEnd as any).magnet).toBe('BOTTOM')
     })
 
-    it('creates connectors for screen.executes (Screen->Command)', async () => {
+    it('creates connectors for screen.executes (Screen->Command) with BOTTOM->TOP magnets', async () => {
       await callHandler({
         slice: 'S',
         screen: { type: 'user', executes: ['CreateOrder'] },
@@ -1394,9 +1450,12 @@ describe('handleImportFromYaml', () => {
       })
 
       expect(figmaMock.createConnector).toHaveBeenCalled()
+      const connector = connectors[0]
+      expect((connector.connectorStart as any).magnet).toBe('BOTTOM')
+      expect((connector.connectorEnd as any).magnet).toBe('TOP')
     })
 
-    it('creates connectors for produces (Command->Event)', async () => {
+    it('creates connectors for produces (Command->Event) with BOTTOM->TOP magnets', async () => {
       await callHandler({
         slice: 'S',
         screen: { type: 'user' },
@@ -1404,9 +1463,12 @@ describe('handleImportFromYaml', () => {
       })
 
       expect(figmaMock.createConnector).toHaveBeenCalled()
+      const connector = connectors[0]
+      expect((connector.connectorStart as any).magnet).toBe('BOTTOM')
+      expect((connector.connectorEnd as any).magnet).toBe('TOP')
     })
 
-    it('creates connectors for from_events same-slice (Event->Query)', async () => {
+    it('creates connectors for from_events same-slice (Event->Query) with TOP->BOTTOM magnets', async () => {
       await callHandler({
         slice: 'S',
         screen: { type: 'user' },
@@ -1415,6 +1477,10 @@ describe('handleImportFromYaml', () => {
       })
 
       expect(figmaMock.createConnector).toHaveBeenCalled()
+      // Order: Screen->Command (executes is empty so none), Command->Event, Event->Query
+      const eventToQueryConnector = connectors[connectors.length - 1]
+      expect((eventToQueryConnector.connectorStart as any).magnet).toBe('TOP')
+      expect((eventToQueryConnector.connectorEnd as any).magnet).toBe('BOTTOM')
     })
   })
 
@@ -1550,6 +1616,71 @@ describe('handleImportFromYaml', () => {
       expect(figmaMock.ui.postMessage).toHaveBeenLastCalledWith({
         type: 'import-from-yaml-success',
       })
+    })
+
+    it('uses TOP->BOTTOM magnets when connecting to a cross-slice candidate event', async () => {
+      const candidateEvent = {
+        id: 'candidate-event-1',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'event'
+          if (key === 'label') return 'UnknownEvent'
+          return ''
+        }),
+      }
+      figmaMock.currentPage.findAll = vi.fn(() => [candidateEvent])
+      figmaMock.getNodeById.mockImplementation((id: string) => {
+        if (id === 'candidate-event-1') return candidateEvent
+        return null
+      })
+
+      await handleImportFromYaml({
+        slice: 'S',
+        screen: { type: 'user' },
+        queries: [{ name: 'GetStatus', from_events: ['UnknownEvent'] }],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      const connectorsBefore = connectors.length
+
+      await handleImportResolutionAnswered({
+        answers: [
+          {
+            queryName: 'GetStatus',
+            resolution: 'connect',
+            candidateNodeId: 'candidate-event-1',
+          },
+        ],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      expect(connectors.length).toBeGreaterThan(connectorsBefore)
+      const created = connectors[connectors.length - 1]
+      expect((created.connectorStart as any).magnet).toBe('TOP')
+      expect((created.connectorEnd as any).magnet).toBe('BOTTOM')
+    })
+
+    it('uses TOP->BOTTOM magnets when creating a new event for a no-match resolution', async () => {
+      figmaMock.currentPage.findAll = vi.fn(() => [])
+      const sliceSection = createMockSection('slice-no-match')
+      sliceSection.appendChild = vi.fn()
+      figmaMock.getNodeById.mockImplementation(() => sliceSection)
+
+      await handleImportFromYaml({
+        slice: 'S',
+        screen: { type: 'user' },
+        queries: [{ name: 'GetStatus', from_events: ['BrandNewEvent'] }],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      const connectorsBefore = connectors.length
+
+      await handleImportResolutionAnswered({
+        answers: [
+          { queryName: 'GetStatus', resolution: 'create' },
+        ],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      expect(connectors.length).toBeGreaterThan(connectorsBefore)
+      const created = connectors[connectors.length - 1]
+      expect((created.connectorStart as any).magnet).toBe('TOP')
+      expect((created.connectorEnd as any).magnet).toBe('BOTTOM')
     })
   })
 

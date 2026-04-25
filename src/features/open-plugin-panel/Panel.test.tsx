@@ -506,11 +506,9 @@ describe('Panel', () => {
           pluginMessage: {
             type: 'import-from-yaml',
             payload: {
-              data: {
-                slice: 'Test',
-                screen: { type: 'user' },
-                commands: [{ name: 'DoSomething' }],
-              },
+              slice: 'Test',
+              screen: { type: 'user' },
+              commands: [{ name: 'DoSomething', fields: undefined, notes: undefined, produces: undefined }],
             },
           },
         },
