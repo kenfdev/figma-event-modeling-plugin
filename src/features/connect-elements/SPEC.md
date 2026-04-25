@@ -12,7 +12,9 @@ As a user, I want to connect two elements with a visual connector to show relati
 ## Acceptance Criteria
 - Connect button appears in the plugin panel only when exactly 2 elements are selected
 - Clicking Connect creates a FigJam native connector between the two selected elements
-- Connector goes from the first selected element (source) to the second selected element (target)
+- Connector direction follows the Event Modeling chain when both selections are direct chain neighbors: `event → query → screen → command → event` (cyclic). When the chain dictates a direction, that direction is used regardless of selection order.
+- Processor elements are treated as `screen` for chain ordering (same role in the model).
+- For pairs not adjacent in the chain (e.g., actor + anything, event + screen, same-type pairs, native shapes/stickies without plugin type), the connector direction follows selection order: first selected = source, second = target.
 - Connector uses "curve" stroke style
 - Connector color is black
 - Works for any two connectable shapes on the canvas — plugin elements, native FigJam shapes, stickies, etc
@@ -26,4 +28,4 @@ As a user, I want to connect two elements with a visual connector to show relati
 - FigJam connector API: Use Figma's connector creation methods
 - CURVE line type for stroke style
 - Black stroke color
-- Selection order determines connector direction (first selected = source, second = target)
+- Chain-based direction is implemented in `src/shared/figma/connectors.ts::createConnector` by reading `getPluginData('type')` on each endpoint. When the two types are direct neighbors in the chain, the source/target (and their magnets) are swapped if needed; otherwise the caller-provided order is preserved.

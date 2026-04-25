@@ -63,10 +63,18 @@ const ICON_SIZE = 48
 const LABEL_GAP = 8
 const TEXT_COLOR = { r: 0, g: 0, b: 0 }
 
-export async function handleCreateProcessor(
-  _payload: unknown,
-  { figma }: MessageHandlerContext
-): Promise<void> {
+export interface CreateProcessorGroupOptions {
+  label?: string
+  parent?: BaseNode & ChildrenMixin
+}
+
+export async function createProcessorGroup(
+  figma: PluginAPI,
+  options: CreateProcessorGroupOptions = {}
+): Promise<GroupNode> {
+  const label = options.label ?? 'Processor'
+  const parent = options.parent ?? figma.currentPage
+
   const svgNode = figma.createNodeFromSvg(GEAR_SVG)
 
   await figma.loadFontAsync({ family: 'Inter', style: 'Medium' })
@@ -74,7 +82,7 @@ export async function handleCreateProcessor(
   const textNode = figma.createText()
   textNode.fontName = { family: 'Inter', style: 'Medium' }
   textNode.fontSize = 14
-  textNode.characters = 'Processor'
+  textNode.characters = label
   textNode.fills = [{ type: 'SOLID', color: TEXT_COLOR }]
   textNode.textAlignHorizontal = 'CENTER'
 
@@ -82,11 +90,19 @@ export async function handleCreateProcessor(
   // Center text horizontally under the icon
   textNode.x = svgNode.x + (svgNode.width - textNode.width) / 2
 
-  const group = figma.group([svgNode, textNode], figma.currentPage)
+  const group = figma.group([svgNode, textNode], parent)
 
   group.setPluginData('type', 'processor')
-  group.setPluginData('label', 'Processor')
+  group.setPluginData('label', label)
 
+  return group
+}
+
+export async function handleCreateProcessor(
+  _payload: unknown,
+  { figma }: MessageHandlerContext
+): Promise<void> {
+  const group = await createProcessorGroup(figma)
   const center = figma.viewport.center
   group.x = center.x - group.width / 2
   group.y = center.y - group.height / 2

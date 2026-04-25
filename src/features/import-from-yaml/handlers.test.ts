@@ -17,7 +17,7 @@ function createMockSticky(id: string) {
   }
 }
 
-function createMockShape(id: string) {
+function createMockShape(id: string, defaults: { type?: string; label?: string } = {}) {
   return {
     id,
     shapeType: '',
@@ -32,7 +32,11 @@ function createMockShape(id: string) {
       fills: [] as unknown[],
     },
     setPluginData: vi.fn(),
-    getPluginData: vi.fn(() => ''),
+    getPluginData: vi.fn((key: string) => {
+      if (key === 'type') return defaults.type ?? ''
+      if (key === 'label') return defaults.label ?? ''
+      return ''
+    }),
   }
 }
 
@@ -52,16 +56,44 @@ function createMockSection(id: string) {
   }
 }
 
+function createMockConnector(id: string) {
+  return {
+    id,
+    connectorStart: { endpointNodeId: '', magnet: 'AUTO' },
+    connectorEnd: { endpointNodeId: '', magnet: 'AUTO' },
+    connectorLineType: '',
+    strokes: [],
+    setPluginData: vi.fn(),
+    getPluginData: vi.fn(() => ''),
+  }
+}
+
+function createMockGroup(id: string) {
+  return {
+    id,
+    x: 0,
+    y: 0,
+    width: 70,
+    height: 70,
+    setPluginData: vi.fn(),
+    getPluginData: vi.fn(() => ''),
+  }
+}
+
 describe('handleImportFromYaml', () => {
   let figmaMock: FigmaMock
   let shapes: ReturnType<typeof createMockShape>[]
   let sections: ReturnType<typeof createMockSection>[]
   let stickies: ReturnType<typeof createMockSticky>[]
+  let connectors: ReturnType<typeof createMockConnector>[]
+  let groups: ReturnType<typeof createMockGroup>[]
 
   beforeEach(() => {
     shapes = []
     sections = []
     stickies = []
+    connectors = []
+    groups = []
     figmaMock = createFigmaMock()
     figmaMock.createShapeWithText.mockImplementation(() => {
       const shape = createMockShape(`shape-${shapes.length}`)
@@ -78,6 +110,16 @@ describe('handleImportFromYaml', () => {
       stickies.push(sticky)
       return sticky
     })
+    figmaMock.createConnector.mockImplementation(() => {
+      const connector = createMockConnector(`connector-${connectors.length}`)
+      connectors.push(connector)
+      return connector
+    })
+    figmaMock.group.mockImplementation(() => {
+      const group = createMockGroup(`group-${groups.length}`)
+      groups.push(group)
+      return group
+    })
   })
 
   const callHandler = (data: ImportData) =>
@@ -87,19 +129,19 @@ describe('handleImportFromYaml', () => {
 
   describe('slice creation', () => {
     it('creates a section for the slice', async () => {
-      await callHandler({ slice: 'My Slice' })
+      await callHandler({ slice: 'My Slice', screen: { type: 'user' } })
 
       expect(figmaMock.createSection).toHaveBeenCalled()
     })
 
     it('names the section with the slice name from YAML', async () => {
-      await callHandler({ slice: 'Order Processing Slice' })
+      await callHandler({ slice: 'Order Processing Slice', screen: { type: 'user' } })
 
       expect(sections[0].name).toBe('Order Processing Slice')
     })
 
     it('stores type "slice" and label in plugin data', async () => {
-      await callHandler({ slice: 'My Slice' })
+      await callHandler({ slice: 'My Slice', screen: { type: 'user' } })
 
       expect(sections[0].setPluginData).toHaveBeenCalledWith('type', 'slice')
       expect(sections[0].setPluginData).toHaveBeenCalledWith(
@@ -109,7 +151,7 @@ describe('handleImportFromYaml', () => {
     })
 
     it('appends the slice to the current page', async () => {
-      await callHandler({ slice: 'My Slice' })
+      await callHandler({ slice: 'My Slice', screen: { type: 'user' } })
 
       expect(figmaMock.currentPage.appendChild).toHaveBeenCalledWith(
         sections[0]
@@ -118,23 +160,27 @@ describe('handleImportFromYaml', () => {
   })
 
   describe('command creation', () => {
-    it('creates a shape for each command', async () => {
+    it('creates a shape for each command (plus screen)', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'CreateOrder' }, { name: 'CancelOrder' }],
       })
 
-      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(2)
+      // 1 screen + 2 commands = 3
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(3)
     })
 
     it('sets the command name as text and label', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'CreateOrder' }],
       })
 
-      expect(shapes[0].text.characters).toBe('CreateOrder')
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+      // shapes[1] is the command (shapes[0] is screen)
+      expect(shapes[1].text.characters).toBe('CreateOrder')
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith(
         'label',
         'CreateOrder'
       )
@@ -143,30 +189,33 @@ describe('handleImportFromYaml', () => {
     it('stores type "command" in plugin data', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'CreateOrder' }],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'command')
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith('type', 'command')
     })
 
     it('uses SQUARE shape type', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'CreateOrder' }],
       })
 
-      expect(shapes[0].shapeType).toBe('SQUARE')
+      expect(shapes[1].shapeType).toBe('SQUARE')
     })
 
     it('stores custom fields in plugin data when provided', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [
           { name: 'CreateOrder', fields: 'userId: string\nitems: array' },
         ],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith(
         'customFields',
         serializeFields([
           { name: 'userId', type: 'string' },
@@ -178,10 +227,11 @@ describe('handleImportFromYaml', () => {
     it('stores notes in plugin data when provided', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'CreateOrder', notes: 'Customer checkout flow' }],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith(
         'notes',
         'Customer checkout flow'
       )
@@ -190,179 +240,171 @@ describe('handleImportFromYaml', () => {
     it('appends each command to the slice section', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }, { name: 'Cmd2' }],
       })
 
       const slice = sections[0]
-      expect(slice.appendChild).toHaveBeenCalledWith(shapes[0])
+      // shapes[0] = screen, shapes[1] = Cmd1, shapes[2] = Cmd2
       expect(slice.appendChild).toHaveBeenCalledWith(shapes[1])
+      expect(slice.appendChild).toHaveBeenCalledWith(shapes[2])
     })
   })
 
-  describe('event creation', () => {
-    it('creates a shape for each event', async () => {
+  describe('produces-based event creation', () => {
+    it('creates event shapes for produces (plus screen and commands)', async () => {
       await callHandler({
         slice: 'S',
-        events: [
-          { name: 'OrderCreated', external: false },
-          { name: 'PaymentReceived', external: false },
+        screen: { type: 'user' },
+        commands: [
+          { name: 'CreateOrder', produces: ['OrderCreated', 'PaymentReceived'] },
         ],
       })
 
-      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(2)
+      // 1 screen + 1 command + 2 events = 4
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(4)
     })
 
-    it('stores type "event" in plugin data', async () => {
+    it('stores type "event" in plugin data for produced events', async () => {
       await callHandler({
         slice: 'S',
-        events: [{ name: 'OrderCreated', external: false }],
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder', produces: ['OrderCreated'] }],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'event')
+      // shapes[2] is the event (shapes[0] = screen, shapes[1] = command)
+      expect(shapes[2].setPluginData).toHaveBeenCalledWith('type', 'event')
     })
 
-    it('uses SQUARE shape type', async () => {
+    it('uses SQUARE shape type for produced events', async () => {
       await callHandler({
         slice: 'S',
-        events: [{ name: 'OrderCreated', external: false }],
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder', produces: ['OrderCreated'] }],
       })
 
-      expect(shapes[0].shapeType).toBe('SQUARE')
+      expect(shapes[2].shapeType).toBe('SQUARE')
     })
 
-    it('sets the event name as text and label', async () => {
+    it('sets the produced event name as text and label', async () => {
       await callHandler({
         slice: 'S',
-        events: [{ name: 'OrderCreated', external: false }],
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder', produces: ['OrderCreated'] }],
       })
 
-      expect(shapes[0].text.characters).toBe('OrderCreated')
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+      expect(shapes[2].text.characters).toBe('OrderCreated')
+      expect(shapes[2].setPluginData).toHaveBeenCalledWith(
         'label',
         'OrderCreated'
       )
     })
 
-    it('stores external flag as "false" for internal events', async () => {
+    it('stores external flag as "false" for produced events (internal by default)', async () => {
       await callHandler({
         slice: 'S',
-        events: [{ name: 'OrderCreated', external: false }],
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder', produces: ['OrderCreated'] }],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith('external', 'false')
+      expect(shapes[2].setPluginData).toHaveBeenCalledWith('external', 'false')
     })
 
-    it('stores external flag as "true" for external events', async () => {
+    it('uses orange fill and stroke for produced events (internal)', async () => {
       await callHandler({
         slice: 'S',
-        events: [{ name: 'ExternalEvent', external: true }],
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder', produces: ['OrderCreated'] }],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith('external', 'true')
-    })
-
-    it('uses orange fill and stroke for internal events', async () => {
-      await callHandler({
-        slice: 'S',
-        events: [{ name: 'InternalEvent', external: false }],
-      })
-
-      expect(shapes[0].fills).toEqual([
+      expect(shapes[2].fills).toEqual([
         { type: 'SOLID', color: { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 } },
       ])
-      expect(shapes[0].strokes).toEqual([
+      expect(shapes[2].strokes).toEqual([
         { type: 'SOLID', color: { r: 0xeb / 255, g: 0x75 / 255, b: 0 } },
       ])
     })
 
-    it('uses purple fill and stroke for external events', async () => {
+    it('appends each produced event to the slice section', async () => {
       await callHandler({
         slice: 'S',
-        events: [{ name: 'ExternalEvent', external: true }],
-      })
-
-      expect(shapes[0].fills).toEqual([
-        { type: 'SOLID', color: { r: 0x9b / 255, g: 0x59 / 255, b: 0xb6 / 255 } },
-      ])
-      expect(shapes[0].strokes).toEqual([
-        { type: 'SOLID', color: { r: 0x7d / 255, g: 0x3c / 255, b: 0x98 / 255 } },
-      ])
-    })
-
-    it('stores custom fields and notes when provided', async () => {
-      await callHandler({
-        slice: 'S',
-        events: [
-          {
-            name: 'OrderCreated',
-            external: false,
-            fields: 'orderId: string',
-            notes: 'Triggered on checkout',
-          },
-        ],
-      })
-
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
-        'customFields',
-        serializeFields([{ name: 'orderId', type: 'string' }])
-      )
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
-        'notes',
-        'Triggered on checkout'
-      )
-    })
-
-    it('appends each event to the slice section', async () => {
-      await callHandler({
-        slice: 'S',
-        events: [
-          { name: 'Evt1', external: false },
-          { name: 'Evt2', external: false },
+        screen: { type: 'user' },
+        commands: [
+          { name: 'CreateOrder', produces: ['Evt1'] },
+          { name: 'CancelOrder', produces: ['Evt2'] },
         ],
       })
 
       const slice = sections[0]
-      expect(slice.appendChild).toHaveBeenCalledWith(shapes[0])
-      expect(slice.appendChild).toHaveBeenCalledWith(shapes[1])
+      // shapes[0] = screen, shapes[1] = Cmd1, shapes[2] = Evt1, shapes[3] = Cmd2, shapes[4] = Evt2
+      // But events are created before queries, so:
+      // shapes[0] = screen
+      // shapes[1] = CreateOrder command
+      // shapes[2] = Evt1
+      // shapes[3] = CancelOrder command
+      // shapes[4] = Evt2
+      expect(slice.appendChild).toHaveBeenCalledWith(shapes[2])
+      expect(slice.appendChild).toHaveBeenCalledWith(shapes[4])
+    })
+
+    it('collects produces entries from multiple commands into a flat list', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [
+          { name: 'CreateOrder', produces: ['OrderCreated'] },
+          { name: 'UpdateOrder', produces: ['OrderUpdated'] },
+          { name: 'CancelOrder' },
+        ],
+      })
+
+      // 1 screen + 3 commands + 2 events = 6
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(6)
     })
   })
 
   describe('query creation', () => {
-    it('creates a shape for each query', async () => {
+    it('creates a shape for each query (plus screen)', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         queries: [{ name: 'GetOrderStatus' }],
       })
 
-      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(1)
+      // 1 screen + 1 query = 2
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(2)
     })
 
     it('stores type "query" in plugin data', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         queries: [{ name: 'GetOrderStatus' }],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'query')
+      // shapes[1] is the query (shapes[0] is screen)
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith('type', 'query')
     })
 
     it('uses SQUARE shape type', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         queries: [{ name: 'GetOrderStatus' }],
       })
 
-      expect(shapes[0].shapeType).toBe('SQUARE')
+      expect(shapes[1].shapeType).toBe('SQUARE')
     })
 
     it('sets the query name as text and label', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         queries: [{ name: 'GetOrderStatus' }],
       })
 
-      expect(shapes[0].text.characters).toBe('GetOrderStatus')
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+      expect(shapes[1].text.characters).toBe('GetOrderStatus')
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith(
         'label',
         'GetOrderStatus'
       )
@@ -371,16 +413,17 @@ describe('handleImportFromYaml', () => {
     it('stores custom fields and notes when provided', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         queries: [
           { name: 'GetOrderStatus', fields: 'orderId: string', notes: 'Read model query' },
         ],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith(
         'customFields',
         serializeFields([{ name: 'orderId', type: 'string' }])
       )
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith(
         'notes',
         'Read model query'
       )
@@ -389,12 +432,126 @@ describe('handleImportFromYaml', () => {
     it('appends each query to the slice section', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         queries: [{ name: 'Qry1' }, { name: 'Qry2' }],
       })
 
       const slice = sections[0]
-      expect(slice.appendChild).toHaveBeenCalledWith(shapes[0])
+      // shapes[0] = screen, shapes[1] = Qry1, shapes[2] = Qry2
       expect(slice.appendChild).toHaveBeenCalledWith(shapes[1])
+      expect(slice.appendChild).toHaveBeenCalledWith(shapes[2])
+    })
+  })
+
+  describe('screen/processor creation', () => {
+    it('creates a shape for screen.type=user', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+      })
+
+      expect(figmaMock.createShapeWithText).toHaveBeenCalled()
+    })
+
+    it('stores type "screen" in plugin data for user screen', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+      })
+
+      expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'screen')
+    })
+
+    it('uses gray fill for screen shape', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+      })
+
+      expect(shapes[0].fills).toEqual([
+        { type: 'SOLID', color: { r: 0.9, g: 0.9, b: 0.9 } },
+      ])
+    })
+
+    it('stores screen name as label when provided', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user', name: 'OrderScreen' },
+      })
+
+      expect(shapes[0].setPluginData).toHaveBeenCalledWith('label', 'OrderScreen')
+      expect(shapes[0].text.characters).toBe('OrderScreen')
+    })
+
+    it('uses default label "Screen" when screen.name not provided', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+      })
+
+      expect(shapes[0].text.characters).toBe('Screen')
+    })
+
+    it('creates a Processor gear group (not a square shape) for screen.type=system', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'system' },
+      })
+
+      expect(figmaMock.createNodeFromSvg).toHaveBeenCalled()
+      expect(figmaMock.createText).toHaveBeenCalled()
+      expect(figmaMock.group).toHaveBeenCalled()
+      // No Screen square should be created when type is system
+      expect(figmaMock.createShapeWithText).not.toHaveBeenCalled()
+    })
+
+    it('stores type "processor" in plugin data on the gear group for system screen', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'system' },
+      })
+
+      expect(groups[0].setPluginData).toHaveBeenCalledWith('type', 'processor')
+    })
+
+    it('uses default label "Processor" on the gear when screen.name not provided', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'system' },
+      })
+
+      expect(groups[0].setPluginData).toHaveBeenCalledWith('label', 'Processor')
+    })
+
+    it('uses screen.name as the gear label when screen.type=system and name provided', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'system', name: 'OrderProcessor' },
+      })
+
+      expect(groups[0].setPluginData).toHaveBeenCalledWith('label', 'OrderProcessor')
+    })
+
+    it('parents the Processor group under the slice section', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'system' },
+      })
+
+      // First group call passes the slice section as parent
+      expect(figmaMock.group).toHaveBeenCalledWith(
+        expect.any(Array),
+        sections[0]
+      )
+    })
+
+    it('uses SQUARE shape type for screen/processor', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+      })
+
+      expect(shapes[0].shapeType).toBe('SQUARE')
     })
   })
 
@@ -402,6 +559,7 @@ describe('handleImportFromYaml', () => {
     it('creates a parent section and three child sections for each GWT entry', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Order Scenario',
@@ -419,6 +577,7 @@ describe('handleImportFromYaml', () => {
     it('names the GWT parent section with the gwt entry name', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Order Creation Scenario',
@@ -436,6 +595,7 @@ describe('handleImportFromYaml', () => {
     it('stores type "gwt" in GWT parent plugin data', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -452,6 +612,7 @@ describe('handleImportFromYaml', () => {
     it('names child sections as plain Given, When, Then (no item text)', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -471,6 +632,7 @@ describe('handleImportFromYaml', () => {
     it('creates colored element shapes inside GWT child sections', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -481,18 +643,19 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      // 3 shapes created for GWT items (one in each child section)
-      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(3)
+      // 1 screen + 3 GWT items = 4 shapes
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(4)
 
-      // Each shape should be appended to its respective child section
-      expect(sections[2].appendChild).toHaveBeenCalledWith(shapes[0]) // Given
-      expect(sections[3].appendChild).toHaveBeenCalledWith(shapes[1]) // When
-      expect(sections[4].appendChild).toHaveBeenCalledWith(shapes[2]) // Then
+      // shapes[1] = Given, shapes[2] = When, shapes[3] = Then (shapes[0] is screen)
+      expect(sections[2].appendChild).toHaveBeenCalledWith(shapes[1]) // Given
+      expect(sections[3].appendChild).toHaveBeenCalledWith(shapes[2]) // When
+      expect(sections[4].appendChild).toHaveBeenCalledWith(shapes[3]) // Then
     })
 
     it('applies correct colors for command type in GWT items', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -503,11 +666,11 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      // shapes[0] = command in When section
-      expect(shapes[0].fills).toEqual([
+      // shapes[1] = command in When section (shapes[0] is screen)
+      expect(shapes[1].fills).toEqual([
         { type: 'SOLID', color: { r: 0x3d / 255, g: 0xad / 255, b: 0xff / 255 } },
       ])
-      expect(shapes[0].strokes).toEqual([
+      expect(shapes[1].strokes).toEqual([
         { type: 'SOLID', color: { r: 0, g: 0x7a / 255, b: 0xd2 / 255 } },
       ])
     })
@@ -515,6 +678,7 @@ describe('handleImportFromYaml', () => {
     it('applies correct colors for event type in GWT items', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -525,7 +689,8 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      expect(shapes[0].fills).toEqual([
+      // shapes[1] = event in Given section (shapes[0] is screen)
+      expect(shapes[1].fills).toEqual([
         { type: 'SOLID', color: { r: 0xff / 255, g: 0x9e / 255, b: 0x42 / 255 } },
       ])
     })
@@ -533,6 +698,7 @@ describe('handleImportFromYaml', () => {
     it('applies correct colors for query type in GWT items', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -543,7 +709,8 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      expect(shapes[0].fills).toEqual([
+      // shapes[1] = query in Then section (shapes[0] is screen)
+      expect(shapes[1].fills).toEqual([
         { type: 'SOLID', color: { r: 0x7e / 255, g: 0xd3 / 255, b: 0x21 / 255 } },
       ])
     })
@@ -551,6 +718,7 @@ describe('handleImportFromYaml', () => {
     it('applies red fill and stroke for error type in GWT items', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Error Scenario',
@@ -561,10 +729,11 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      expect(shapes[0].fills).toEqual([
+      // shapes[1] = error in Then section (shapes[0] is screen)
+      expect(shapes[1].fills).toEqual([
         { type: 'SOLID', color: { r: 0xff / 255, g: 0x44 / 255, b: 0x44 / 255 } },
       ])
-      expect(shapes[0].strokes).toEqual([
+      expect(shapes[1].strokes).toEqual([
         { type: 'SOLID', color: { r: 0xcc / 255, g: 0, b: 0 } },
       ])
     })
@@ -572,6 +741,7 @@ describe('handleImportFromYaml', () => {
     it('stores type and label as plugin data on GWT element shapes', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -582,14 +752,16 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith('type', 'command')
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith('label', 'CreateOrder')
-      expect(shapes[0].text.characters).toBe('CreateOrder')
+      // shapes[1] is the command (shapes[0] is screen)
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith('type', 'command')
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith('label', 'CreateOrder')
+      expect(shapes[1].text.characters).toBe('CreateOrder')
     })
 
     it('uses SQUARE shape type for GWT element shapes', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -600,12 +772,13 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      expect(shapes[0].shapeType).toBe('SQUARE')
+      expect(shapes[1].shapeType).toBe('SQUARE')
     })
 
     it('stores fields as plugin data on GWT element shapes when provided', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -616,7 +789,8 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+      // shapes[1] is the command (shapes[0] is screen)
+      expect(shapes[1].setPluginData).toHaveBeenCalledWith(
         'customFields',
         serializeFields([
           { name: 'title', type: 'string' },
@@ -628,6 +802,7 @@ describe('handleImportFromYaml', () => {
     it('creates multiple element shapes in a child section for multiple items', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Multi-item',
@@ -641,19 +816,20 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      // 3 shapes total (2 in Given, 1 in When)
-      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(3)
+      // 1 screen + 3 GWT items = 4 shapes total
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(4)
 
-      // Given section should have 2 children
-      expect(sections[2].appendChild).toHaveBeenCalledWith(shapes[0])
+      // Given section should have 2 children (shapes[1] and shapes[2])
       expect(sections[2].appendChild).toHaveBeenCalledWith(shapes[1])
-      // When section should have 1 child
-      expect(sections[3].appendChild).toHaveBeenCalledWith(shapes[2])
+      expect(sections[2].appendChild).toHaveBeenCalledWith(shapes[2])
+      // When section should have 1 child (shapes[3])
+      expect(sections[3].appendChild).toHaveBeenCalledWith(shapes[3])
     })
 
     it('creates a sticky note for GWT description when provided', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Duplicate Title',
@@ -678,6 +854,7 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -702,6 +879,7 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'With Description',
@@ -727,6 +905,7 @@ describe('handleImportFromYaml', () => {
     it('does not create a sticky note when GWT has no description', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'No Description',
@@ -745,6 +924,7 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -755,15 +935,16 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      // shapes[0] = element inside Given child section
+      // shapes[0] = screen, shapes[1] = element inside Given child section
       // The shape should have ~40px padding from the top and left of the child section
-      expect(shapes[0].x).toBeGreaterThanOrEqual(40)
-      expect(shapes[0].y).toBeGreaterThanOrEqual(40)
+      expect(shapes[1].x).toBeGreaterThanOrEqual(40)
+      expect(shapes[1].y).toBeGreaterThanOrEqual(40)
     })
 
     it('uses plain section name when GWT items are empty', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Empty Scenario',
@@ -782,6 +963,7 @@ describe('handleImportFromYaml', () => {
     it('appends child sections to the GWT parent', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -802,6 +984,7 @@ describe('handleImportFromYaml', () => {
     it('appends the GWT parent to the slice section', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           {
             name: 'Scenario',
@@ -821,6 +1004,7 @@ describe('handleImportFromYaml', () => {
     it('loads Inter Medium font when creating shapes', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd' }],
       })
 
@@ -850,7 +1034,7 @@ describe('handleImportFromYaml', () => {
         throw new Error('Canvas full')
       })
 
-      await callHandler({ slice: 'S' })
+      await callHandler({ slice: 'S', screen: { type: 'user' } })
 
       expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
         type: 'import-from-yaml-error',
@@ -865,208 +1049,79 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
         queries: [{ name: 'Qry1' }],
       })
 
-      // shapes[0] = command, shapes[1] = query
+      // shapes[1] = command, shapes[2] = query (shapes[0] is screen)
       // Both should share the same y position (top row)
-      expect(shapes[0].y).toBe(shapes[1].y)
+      expect(shapes[1].y).toBe(shapes[2].y)
     })
 
-    it('places commands on the left and queries on the right in the top row', async () => {
+    it('places queries on the left and commands on the right in the top row', async () => {
       figmaMock.viewport.center = { x: 500, y: 300 }
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
         queries: [{ name: 'Qry1' }],
       })
 
-      // shapes[0] = command, shapes[1] = query
-      // Commands should be to the left of queries
-      expect(shapes[0].x).toBeLessThan(shapes[1].x)
+      // shapes[1] = command, shapes[2] = query (shapes[0] is screen)
+      // Queries should be to the left of commands
+      expect(shapes[2].x).toBeLessThan(shapes[1].x)
     })
 
-    it('places events in the bottom row below commands and queries', async () => {
+    it('places the screen above the command/query row with a gap', async () => {
       figmaMock.viewport.center = { x: 500, y: 300 }
 
       await callHandler({
         slice: 'S',
-        commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
-        queries: [{ name: 'Qry1' }],
-      })
-
-      // shapes[0] = command, shapes[1] = event, shapes[2] = query
-      const topRowY = shapes[0].y
-      const bottomRowY = shapes[1].y
-
-      // Events row should be below the commands/queries row
-      expect(bottomRowY).toBeGreaterThan(topRowY)
-      // Queries should be in the same row as commands
-      expect(shapes[2].y).toBe(topRowY)
-    })
-
-    it('leaves ~240px vertical gap between command/query row and event row for connectors', async () => {
-      figmaMock.viewport.center = { x: 500, y: 300 }
-
-      await callHandler({
-        slice: 'S',
-        commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
-      })
-
-      // shapes[0] = command (top row), shapes[1] = event (bottom row)
-      const topRowBottom = shapes[0].y + 80 // ELEMENT_HEIGHT
-      const bottomRowTop = shapes[1].y
-
-      // The gap between the bottom of the command row and top of the event row
-      // should be approximately 240px (doubled from ~120px) for drawing connectors
-      expect(bottomRowTop - topRowBottom).toBeGreaterThanOrEqual(240)
-    })
-
-    it('reserves vertical space above command/query row for screen/processor elements', async () => {
-      figmaMock.viewport.center = { x: 500, y: 300 }
-
-      await callHandler({
-        slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
       })
 
-      // The command should not be at the very top of the slice content area.
-      // There should be reserved space above the command/query row.
-      // The command's y (section-relative) should be offset down from the slice padding
-      // to leave room for Screen/Processor elements above.
-      const commandRelativeY = shapes[0].y
-      // Reserved space should be at least 400px above the command row
-      expect(commandRelativeY).toBeGreaterThanOrEqual(400)
+      // shapes[0] = screen, shapes[1] = command
+      // The command's y should be the screen's y + screen height + a column gap.
+      const screenRelativeY = shapes[0].y
+      const commandRelativeY = shapes[1].y
+      expect(commandRelativeY).toBeGreaterThan(screenRelativeY + 160)
     })
 
-    it('leaves sufficient gap between event row and GWT sections', async () => {
+    it('handles only commands without queries in the top row', async () => {
       figmaMock.viewport.center = { x: 500, y: 300 }
 
       await callHandler({
         slice: 'S',
-        commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
-        gwt: [
-          { name: 'Scenario', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
-        ],
+        screen: { type: 'user' },
+        commands: [{ name: 'Cmd1' }, { name: 'Cmd2' }],
       })
 
-      // shapes[0] = command, shapes[1] = event
-      const eventRowBottom = shapes[1].y + 80 // ELEMENT_HEIGHT
-      const gwtParent = sections[1]
-      const gwtTop = gwtParent.y
-
-      // Gap between event row bottom and GWT top should be at least 80px (doubled from ~40px)
-      expect(gwtTop - eventRowBottom).toBeGreaterThanOrEqual(80)
-    })
-
-    it('arranges multiple commands horizontally in the top row', async () => {
-      figmaMock.viewport.center = { x: 500, y: 300 }
-
-      await callHandler({
-        slice: 'S',
-        commands: [{ name: 'Cmd1' }, { name: 'Cmd2' }, { name: 'Cmd3' }],
-      })
-
-      // All commands should share the same y
-      expect(shapes[0].y).toBe(shapes[1].y)
+      // shapes[1] = Cmd1, shapes[2] = Cmd2 (shapes[0] is screen)
+      // Both commands should be in the same row
       expect(shapes[1].y).toBe(shapes[2].y)
-
-      // Commands should be arranged left to right with consistent gaps
-      const gap1 = shapes[1].x - shapes[0].x
-      const gap2 = shapes[2].x - shapes[1].x
-      expect(gap1).toBe(gap2)
-      expect(gap1).toBeGreaterThan(176) // at least element width
+      expect(shapes[2].x).toBeGreaterThan(shapes[1].x)
     })
 
-    it('arranges multiple events horizontally in the bottom row', async () => {
+    it('separates queries and commands with a larger gap in the top row', async () => {
       figmaMock.viewport.center = { x: 500, y: 300 }
 
       await callHandler({
         slice: 'S',
-        events: [
-          { name: 'Evt1', external: false },
-          { name: 'Evt2', external: false },
-          { name: 'Evt3', external: false },
-        ],
-      })
-
-      // All events should share the same y
-      expect(shapes[0].y).toBe(shapes[1].y)
-      expect(shapes[1].y).toBe(shapes[2].y)
-
-      // Events should be arranged left to right with consistent gaps
-      const gap1 = shapes[1].x - shapes[0].x
-      const gap2 = shapes[2].x - shapes[1].x
-      expect(gap1).toBe(gap2)
-      expect(gap1).toBeGreaterThan(176) // at least element width
-    })
-
-    it('separates commands and queries with a larger gap in the top row', async () => {
-      figmaMock.viewport.center = { x: 500, y: 300 }
-
-      await callHandler({
-        slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }, { name: 'Cmd2' }],
         queries: [{ name: 'Qry1' }],
       })
 
-      // shapes[0] = Cmd1, shapes[1] = Cmd2, shapes[2] = Qry1
-      const gapBetweenCommands = shapes[1].x - shapes[0].x
-      const gapBetweenCmdAndQry = shapes[2].x - shapes[1].x
+      // shapes[1] = Cmd1, shapes[2] = Cmd2, shapes[3] = Qry1 (shapes[0] is screen)
+      // Queries are now placed to the left of commands.
+      const gapBetweenCommands = shapes[2].x - shapes[1].x
+      const gapBetweenQryAndCmd = shapes[1].x - shapes[3].x
 
-      // Gap between last command and first query should be larger than gap between commands
-      expect(gapBetweenCmdAndQry).toBeGreaterThan(gapBetweenCommands)
-    })
-
-    it('centers the slice on the viewport after auto-sizing', async () => {
-      figmaMock.viewport.center = { x: 500, y: 300 }
-
-      await callHandler({
-        slice: 'My Slice',
-        commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
-      })
-
-      const slice = sections[0]
-      const lastCall = slice.resizeWithoutConstraints.mock.calls[
-        slice.resizeWithoutConstraints.mock.calls.length - 1
-      ]
-      const [finalWidth, finalHeight] = lastCall
-
-      // The slice should be positioned so its center aligns with the content center
-      // (after auto-sizing, slice.x = minChildX - padding, not viewport center)
-      // Verify children are contained within the slice bounds
-      expect(slice.x + finalWidth / 2).toBeGreaterThan(0)
-      expect(slice.y + finalHeight / 2).toBeGreaterThan(0)
-    })
-
-    it('positions GWT parent sections below element rows', async () => {
-      figmaMock.viewport.center = { x: 500, y: 300 }
-
-      await callHandler({
-        slice: 'S',
-        commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
-        gwt: [
-          {
-            name: 'Scenario',
-            given: [],
-            when: [],
-            then: [], // eslint-disable-line eslint-plugin-unicorn/no-thenable
-          },
-        ],
-      })
-
-      // shapes[0] = command (top row), shapes[1] = event (bottom row)
-      const bottomRowY = shapes[1].y
-      const gwtParent = sections[1]
-      // GWT should be below the bottom row (events)
-      expect(gwtParent.y).toBeGreaterThan(bottomRowY + 80) // below event row + element height
+      // Gap between query group and first command should be larger than gap between commands
+      expect(gapBetweenQryAndCmd).toBeGreaterThan(gapBetweenCommands)
     })
 
     it('stacks multiple GWT sections vertically', async () => {
@@ -1074,6 +1129,7 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         gwt: [
           { name: 'Scenario 1', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
           { name: 'Scenario 2', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
@@ -1096,6 +1152,7 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
         gwt: [
           { name: 'Scenario', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
@@ -1103,41 +1160,15 @@ describe('handleImportFromYaml', () => {
       })
 
       const gwtParent = sections[1]
-      const commandX = shapes[0].x
+      const commandX = shapes[1].x
       // GWT should be aligned to the left edge (same x as leftmost element)
       expect(gwtParent.x).toBe(commandX)
-    })
-
-    it('handles only commands without queries in the top row', async () => {
-      figmaMock.viewport.center = { x: 500, y: 300 }
-
-      await callHandler({
-        slice: 'S',
-        commands: [{ name: 'Cmd1' }, { name: 'Cmd2' }],
-      })
-
-      // Both commands should be in the same row
-      expect(shapes[0].y).toBe(shapes[1].y)
-      expect(shapes[1].x).toBeGreaterThan(shapes[0].x)
-    })
-
-    it('handles only events in the bottom row', async () => {
-      figmaMock.viewport.center = { x: 500, y: 300 }
-
-      await callHandler({
-        slice: 'S',
-        events: [{ name: 'Evt1', external: false }],
-      })
-
-      // Single event should still be positioned
-      expect(typeof shapes[0].x).toBe('number')
-      expect(typeof shapes[0].y).toBe('number')
     })
   })
 
   describe('selection after import', () => {
     it('selects the created slice after import', async () => {
-      await callHandler({ slice: 'My Slice' })
+      await callHandler({ slice: 'My Slice', screen: { type: 'user' } })
 
       expect(figmaMock.currentPage.selection).toContain(sections[0])
     })
@@ -1145,8 +1176,8 @@ describe('handleImportFromYaml', () => {
     it('selects the slice even when other elements are created', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
       })
 
       // Selection should contain the slice (sections[0])
@@ -1158,8 +1189,8 @@ describe('handleImportFromYaml', () => {
     it('only appends the slice to currentPage, not individual elements', async () => {
       await callHandler({
         slice: 'Order Slice',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
         queries: [{ name: 'Qry1' }],
         gwt: [
           {
@@ -1179,8 +1210,8 @@ describe('handleImportFromYaml', () => {
     it('appends all element types as children of the slice', async () => {
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
         queries: [{ name: 'Qry1' }],
         gwt: [
           {
@@ -1193,9 +1224,9 @@ describe('handleImportFromYaml', () => {
       })
 
       const slice = sections[0]
-      // 3 shapes + 1 GWT parent = 4 children
+      // 1 screen + 2 shapes (command + query) + 1 GWT parent = 4 children
       expect(slice.appendChild).toHaveBeenCalledTimes(4)
-      // Shapes
+      // shapes[0] = screen, shapes[1] = Cmd1, shapes[2] = Qry1
       expect(slice.appendChild).toHaveBeenCalledWith(shapes[0])
       expect(slice.appendChild).toHaveBeenCalledWith(shapes[1])
       expect(slice.appendChild).toHaveBeenCalledWith(shapes[2])
@@ -1210,8 +1241,8 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
-        events: [{ name: 'Evt1', external: false }],
       })
 
       const slice = sections[0]
@@ -1232,8 +1263,8 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }, { name: 'Cmd2' }],
-        events: [{ name: 'Evt1', external: false }],
       })
 
       const slice = sections[0]
@@ -1260,6 +1291,7 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
       })
 
@@ -1280,6 +1312,7 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }],
         gwt: [
           { name: 'Scenario', given: [], when: [], then: [] }, // eslint-disable-line eslint-plugin-unicorn/no-thenable
@@ -1300,7 +1333,7 @@ describe('handleImportFromYaml', () => {
     it('auto-sizes correctly when only a slice with no children is created', async () => {
       figmaMock.viewport.center = { x: 500, y: 300 }
 
-      await callHandler({ slice: 'Empty Slice' })
+      await callHandler({ slice: 'Empty Slice', screen: { type: 'user' } })
 
       const slice = sections[0]
       // With no children, the slice should still have a reasonable size
@@ -1313,8 +1346,8 @@ describe('handleImportFromYaml', () => {
 
       await callHandler({
         slice: 'S',
+        screen: { type: 'user' },
         commands: [{ name: 'Cmd1' }, { name: 'Cmd2' }],
-        events: [{ name: 'Evt1', external: false }],
       })
 
       const slice = sections[0]
@@ -1334,11 +1367,11 @@ describe('handleImportFromYaml', () => {
   })
 
   describe('full import', () => {
-    it('creates all element types from a complete YAML import', async () => {
+    it('creates screen and all element types from a complete YAML import', async () => {
       await callHandler({
         slice: 'Order Slice',
-        commands: [{ name: 'CreateOrder' }],
-        events: [{ name: 'OrderCreated', external: false }],
+        screen: { type: 'user', name: 'OrderScreen' },
+        commands: [{ name: 'CreateOrder', produces: ['OrderCreated'] }],
         queries: [{ name: 'GetOrderStatus' }],
         gwt: [
           {
@@ -1350,17 +1383,332 @@ describe('handleImportFromYaml', () => {
         ],
       })
 
-      // 3 top-level shapes (command + event + query) + 3 GWT element shapes = 6
-      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(6)
+      // 1 screen + 1 command + 1 event (from produces) + 1 query + 3 GWT element shapes = 7
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(7)
       // 1 slice + 1 GWT parent + 3 GWT children = 5 sections
       expect(figmaMock.createSection).toHaveBeenCalledTimes(5)
     })
 
-    it('creates only a slice when no optional arrays are provided', async () => {
-      await callHandler({ slice: 'Empty Slice' })
+    it('creates only a screen when no optional arrays are provided', async () => {
+      await callHandler({ slice: 'Empty Slice', screen: { type: 'user' } })
 
       expect(figmaMock.createSection).toHaveBeenCalledTimes(1)
-      expect(figmaMock.createShapeWithText).not.toHaveBeenCalled()
+      expect(figmaMock.createShapeWithText).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('in-slice connectors', () => {
+    beforeEach(() => {
+      let idx = 0
+      figmaMock.createShapeWithText.mockImplementation(() => {
+        const types = ['screen', 'command', 'event', 'query', 'processor']
+        const type = types[idx % types.length]
+        const id = `mock-${type}-${idx++}`
+        const shape = {
+          id,
+          shapeType: '',
+          x: 0,
+          y: 0,
+          resize: vi.fn(),
+          fills: [] as unknown[],
+          strokes: [] as unknown[],
+          strokeWeight: 0,
+          text: {
+            characters: '',
+            fills: [] as unknown[],
+          },
+          setPluginData: vi.fn(),
+          getPluginData: vi.fn((key: string) => {
+            if (key === 'type') return type
+            if (key === 'label') return ''
+            return ''
+          }),
+        }
+        shapes.push(shape)
+        return shape
+      })
+    })
+
+    it('creates connectors for screen.reads (Query->Screen) with TOP->BOTTOM magnets', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user', reads: ['GetOrderStatus'] },
+        queries: [{ name: 'GetOrderStatus' }],
+      })
+
+      expect(figmaMock.createConnector).toHaveBeenCalled()
+      const connector = connectors[0]
+      expect((connector.connectorStart as any).magnet).toBe('TOP')
+      expect((connector.connectorEnd as any).magnet).toBe('BOTTOM')
+    })
+
+    it('creates connectors for screen.executes (Screen->Command) with BOTTOM->TOP magnets', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user', executes: ['CreateOrder'] },
+        commands: [{ name: 'CreateOrder' }],
+      })
+
+      expect(figmaMock.createConnector).toHaveBeenCalled()
+      const connector = connectors[0]
+      expect((connector.connectorStart as any).magnet).toBe('BOTTOM')
+      expect((connector.connectorEnd as any).magnet).toBe('TOP')
+    })
+
+    it('creates connectors for produces (Command->Event) with BOTTOM->TOP magnets', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder', produces: ['OrderCreated'] }],
+      })
+
+      expect(figmaMock.createConnector).toHaveBeenCalled()
+      const connector = connectors[0]
+      expect((connector.connectorStart as any).magnet).toBe('BOTTOM')
+      expect((connector.connectorEnd as any).magnet).toBe('TOP')
+    })
+
+    it('creates connectors for from_events same-slice (Event->Query) with TOP->BOTTOM magnets', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder', produces: ['OrderCreated'] }],
+        queries: [{ name: 'GetOrderStatus', from_events: ['OrderCreated'] }],
+      })
+
+      expect(figmaMock.createConnector).toHaveBeenCalled()
+      // Order: Screen->Command (executes is empty so none), Command->Event, Event->Query
+      const eventToQueryConnector = connectors[connectors.length - 1]
+      expect((eventToQueryConnector.connectorStart as any).magnet).toBe('TOP')
+      expect((eventToQueryConnector.connectorEnd as any).magnet).toBe('BOTTOM')
+    })
+  })
+
+  describe('Phase 4 dispatch', () => {
+    it('posts import-resolution-needed when from_events not in producedEventNodeMap', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder' }],
+        queries: [{ name: 'GetOrderStatus', from_events: ['UnknownEvent'] }],
+      })
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'import-resolution-needed',
+        })
+      )
+    })
+
+    it('includes cross-slice candidates when from_events not found locally', async () => {
+      const mockEventNode = {
+        id: 'event-1',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'event'
+          if (key === 'label') return 'UnknownEvent'
+          return ''
+        }),
+      }
+      figmaMock.currentPage.findAll = vi.fn(() => [mockEventNode])
+
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder' }],
+        queries: [{ name: 'GetOrderStatus', from_events: ['UnknownEvent'] }],
+      })
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'import-resolution-needed',
+          payload: expect.objectContaining({
+            pending: expect.arrayContaining([
+              expect.objectContaining({
+                kind: 'cross-slice',
+                eventName: 'UnknownEvent',
+              }),
+            ]),
+          }),
+        })
+      )
+    })
+
+    it('sorts cross-slice before no-match in pending list', async () => {
+      const mockUnknownEvent1 = {
+        id: 'event-1',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'event'
+          if (key === 'label') return 'UnknownEvent1'
+          return ''
+        }),
+      }
+      const mockUnknownEvent2 = {
+        id: 'event-2',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'event'
+          if (key === 'label') return 'UnknownEvent2'
+          return ''
+        }),
+      }
+      figmaMock.currentPage.findAll = vi.fn(() => [mockUnknownEvent1, mockUnknownEvent2])
+
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder' }],
+        queries: [
+          { name: 'GetOrderStatus', from_events: ['KnownEvent'] },
+          { name: 'GetOtherStatus', from_events: ['UnknownEvent1'] },
+          { name: 'GetAnotherStatus', from_events: ['UnknownEvent2'] },
+        ],
+      })
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'import-resolution-needed',
+          payload: expect.objectContaining({
+            pending: expect.arrayContaining([
+              expect.objectContaining({ kind: 'cross-slice', eventName: 'UnknownEvent1' }),
+              expect.objectContaining({ kind: 'cross-slice', eventName: 'UnknownEvent2' }),
+              expect.objectContaining({ kind: 'no-match', eventName: 'KnownEvent' }),
+            ]),
+          }),
+        })
+      )
+    })
+  })
+
+  describe('import-resolution-answered', () => {
+    let handleImportResolutionAnswered: (payload: unknown, context: any) => Promise<void>
+    let handleImportFromYaml: (payload: unknown, context: any) => Promise<void>
+
+    beforeEach(async () => {
+      vi.resetModules()
+      const mod = await import('./handlers')
+      handleImportResolutionAnswered = (mod as any).handleImportResolutionAnswered
+      handleImportFromYaml = (mod as any).handleImportFromYaml
+    })
+
+    it('posts import-from-yaml-success after applying answers', async () => {
+      const sliceSection = createMockSection('slice-1')
+      sliceSection.appendChild = vi.fn()
+      figmaMock.getNodeById.mockImplementation((id: string) => {
+        if (id === 'slice-1') return sliceSection
+        return null
+      })
+
+      // First call handleImportFromYaml to set up pendingImport state
+      // It will post 'import-resolution-needed' since there are from_events not found locally
+      await handleImportFromYaml({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder' }],
+        queries: [{ name: 'GetStatus', from_events: ['UnknownEvent'] }],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      // Now call handleImportResolutionAnswered with skip
+      await handleImportResolutionAnswered({
+        answers: [
+          { queryName: 'GetStatus', resolution: 'skip' },
+        ],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      expect(figmaMock.ui.postMessage).toHaveBeenLastCalledWith({
+        type: 'import-from-yaml-success',
+      })
+    })
+
+    it('uses TOP->BOTTOM magnets when connecting to a cross-slice candidate event', async () => {
+      const candidateEvent = {
+        id: 'candidate-event-1',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'event'
+          if (key === 'label') return 'UnknownEvent'
+          return ''
+        }),
+      }
+      figmaMock.currentPage.findAll = vi.fn(() => [candidateEvent])
+      figmaMock.getNodeById.mockImplementation((id: string) => {
+        if (id === 'candidate-event-1') return candidateEvent
+        return null
+      })
+
+      await handleImportFromYaml({
+        slice: 'S',
+        screen: { type: 'user' },
+        queries: [{ name: 'GetStatus', from_events: ['UnknownEvent'] }],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      const connectorsBefore = connectors.length
+
+      await handleImportResolutionAnswered({
+        answers: [
+          {
+            queryName: 'GetStatus',
+            resolution: 'connect',
+            candidateNodeId: 'candidate-event-1',
+          },
+        ],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      expect(connectors.length).toBeGreaterThan(connectorsBefore)
+      const created = connectors[connectors.length - 1]
+      expect((created.connectorStart as any).magnet).toBe('TOP')
+      expect((created.connectorEnd as any).magnet).toBe('BOTTOM')
+    })
+
+    it('uses TOP->BOTTOM magnets when creating a new event for a no-match resolution', async () => {
+      figmaMock.currentPage.findAll = vi.fn(() => [])
+      const sliceSection = createMockSection('slice-no-match')
+      sliceSection.appendChild = vi.fn()
+      figmaMock.getNodeById.mockImplementation(() => sliceSection)
+
+      await handleImportFromYaml({
+        slice: 'S',
+        screen: { type: 'user' },
+        queries: [{ name: 'GetStatus', from_events: ['BrandNewEvent'] }],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      const connectorsBefore = connectors.length
+
+      await handleImportResolutionAnswered({
+        answers: [
+          { queryName: 'GetStatus', resolution: 'create' },
+        ],
+      }, { figma: figmaMock as unknown as typeof figma })
+
+      expect(connectors.length).toBeGreaterThan(connectorsBefore)
+      const created = connectors[connectors.length - 1]
+      expect((created.connectorStart as any).magnet).toBe('TOP')
+      expect((created.connectorEnd as any).magnet).toBe('BOTTOM')
+    })
+  })
+
+  describe('focus-node', () => {
+    let handleFocusNode: (payload: unknown, context: any) => Promise<void>
+
+    beforeEach(async () => {
+      vi.resetModules()
+      const mod = await import('./handlers')
+      handleFocusNode = (mod as any).handleFocusNode
+    })
+
+    it('calls scrollAndZoomIntoView when node is found', async () => {
+      const mockNode = { id: 'node-1' }
+      figmaMock.getNodeById.mockReturnValue(mockNode)
+
+      await handleFocusNode({ nodeId: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
+
+      expect(figmaMock.viewport.scrollAndZoomIntoView).toHaveBeenCalledWith([mockNode])
+    })
+
+    it('logs warning when node is not found', async () => {
+      figmaMock.getNodeById.mockReturnValue(null)
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      await handleFocusNode({ nodeId: 'nonexistent' }, { figma: figmaMock as unknown as typeof figma })
+
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Node not found'))
     })
   })
 })

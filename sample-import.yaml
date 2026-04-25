@@ -1,48 +1,47 @@
-slice: Create Roadmap
+slice: Register User
+
+screen:
+  type: user
+  reads:
+    - ExistingUserByEmail
+  executes:
+    - RegisterUser
 
 commands:
-  - name: CreateRoadmap
+  - name: RegisterUser
     fields: |
-      title: string
-      items: array
-    notes: Customer creates a new roadmap
-
-events:
-  - name: RoadmapCreated
-    external: false
-    fields: |
-      roadmapId: string
-      title: string
-  - name: NotificationSent
-    external: true
+      email: string
+      password: string
+    notes: Customer fills in sign-up form
+    produces:
+      - UserRegistered
 
 queries:
-  - name: GetRoadmapStatus
+  - name: ExistingUserByEmail
     fields: |
-      roadmapId: string
+      email: string
+    from_events:
+      - UserRegistered
 
 gwt:
   - name: Happy Path
-    given: []
-    when:
-      - name: CreateRoadmap
-        type: command
-    then:
-      - name: RoadmapCreated
-        type: event
-        fields: |
-          roadmapId
-          title
-  - name: Duplicate Title
-    description: Roadmaps with exact same title are not allowed. Case-sensitive.
     given:
-      - name: RoadmapCreated
-        type: event
-        fields: |
-          title
+      - name: ExistingUserByEmail
+        type: query
     when:
-      - name: CreateRoadmap
+      - name: RegisterUser
         type: command
     then:
-      - name: DuplicateTitleError
+      - name: UserRegistered
+        type: event
+  - name: Duplicate Email
+    description: Users with the same email cannot register twice.
+    given:
+      - name: UserRegistered
+        type: event
+    when:
+      - name: RegisterUser
+        type: command
+    then:
+      - name: DuplicateEmailError
         type: error

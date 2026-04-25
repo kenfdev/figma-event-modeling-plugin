@@ -471,6 +471,10 @@ describe('Panel', () => {
   })
 
   describe('Import YAML in main panel', () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
     async function expandOtherSection() {
       const user = userEvent.setup()
       renderPanel()
@@ -490,32 +494,235 @@ describe('Panel', () => {
       expect(screen.getByPlaceholderText(/paste yaml here/i)).toBeInTheDocument()
     })
 
-    it('sends import-from-yaml message when Import is clicked', async () => {
+    it('sends import-from-yaml message with parsed data when Import is clicked', async () => {
       const user = await expandOtherSection()
 
-      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 'slice: Test')
+      const validYaml = 'slice: Test\nscreen:\n  type: user\ncommands:\n  - name: DoSomething'
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), validYaml)
       await user.click(screen.getByRole('button', { name: /^import$/i }))
 
       expect(parent.postMessage).toHaveBeenCalledWith(
-        { pluginMessage: { type: 'import-from-yaml', payload: { yamlContent: 'slice: Test' } } },
+        {
+          pluginMessage: {
+            type: 'import-from-yaml',
+            payload: {
+              slice: 'Test',
+              screen: { type: 'user' },
+              commands: [{ name: 'DoSomething', fields: undefined, notes: undefined, produces: undefined }],
+            },
+          },
+        },
         '*'
       )
     })
 
-    it('displays error when import-from-yaml-error message is received', async () => {
+    it('sets inline error when YAML is invalid and does not send message to sandbox', async () => {
+      const user = await expandOtherSection()
+
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 'slice: Test\nscreen:\n  type: not-valid')
+      await user.click(screen.getByRole('button', { name: /^import$/i }))
+
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
+      expect(parent.postMessage).not.toHaveBeenCalledWith(
+        expect.objectContaining({ pluginMessage: expect.objectContaining({ type: 'import-from-yaml' }) }),
+        '*'
+      )
+    })
+
+    it('console.warns parser warnings for unknown top-level keys', async () => {
+      const user = await expandOtherSection()
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      const yamlWithUnknownKey = 'slice: Test\nscreen:\n  type: user\nunknown_key: some_value'
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), yamlWithUnknownKey)
+      await user.click(screen.getByRole('button', { name: /^import$/i }))
+
+      expect(warnSpy).toHaveBeenCalledWith("Unknown top-level key: 'unknown_key'")
+    })
+
+    it('on import-resolution-needed, hides import form and renders ResolutionFlow', async () => {
       await expandOtherSection()
+
+      const pendingData = [
+        {
+          queryName: 'FindUser',
+          eventName: 'UserFound',
+          kind: 'cross-slice' as const,
+          candidates: [
+            { nodeId: 'node-1', label: 'UserFound', parentSliceName: 'OtherSlice' },
+          ],
+        },
+      ]
 
       const messageEvent = new MessageEvent('message', {
         data: {
           pluginMessage: {
-            type: 'import-from-yaml-error',
-            payload: { error: 'Invalid YAML syntax' },
+            type: 'import-resolution-needed',
+            payload: { pending: pendingData },
           },
         },
       })
       window.dispatchEvent(messageEvent)
 
-      expect(await screen.findByRole('alert')).toHaveTextContent('Invalid YAML syntax')
+      expect(await screen.findByText(/Event 1 of 1/i)).toBeInTheDocument()
+      expect(screen.queryByPlaceholderText(/paste yaml here/i)).not.toBeInTheDocument()
+    })
+
+    it('ResolutionFlow onDone posts import-resolution-answered and restores form', async () => {
+      await expandOtherSection()
+
+      const pendingData = [
+        {
+          queryName: 'FindUser',
+          eventName: 'UserFound',
+          kind: 'no-match' as const,
+          candidates: [],
+        },
+      ]
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-resolution-needed',
+            payload: { pending: pendingData },
+          },
+        },
+      })
+      window.dispatchEvent(messageEvent)
+      await screen.findByText(/Event 1 of 1/i)
+
+      const user = userEvent.setup()
+      const createButton = screen.getByRole('button', { name: /create/i })
+      await user.click(createButton)
+
+      expect(parent.postMessage).toHaveBeenCalledWith(
+        {
+          pluginMessage: {
+            type: 'import-resolution-answered',
+            payload: {
+              answers: [{ kind: 'create' }],
+            },
+          },
+        },
+        '*'
+      )
+      expect(screen.queryByText(/Event 1 of 1/i)).not.toBeInTheDocument()
+      expect(screen.getByPlaceholderText(/paste yaml here/i)).toBeInTheDocument()
+    })
+
+    it('ResolutionFlow onFocus posts focus-node', async () => {
+      await expandOtherSection()
+
+      const pendingData = [
+        {
+          queryName: 'FindUser',
+          eventName: 'UserFound',
+          kind: 'cross-slice' as const,
+          candidates: [
+            { nodeId: 'node-123', label: 'UserFound', parentSliceName: 'OtherSlice' },
+          ],
+        },
+      ]
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-resolution-needed',
+            payload: { pending: pendingData },
+          },
+        },
+      })
+      window.dispatchEvent(messageEvent)
+      await screen.findByText(/Event 1 of 1/i)
+
+      const user = userEvent.setup()
+      const focusButton = screen.getByRole('button', { name: /focus/i })
+      await user.click(focusButton)
+
+      expect(parent.postMessage).toHaveBeenCalledWith(
+        { pluginMessage: { type: 'focus-node', payload: { nodeId: 'node-123' } } },
+        '*'
+      )
+    })
+
+    it('import-from-yaml-success restores form with success feedback', async () => {
+      await expandOtherSection()
+
+      const pendingData = [
+        {
+          queryName: 'FindUser',
+          eventName: 'UserFound',
+          kind: 'no-match' as const,
+          candidates: [],
+        },
+      ]
+
+      const resolutionNeededEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-resolution-needed',
+            payload: { pending: pendingData },
+          },
+        },
+      })
+      window.dispatchEvent(resolutionNeededEvent)
+      await screen.findByText(/Event 1 of 1/i)
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: /create/i }))
+
+      const successEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: { type: 'import-from-yaml-success' },
+        },
+      })
+      window.dispatchEvent(successEvent)
+
+      await vi.waitFor(() => {
+        expect(screen.queryByText(/Event 1 of 1/i)).not.toBeInTheDocument()
+        expect(screen.getByPlaceholderText(/paste yaml here/i)).toBeInTheDocument()
+        expect(screen.getByPlaceholderText(/paste yaml here/i)).toHaveValue('')
+      })
+    })
+
+    it('import-from-yaml-error clears pending state and displays error', async () => {
+      await expandOtherSection()
+
+      const pendingData = [
+        {
+          queryName: 'FindUser',
+          eventName: 'UserFound',
+          kind: 'no-match' as const,
+          candidates: [],
+        },
+      ]
+
+      const resolutionNeededEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-resolution-needed',
+            payload: { pending: pendingData },
+          },
+        },
+      })
+      window.dispatchEvent(resolutionNeededEvent)
+      await screen.findByText(/Event 1 of 1/i)
+
+      const errorEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'import-from-yaml-error',
+            payload: { error: 'Import failed' },
+          },
+        },
+      })
+      window.dispatchEvent(errorEvent)
+
+      await vi.waitFor(() => {
+        expect(screen.queryByText(/Event 1 of 1/i)).not.toBeInTheDocument()
+        expect(screen.getByRole('alert')).toHaveTextContent('Import failed')
+      })
     })
 
     it('clears error when textarea is edited', async () => {
@@ -579,7 +786,8 @@ describe('Panel', () => {
     it('preserves textarea content on failed import', async () => {
       const user = await expandOtherSection()
 
-      await user.type(screen.getByPlaceholderText(/paste yaml here/i), 'slice: Test')
+      const validYaml = 'slice: Test\nscreen:\n  type: user'
+      await user.type(screen.getByPlaceholderText(/paste yaml here/i), validYaml)
       await user.click(screen.getByRole('button', { name: /^import$/i }))
 
       const errorEvent = new MessageEvent('message', {
@@ -594,7 +802,7 @@ describe('Panel', () => {
 
       await vi.waitFor(() => {
         expect(screen.getByRole('alert')).toBeInTheDocument()
-        expect(screen.getByPlaceholderText(/paste yaml here/i)).toHaveValue('slice: Test')
+        expect(screen.getByPlaceholderText(/paste yaml here/i)).toHaveValue(validYaml)
       })
     })
 

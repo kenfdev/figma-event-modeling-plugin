@@ -1,52 +1,47 @@
-export const YAML_TEMPLATE = `slice: Create Roadmap
+export const YAML_TEMPLATE = `slice: Register User
+
+screen:
+  type: user
+  reads:
+    - ExistingUserByEmail
+  executes:
+    - RegisterUser
 
 commands:
-  - name: CreateRoadmap
+  - name: RegisterUser
     fields: |
-      title: string
-      items: array
-    notes: Customer checkout flow
-
-events:
-  - name: RoadmapCreated
-    external: false
-    fields: |
-      title
-      description
-  - name: ExternalNotification
-    external: true
+      email: string
+      password: string
+    produces:
+      - UserRegistered
 
 queries:
-  - name: GetRoadmapStatus
+  - name: ExistingUserByEmail
     fields: |
-      roadmapId: string
+      email: string
+    from_events:
+      - UserRegistered
 
 gwt:
   - name: Happy Path
     given:
-      - name: GetRoadmapStatus
+      - name: ExistingUserByEmail
         type: query
     when:
-      - name: CreateRoadmap
+      - name: RegisterUser
         type: command
     then:
-      - name: RoadmapCreated
+      - name: UserRegistered
         type: event
-        fields: |
-          title
-          description
-  - name: Duplicate Title
-    description: Roadmaps with exact same title are not allowed. Case-sensitive.
+  - name: Duplicate Email
+    description: Users with the same email cannot register twice.
     given:
-      - name: RoadmapCreated
+      - name: UserRegistered
         type: event
-        fields: |
-          title
-          description
     when:
-      - name: CreateRoadmap
+      - name: RegisterUser
         type: command
     then:
-      - name: DuplicateTitleError
+      - name: DuplicateEmailError
         type: error
 `
