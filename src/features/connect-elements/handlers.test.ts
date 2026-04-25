@@ -91,4 +91,46 @@ describe('handleConnectElements', () => {
 
     expect(figmaMock.createConnector).not.toHaveBeenCalled()
   })
+
+  describe('chain-based arrow direction', () => {
+    function nodeWithType(id: string, type: string) {
+      return { id, name: id, getPluginData: (key: string) => (key === 'type' ? type : '') }
+    }
+
+    it('reorders to event→query when user selects query first then event', async () => {
+      const queryNode = nodeWithType('q-id', 'query')
+      const eventNode = nodeWithType('e-id', 'event')
+      figmaMock.currentPage.selection = [queryNode, eventNode]
+
+      await handleConnectElements(undefined, { figma: figmaMock as unknown as typeof figma })
+
+      const connector = (figmaMock.createConnector as ReturnType<typeof vi.fn>).mock.results[0].value
+      expect(connector.connectorStart.endpointNodeId).toBe('e-id')
+      expect(connector.connectorEnd.endpointNodeId).toBe('q-id')
+    })
+
+    it('reorders to command→event when user selects event first then command', async () => {
+      const eventNode = nodeWithType('e-id', 'event')
+      const commandNode = nodeWithType('c-id', 'command')
+      figmaMock.currentPage.selection = [eventNode, commandNode]
+
+      await handleConnectElements(undefined, { figma: figmaMock as unknown as typeof figma })
+
+      const connector = (figmaMock.createConnector as ReturnType<typeof vi.fn>).mock.results[0].value
+      expect(connector.connectorStart.endpointNodeId).toBe('c-id')
+      expect(connector.connectorEnd.endpointNodeId).toBe('e-id')
+    })
+
+    it('preserves selection order when types are not chain neighbors (actor + command)', async () => {
+      const actorNode = nodeWithType('a-id', 'actor')
+      const commandNode = nodeWithType('c-id', 'command')
+      figmaMock.currentPage.selection = [actorNode, commandNode]
+
+      await handleConnectElements(undefined, { figma: figmaMock as unknown as typeof figma })
+
+      const connector = (figmaMock.createConnector as ReturnType<typeof vi.fn>).mock.results[0].value
+      expect(connector.connectorStart.endpointNodeId).toBe('a-id')
+      expect(connector.connectorEnd.endpointNodeId).toBe('c-id')
+    })
+  })
 })
