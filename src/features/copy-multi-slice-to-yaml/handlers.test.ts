@@ -201,4 +201,137 @@ describe('handleCopyMultiSliceToYaml', () => {
     expect(parts[0].trim()).toBe(isolated1)
     expect(parts[1].trim()).toBe(isolated2)
   })
+
+  describe('ids[] payload variant', () => {
+    it('3 slices left-to-right produces YAML with correct order', async () => {
+      const slice1 = createMockSlice('Slice1', { x: 0 })
+      const slice2 = createMockSlice('Slice2', { x: 200 })
+      const slice3 = createMockSlice('Slice3', { x: 400 })
+
+      figmaMock.getNodeByIdAsync
+        .mockResolvedValueOnce(slice1)
+        .mockResolvedValueOnce(slice2)
+        .mockResolvedValueOnce(slice3)
+
+      await handleCopyMultiSliceToYaml(
+        { ids: ['slice-1', 'slice-2', 'slice-3'] },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      const call = figmaMock.ui.postMessage.mock.calls[0][0]
+      const yamlStr: string = call.payload.yaml
+      const parts = yamlStr.split('\n---\n')
+      expect(parts[0]).toContain('slice: Slice1')
+      expect(parts[1]).toContain('slice: Slice2')
+      expect(parts[2]).toContain('slice: Slice3')
+    })
+
+    it('3 slices in reverse id order are sorted by x position', async () => {
+      const slice1 = createMockSlice('Slice1', { x: 400 })
+      const slice2 = createMockSlice('Slice2', { x: 200 })
+      const slice3 = createMockSlice('Slice3', { x: 0 })
+
+      figmaMock.getNodeByIdAsync
+        .mockResolvedValueOnce(slice1)
+        .mockResolvedValueOnce(slice2)
+        .mockResolvedValueOnce(slice3)
+
+      await handleCopyMultiSliceToYaml(
+        { ids: ['slice-1', 'slice-2', 'slice-3'] },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      const call = figmaMock.ui.postMessage.mock.calls[0][0]
+      const yamlStr: string = call.payload.yaml
+      const parts = yamlStr.split('\n---\n')
+      expect(parts[0]).toContain('slice: Slice3')
+      expect(parts[1]).toContain('slice: Slice2')
+      expect(parts[2]).toContain('slice: Slice1')
+    })
+
+    it('2 slices produces exactly one --- separator', async () => {
+      const slice1 = createMockSlice('Slice1', { x: 0 })
+      const slice2 = createMockSlice('Slice2', { x: 200 })
+
+      figmaMock.getNodeByIdAsync
+        .mockResolvedValueOnce(slice1)
+        .mockResolvedValueOnce(slice2)
+
+      await handleCopyMultiSliceToYaml(
+        { ids: ['slice-1', 'slice-2'] },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      const call = figmaMock.ui.postMessage.mock.calls[0][0]
+      const yamlStr: string = call.payload.yaml
+      expect(yamlStr.match(/\n---\n/g) || []).toHaveLength(1)
+    })
+
+    it('one id resolves to null posts Node not found error', async () => {
+      figmaMock.getNodeByIdAsync
+        .mockResolvedValueOnce(createMockSlice('Slice1', { x: 0 }))
+        .mockResolvedValue(null)
+
+      await handleCopyMultiSliceToYaml(
+        { ids: ['slice-1', 'stale-id'] },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+        type: 'copy-multi-slice-to-yaml-error',
+        payload: { message: 'Node not found' },
+      })
+    })
+
+    it('one id resolves to non-SECTION node posts error', async () => {
+      const nonSectionNode = {
+        id: 'shape-1',
+        type: 'SHAPE_WITH_TEXT',
+        name: 'Shape',
+        getPluginData: vi.fn(() => 'command'),
+      }
+
+      figmaMock.getNodeByIdAsync
+        .mockResolvedValueOnce(createMockSlice('Slice1', { x: 0 }))
+        .mockResolvedValueOnce(nonSectionNode)
+
+      await handleCopyMultiSliceToYaml(
+        { ids: ['slice-1', 'shape-1'] },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+        type: 'copy-multi-slice-to-yaml-error',
+        payload: { message: 'Selection contains a non-slice node' },
+      })
+    })
+
+    it('one id has getPluginData type=gwt posts error', async () => {
+      const gwtNode = {
+        id: 'gwt-1',
+        type: 'SECTION',
+        name: 'GWT',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'gwt'
+          return ''
+        }),
+        x: 0,
+        children: [],
+      }
+
+      figmaMock.getNodeByIdAsync
+        .mockResolvedValueOnce(createMockSlice('Slice1', { x: 0 }))
+        .mockResolvedValueOnce(gwtNode)
+
+      await handleCopyMultiSliceToYaml(
+        { ids: ['slice-1', 'gwt-1'] },
+        { figma: figmaMock as unknown as typeof figma }
+      )
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+        type: 'copy-multi-slice-to-yaml-error',
+        payload: { message: 'Selection contains a non-slice node' },
+      })
+    })
+  })
 })

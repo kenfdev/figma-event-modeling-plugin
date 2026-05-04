@@ -19,6 +19,7 @@ export interface ElementEditorProps {
   selectedElement: SelectedElement | null
   multipleSelected?: boolean
   selectionCount?: number
+  multiSliceIds?: string[]
 }
 
 const typeLabels: Record<string, string> = {
@@ -39,7 +40,7 @@ const typesWithDropdown: ElementType[] = ['command', 'event', 'query']
 const structuralTypes: StructuralType[] = ['lane', 'chapter', 'processor', 'screen']
 const copyToYamlTypes = ['command', 'event', 'query', 'actor', 'gwt']
 
-export function ElementEditor({ selectedElement, multipleSelected, selectionCount }: ElementEditorProps) {
+export function ElementEditor({ selectedElement, multipleSelected, selectionCount, multiSliceIds }: ElementEditorProps) {
   const { t } = useTranslation()
   const [name, setName] = useState('')
   const [customFields, setCustomFields] = useState('')
@@ -76,6 +77,28 @@ export function ElementEditor({ selectedElement, multipleSelected, selectionCoun
                 }}
               >
                 {t('buttons.connect')}
+              </button>
+            </div>
+          </div>
+        )}
+        {multiSliceIds && multiSliceIds.length >= 2 && (
+          <div className="element-editor-content">
+            <div className="element-editor-row">
+              <button
+                type="button"
+                onClick={() => {
+                  parent.postMessage(
+                    {
+                      pluginMessage: {
+                        type: 'copy-multi-slice-to-yaml',
+                        payload: { ids: multiSliceIds },
+                      },
+                    },
+                    '*'
+                  )
+                }}
+              >
+                {t('buttons.copyToYaml')}
               </button>
             </div>
           </div>

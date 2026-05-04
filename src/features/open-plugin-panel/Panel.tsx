@@ -187,6 +187,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
   const [multipleSelected, setMultipleSelected] = useState(false)
   const [selectionCount, setSelectionCount] = useState(0)
+  const [multiSliceIds, setMultiSliceIds] = useState<string[] | undefined>(undefined)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showSettings, setShowSettings] = useState(false)
@@ -216,10 +217,12 @@ export function Panel({ onCreateElement }: PanelProps) {
           setMultipleSelected(true)
           setSelectedElement(null)
           setSelectionCount(message.payload?.count ?? 0)
+          setMultiSliceIds(message.payload?.multiSliceIds)
         } else {
           setMultipleSelected(false)
           setSelectedElement(message.payload)
           setSelectionCount(0)
+          setMultiSliceIds(undefined)
         }
       }
       if (message?.type === 'export-slice-to-markdown-result') {
@@ -462,7 +465,7 @@ export function Panel({ onCreateElement }: PanelProps) {
             )}
           </div>
 
-          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} selectionCount={selectionCount} />
+          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} selectionCount={selectionCount} multiSliceIds={multiSliceIds} />
 
           {toastMessage && (
             <div className="toast" role="status">{toastMessage}</div>

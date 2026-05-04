@@ -55,34 +55,35 @@ describe('ElementEditor', () => {
     })
   })
 
-  describe('connect button', () => {
-    it('shows connect button when multipleSelected and selectionCount is 2', () => {
-      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={2} />)
+  describe('copy to YAML button in multi-select', () => {
+    it('multiSliceIds with 3 slices + selectionCount=3 → button visible', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={3} multiSliceIds={['a', 'b', 'c']} />)
+      expect(screen.getByRole('button', { name: /copy to yaml/i })).toBeInTheDocument()
+    })
+
+    it('multiSliceIds with 2 slices + selectionCount=2 → both Connect and Copy to YAML buttons', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={2} multiSliceIds={['a', 'b']} />)
       expect(screen.getByRole('button', { name: /connect/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /copy to yaml/i })).toBeInTheDocument()
     })
 
-    it('does not show connect button when multipleSelected but selectionCount is 3', () => {
-      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={3} />)
-      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
+    it('multiSliceIds undefined + selectionCount=2 → only Connect button', () => {
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={2} multiSliceIds={undefined} />)
+      expect(screen.getByRole('button', { name: /connect/i })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /copy to yaml/i })).not.toBeInTheDocument()
     })
 
-    it('does not show connect button when multipleSelected but selectionCount is 1', () => {
-      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={1} />)
-      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
-    })
-
-    it('does not show connect button when single element is selected', () => {
-      renderEditor(<ElementEditor selectedElement={createSelectedElement()} />)
-      expect(screen.queryByRole('button', { name: /connect/i })).not.toBeInTheDocument()
-    })
-
-    it('sends connect-elements message when clicked', async () => {
+    it('clicking Copy to YAML posts correct message with ids array', async () => {
       const user = userEvent.setup()
-      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={2} />)
-      const button = screen.getByRole('button', { name: /connect/i })
-      await user.click(button)
+      renderEditor(<ElementEditor selectedElement={null} multipleSelected={true} selectionCount={3} multiSliceIds={['id-1', 'id-2', 'id-3']} />)
+      await user.click(screen.getByRole('button', { name: /copy to yaml/i }))
       expect(postMessageSpy).toHaveBeenCalledWith(
-        { pluginMessage: { type: 'connect-elements' } },
+        {
+          pluginMessage: {
+            type: 'copy-multi-slice-to-yaml',
+            payload: { ids: ['id-1', 'id-2', 'id-3'] },
+          },
+        },
         '*'
       )
     })

@@ -25,6 +25,17 @@ export function handleSelectionChange({
   }
 
   if (selection.length > 1) {
+    const allSlices = selection.every(
+      (node) => node.getPluginData('type') === 'slice'
+    )
+    if (allSlices) {
+      const multiSliceIds = selection.map((node) => node.id)
+      figma.ui.postMessage({
+        type: 'selection-changed',
+        payload: { multiple: true, count: selection.length, multiSliceIds },
+      })
+      return
+    }
     figma.ui.postMessage({
       type: 'selection-changed',
       payload: { multiple: true, count: selection.length },
