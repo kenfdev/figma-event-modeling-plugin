@@ -774,6 +774,91 @@ describe('handleSelectionChange', () => {
       }),
     })
   })
+
+  it('sends wrapping-section payload when SECTION has slice children', () => {
+    const sliceChild1 = {
+      id: 'slice-1',
+      name: 'Slice 1',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'slice'
+        return ''
+      }),
+    }
+    const sliceChild2 = {
+      id: 'slice-2',
+      name: 'Slice 2',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'slice'
+        return ''
+      }),
+    }
+    const mockNode = {
+      id: 'node-1',
+      type: 'SECTION',
+      name: 'Wrapper Section',
+      children: [sliceChild1, sliceChild2],
+      getPluginData: vi.fn(() => ''),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: {
+        id: 'node-1',
+        type: 'wrapping-section',
+        name: 'Wrapper Section',
+        sliceCount: 2,
+      },
+    })
+  })
+
+  it('sends null payload when SECTION has no slice children', () => {
+    const child1 = {
+      id: 'child-1',
+      name: 'Some Shape',
+      getPluginData: vi.fn(() => ''),
+    }
+    const mockNode = {
+      id: 'node-1',
+      type: 'SECTION',
+      name: 'Empty Wrapper',
+      children: [child1],
+      getPluginData: vi.fn(() => ''),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: null,
+    })
+  })
+
+  it('does not interfere with slice element selection (SECTION with type=slice)', () => {
+    const mockNode = {
+      id: 'node-1',
+      type: 'SECTION',
+      name: 'My Slice',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'slice'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        id: 'node-1',
+        type: 'slice',
+      }),
+    })
+  })
 })
 
 describe('registerSelectionChangeListener', () => {

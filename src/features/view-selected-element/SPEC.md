@@ -122,3 +122,35 @@ As a user, I want to see what type of structural or section element I have selec
 - Add CSS styling for `.type-lane`, `.type-chapter`, `.type-processor`, `.type-screen`, `.type-slice`, `.type-gwt`
 - The selection handler already reads `getPluginData('type')` — structural elements need to have their type stored in plugin data at creation time
 - Name field uses a disabled/read-only input rather than hiding it entirely
+
+---
+
+## F2.5: ViewWrappingSection
+
+### Type
+Query
+
+### Description
+When a generic SECTION node wraps one or more Slice sections, show a simplified panel with a "Copy to YAML" button. This enables exporting multiple slices as a `---`-separated YAML stream.
+
+### User Story
+As a user, I want to select a wrapping section and copy all its contained slices' YAML to the clipboard in one click.
+
+### Acceptance Criteria
+- When a SECTION with no plugin data type (`getPluginData('type') === ''`) contains ≥1 direct child with `pluginData('type') === 'slice'`, the ElementEditor shows:
+  - The section name
+  - A "Copy to YAML" button
+- No other fields (name input, notes, type badge, custom fields) are shown for wrapping sections
+- Clicking "Copy to YAML" triggers `copy-multi-slice-to-yaml` message
+
+### Dependencies
+- F0.1: OpenPluginPanel
+- F5.1: CreateSlice
+- F17.1: CopyMultiSliceToYaml
+
+### Technical Notes
+- This is a synthetic selection type (`'wrapping-section'`) not stored in plugin data
+- Detected in `handleSelectionChange` when `node.type === 'SECTION'` and `elementType` is falsy
+- The `sliceCount` field is included in the payload to allow conditional rendering (e.g., only show button when `sliceCount >= 1`)
+- Does NOT interfere with selecting actual Slice sections (which have `pluginData('type') === 'slice'`)
+- The wrapping-section branch in ElementEditor is an early return that bypasses all type-specific UI

@@ -5,13 +5,14 @@ import { CustomFieldsEditor } from '../update-custom-fields'
 
 export interface SelectedElement {
   id: string
-  type: ElementType | StructuralType | SectionType
+  type: ElementType | StructuralType | SectionType | 'wrapping-section'
   name: string
   customFields?: string
   notes?: string
   external?: boolean
   issueUrl?: string
   pluginData?: Record<string, string>
+  sliceCount?: number
 }
 
 export interface ElementEditorProps {
@@ -85,6 +86,37 @@ export function ElementEditor({ selectedElement, multipleSelected, selectionCoun
 
   if (!selectedElement) {
     return null
+  }
+
+  if (selectedElement?.type === 'wrapping-section') {
+    return (
+      <section className="element-editor" aria-label="Element Editor">
+        <h2>{selectedElement.name}</h2>
+        <div className="element-editor-content">
+          {selectedElement.sliceCount && selectedElement.sliceCount >= 1 && (
+            <div className="element-editor-row">
+              <button
+                type="button"
+                onClick={() => {
+                  parent.postMessage(
+                    {
+                      pluginMessage: {
+                        type: 'copy-multi-slice-to-yaml',
+                        payload: { id: selectedElement.id },
+                      },
+                    },
+                    '*'
+                  )
+                }}
+                aria-label={t('buttons.copyToYaml')}
+              >
+                {t('buttons.copyToYaml')}
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+    )
   }
 
   const typeLabel = typeLabels[selectedElement.type]

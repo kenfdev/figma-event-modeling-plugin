@@ -890,6 +890,47 @@ describe('Panel', () => {
     })
   })
 
+  describe('copy-multi-slice-to-yaml handlers', () => {
+    it('copies YAML to clipboard and shows success toast on result', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      Object.assign(navigator, { clipboard: { writeText } })
+
+      renderPanel()
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'copy-multi-slice-to-yaml-result',
+            payload: { yaml: 'slice: Slice1\n---\nslice: Slice2\n' },
+          },
+        },
+      })
+      window.dispatchEvent(messageEvent)
+
+      await vi.waitFor(() => {
+        expect(writeText).toHaveBeenCalledWith('slice: Slice1\n---\nslice: Slice2\n')
+      })
+
+      expect(await screen.findByText(/copied to clipboard/i)).toBeInTheDocument()
+    })
+
+    it('shows failure toast on error', async () => {
+      renderPanel()
+
+      const messageEvent = new MessageEvent('message', {
+        data: {
+          pluginMessage: {
+            type: 'copy-multi-slice-to-yaml-error',
+            payload: { message: 'No slices found' },
+          },
+        },
+      })
+      window.dispatchEvent(messageEvent)
+
+      expect(await screen.findByText(/no slices found/i)).toBeInTheDocument()
+    })
+  })
+
   describe('Card-style element preview buttons', () => {
     it('renders each creation button as a card with color-filled background', () => {
       renderPanel()

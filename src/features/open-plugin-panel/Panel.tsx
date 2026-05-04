@@ -252,6 +252,19 @@ export function Panel({ onCreateElement }: PanelProps) {
           })
         }
       }
+      if (message?.type === 'copy-multi-slice-to-yaml-result') {
+        const yaml = message.payload?.yaml
+        if (yaml) {
+          copyToClipboard(yaml).then(() => {
+            showToast(t('messages.copiedToClipboard'))
+          }).catch(() => {
+            showToast(t('messages.failedToCopy'))
+          })
+        }
+      }
+      if (message?.type === 'copy-multi-slice-to-yaml-error') {
+        showToast(message.payload?.message ?? t('messages.failedToCopy'))
+      }
       if (message?.type === 'import-from-yaml-error') {
         setImportError(message.payload?.error ?? 'Import failed')
         setPending(null)

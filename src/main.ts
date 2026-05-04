@@ -31,6 +31,7 @@ import { handleConnectElements } from './features/connect-elements/sandbox'
 import { handleExportSliceToMarkdown } from './features/export-slice-to-markdown/sandbox'
 import { handleExportSliceToYaml } from './features/export-slice-to-yaml/sandbox'
 import { handleCopyElementToYaml } from './features/copy-element-to-yaml/sandbox'
+import { handleCopyMultiSliceToYaml } from './features/copy-multi-slice-to-yaml/sandbox'
 import {
   handleImportFromYaml,
   handleImportResolutionAnswered,
@@ -60,6 +61,7 @@ registerHandler('connect-elements', handleConnectElements)
 registerHandler('export-slice-to-markdown', handleExportSliceToMarkdown as MessageHandler)
 registerHandler('export-slice-to-yaml', handleExportSliceToYaml as MessageHandler)
 registerHandler('copy-element-to-yaml', handleCopyElementToYaml as MessageHandler)
+registerHandler('copy-multi-slice-to-yaml', handleCopyMultiSliceToYaml as MessageHandler)
 registerHandler('import-from-yaml', handleImportFromYaml)
 registerHandler('import-resolution-answered', handleImportResolutionAnswered)
 registerHandler('focus-node', handleFocusNode)
