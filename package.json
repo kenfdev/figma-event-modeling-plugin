@@ -1,6 +1,6 @@
 {
   "name": "figma-event-modeling-plugin",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "FigJam plugin for Event Modeling",
   "type": "module",
   "scripts": {
