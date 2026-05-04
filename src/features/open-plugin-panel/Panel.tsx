@@ -187,6 +187,7 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
   const [multipleSelected, setMultipleSelected] = useState(false)
   const [selectionCount, setSelectionCount] = useState(0)
+  const [multiSliceIds, setMultiSliceIds] = useState<string[] | undefined>(undefined)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showSettings, setShowSettings] = useState(false)
@@ -216,10 +217,12 @@ export function Panel({ onCreateElement }: PanelProps) {
           setMultipleSelected(true)
           setSelectedElement(null)
           setSelectionCount(message.payload?.count ?? 0)
+          setMultiSliceIds(message.payload?.multiSliceIds)
         } else {
           setMultipleSelected(false)
           setSelectedElement(message.payload)
           setSelectionCount(0)
+          setMultiSliceIds(undefined)
         }
       }
       if (message?.type === 'export-slice-to-markdown-result') {
@@ -251,6 +254,19 @@ export function Panel({ onCreateElement }: PanelProps) {
             showToast(t('messages.failedToCopy'))
           })
         }
+      }
+      if (message?.type === 'copy-multi-slice-to-yaml-result') {
+        const yaml = message.payload?.yaml
+        if (yaml) {
+          copyToClipboard(yaml).then(() => {
+            showToast(t('messages.copiedToClipboard'))
+          }).catch(() => {
+            showToast(t('messages.failedToCopy'))
+          })
+        }
+      }
+      if (message?.type === 'copy-multi-slice-to-yaml-error') {
+        showToast(message.payload?.message ?? t('messages.failedToCopy'))
       }
       if (message?.type === 'import-from-yaml-error') {
         setImportError(message.payload?.error ?? 'Import failed')
@@ -449,7 +465,7 @@ export function Panel({ onCreateElement }: PanelProps) {
             )}
           </div>
 
-          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} selectionCount={selectionCount} />
+          <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} selectionCount={selectionCount} multiSliceIds={multiSliceIds} />
 
           {toastMessage && (
             <div className="toast" role="status">{toastMessage}</div>

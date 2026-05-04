@@ -134,6 +134,8 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F16.2 | SimpleScreenElement | Done | `src/features/create-screen/SPEC.md` |
 | F16.3 | ConnectElements | Done | `src/features/connect-elements/SPEC.md` |
 | F16.4 | CopyElementToYaml | Done | `src/features/copy-element-to-yaml/SPEC.md` |
+| F17.1 | CopyMultiSliceToYaml | Done | `src/features/copy-multi-slice-to-yaml/SPEC.md` |
+| T002 | CopyMultiSliceToYaml (multi-select) | Done | `src/features/copy-multi-slice-to-yaml/SPEC.md` |
 
 ## Feature Backlog
 

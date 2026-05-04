@@ -5,9 +5,10 @@ const CORE_ELEMENT_TYPES: readonly ElementType[] = ['command', 'event', 'query',
 
 export interface SelectionChangePayload {
   id: string
-  type: ElementType | StructuralType | SectionType
+  type: ElementType | StructuralType | SectionType | 'wrapping-section'
   name: string
   pluginData?: Record<string, string>
+  sliceCount?: number
 }
 
 export function handleSelectionChange({
@@ -24,6 +25,17 @@ export function handleSelectionChange({
   }
 
   if (selection.length > 1) {
+    const allSlices = selection.every(
+      (node) => node.getPluginData('type') === 'slice'
+    )
+    if (allSlices) {
+      const multiSliceIds = selection.map((node) => node.id)
+      figma.ui.postMessage({
+        type: 'selection-changed',
+        payload: { multiple: true, count: selection.length, multiSliceIds },
+      })
+      return
+    }
     figma.ui.postMessage({
       type: 'selection-changed',
       payload: { multiple: true, count: selection.length },
@@ -35,6 +47,19 @@ export function handleSelectionChange({
   const elementType = node.getPluginData('type')
 
   if (!elementType) {
+    if (node.type === 'SECTION') {
+      const children = (node as SectionNode).children ?? []
+      const sliceCount = children.filter(
+        (c: SceneNode) => c.getPluginData('type') === 'slice'
+      ).length
+      if (sliceCount >= 1) {
+        figma.ui.postMessage({
+          type: 'selection-changed',
+          payload: { id: node.id, type: 'wrapping-section' as const, name: node.name, sliceCount },
+        })
+        return
+      }
+    }
     figma.ui.postMessage({
       type: 'selection-changed',
       payload: null,
