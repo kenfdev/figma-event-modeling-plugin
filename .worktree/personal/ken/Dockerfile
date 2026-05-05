@@ -8,7 +8,8 @@
 # Dotfiles are mounted at runtime (not baked in) — see docker-compose.local.yml
 # =============================================================================
 
-FROM fdsx-dev-base:local
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
 
 # --- Project deps (keep in sync with Dockerfile.app) ---
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
