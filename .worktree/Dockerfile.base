@@ -5,7 +5,7 @@
 # Keep this minimal — project-specific deps go in Dockerfile.app.
 # =============================================================================
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y \
   curl \

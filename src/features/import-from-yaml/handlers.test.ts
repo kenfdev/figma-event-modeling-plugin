@@ -1592,7 +1592,7 @@ describe('handleImportFromYaml', () => {
     it('posts import-from-yaml-success after applying answers', async () => {
       const sliceSection = createMockSection('slice-1')
       sliceSection.appendChild = vi.fn()
-      figmaMock.getNodeById.mockImplementation((id: string) => {
+      figmaMock.getNodeByIdAsync.mockImplementation(async (id: string) => {
         if (id === 'slice-1') return sliceSection
         return null
       })
@@ -1609,7 +1609,7 @@ describe('handleImportFromYaml', () => {
       // Now call handleImportResolutionAnswered with skip
       await handleImportResolutionAnswered({
         answers: [
-          { queryName: 'GetStatus', resolution: 'skip' },
+          { queryName: 'GetStatus', eventName: 'UnknownEvent', resolution: 'skip' },
         ],
       }, { figma: figmaMock as unknown as typeof figma })
 
@@ -1628,7 +1628,7 @@ describe('handleImportFromYaml', () => {
         }),
       }
       figmaMock.currentPage.findAll = vi.fn(() => [candidateEvent])
-      figmaMock.getNodeById.mockImplementation((id: string) => {
+      figmaMock.getNodeByIdAsync.mockImplementation(async (id: string) => {
         if (id === 'candidate-event-1') return candidateEvent
         return null
       })
@@ -1645,6 +1645,7 @@ describe('handleImportFromYaml', () => {
         answers: [
           {
             queryName: 'GetStatus',
+            eventName: 'UnknownEvent',
             resolution: 'connect',
             candidateNodeId: 'candidate-event-1',
           },
@@ -1661,7 +1662,7 @@ describe('handleImportFromYaml', () => {
       figmaMock.currentPage.findAll = vi.fn(() => [])
       const sliceSection = createMockSection('slice-no-match')
       sliceSection.appendChild = vi.fn()
-      figmaMock.getNodeById.mockImplementation(() => sliceSection)
+      figmaMock.getNodeByIdAsync.mockImplementation(async () => sliceSection)
 
       await handleImportFromYaml({
         slice: 'S',
@@ -1673,7 +1674,7 @@ describe('handleImportFromYaml', () => {
 
       await handleImportResolutionAnswered({
         answers: [
-          { queryName: 'GetStatus', resolution: 'create' },
+          { queryName: 'GetStatus', eventName: 'BrandNewEvent', resolution: 'create' },
         ],
       }, { figma: figmaMock as unknown as typeof figma })
 
@@ -1695,7 +1696,7 @@ describe('handleImportFromYaml', () => {
 
     it('calls scrollAndZoomIntoView when node is found', async () => {
       const mockNode = { id: 'node-1' }
-      figmaMock.getNodeById.mockReturnValue(mockNode)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(mockNode)
 
       await handleFocusNode({ nodeId: 'node-1' }, { figma: figmaMock as unknown as typeof figma })
 
@@ -1703,7 +1704,7 @@ describe('handleImportFromYaml', () => {
     })
 
     it('logs warning when node is not found', async () => {
-      figmaMock.getNodeById.mockReturnValue(null)
+      figmaMock.getNodeByIdAsync.mockResolvedValue(null)
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
       await handleFocusNode({ nodeId: 'nonexistent' }, { figma: figmaMock as unknown as typeof figma })

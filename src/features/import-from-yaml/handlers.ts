@@ -584,7 +584,7 @@ export async function handleImportResolutionAnswered(
   payload: unknown,
   { figma }: MessageHandlerContext
 ): Promise<void> {
-  const { answers } = payload as { answers: Array<{ queryName: string; resolution: 'connect' | 'create' | 'skip'; candidateNodeId?: string }> }
+  const { answers } = payload as { answers: Array<{ queryName: string; eventName: string; resolution: 'connect' | 'create' | 'skip'; candidateNodeId?: string }> }
 
   if (!pendingImport) {
     figma.ui.postMessage({
@@ -605,17 +605,20 @@ export async function handleImportResolutionAnswered(
       const queryNodeId = pendingImport.queryNodeMap.get(normalizeName(answer.queryName))
       if (!queryNodeId) continue
 
+      const pendingEntry = pendingImport.pending.find(
+        p =>
+          normalizeName(p.queryName) === normalizeName(answer.queryName) &&
+          normalizeName(p.eventName) === normalizeName(answer.eventName)
+      )
+      if (!pendingEntry) continue
+
       if (answer.resolution === 'connect' && answer.candidateNodeId) {
-        const pendingEntry = pendingImport.pending.find(
-          p => normalizeName(p.queryName) === normalizeName(answer.queryName)
-        )
-        if (!pendingEntry) continue
         const isValidCandidate = pendingEntry.candidates.some(
           c => c.nodeId === answer.candidateNodeId
         )
         if (!isValidCandidate) continue
 
-        const candidateNode = figma.getNodeById(answer.candidateNodeId) as any
+        const candidateNode = (await figma.getNodeByIdAsync(answer.candidateNodeId)) as any
         if (candidateNode && candidateNode.getPluginData && candidateNode.getPluginData('type') === 'event') {
           createConnector(
             figma as any,
@@ -625,10 +628,6 @@ export async function handleImportResolutionAnswered(
           )
         }
       } else if (answer.resolution === 'create') {
-        const pendingEntry = pendingImport.pending.find(
-          p => normalizeName(p.queryName) === normalizeName(answer.queryName)
-        )
-        if (!pendingEntry) continue
         const eventName = pendingEntry.eventName
         const normalizedEventName = normalizeName(eventName)
 
@@ -646,7 +645,7 @@ export async function handleImportResolutionAnswered(
           newEvent.setPluginData('label', eventName)
           newEvent.setPluginData('external', 'false')
 
-          const sliceNode = figma.getNodeById(pendingImport.sliceNode.id) as any
+          const sliceNode = (await figma.getNodeByIdAsync(pendingImport.sliceNode.id)) as any
           if (sliceNode) {
             sliceNode.appendChild(newEvent)
           }
@@ -663,7 +662,7 @@ export async function handleImportResolutionAnswered(
       }
     }
 
-    const sliceNode = figma.getNodeById(pendingImport.sliceNode.id) as any
+    const sliceNode = (await figma.getNodeByIdAsync(pendingImport.sliceNode.id)) as any
     if (sliceNode) {
       figma.currentPage.selection = [sliceNode]
     }
@@ -687,7 +686,7 @@ export async function handleFocusNode(
 ): Promise<void> {
   const { nodeId } = payload as { nodeId: string }
 
-  const node = figma.getNodeById(nodeId)
+  const node = await figma.getNodeByIdAsync(nodeId)
   if (node) {
     figma.viewport.scrollAndZoomIntoView([node])
   } else {

@@ -4,7 +4,7 @@ import { ElementEditor, type SelectedElement } from '../view-selected-element'
 import { useTranslation, type Locale } from '../../shared/i18n'
 import { YAML_TEMPLATE } from '../import-from-yaml/template'
 import { parseImportYaml } from '../import-from-yaml/parser'
-import { ResolutionFlow, type PendingResolution } from '../import-from-yaml'
+import { ResolutionFlow, type PendingResolution, type ResolutionAnswer } from '../import-from-yaml'
 
 type EditorType = 'figma' | 'figjam' | null
 
@@ -322,7 +322,7 @@ export function Panel({ onCreateElement }: PanelProps) {
     setTimeout(() => setTemplateCopied(false), 2000)
   }
 
-  const handleResolutionDone = (answers: Array<{ kind: 'connect'; candidateNodeId: string } | { kind: 'create' } | { kind: 'skip' }>) => {
+  const handleResolutionDone = (answers: ResolutionAnswer[]) => {
     parent.postMessage({ pluginMessage: { type: 'import-resolution-answered', payload: { answers } } }, '*')
     setPending(null)
   }
