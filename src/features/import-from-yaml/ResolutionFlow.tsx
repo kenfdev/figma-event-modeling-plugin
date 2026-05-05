@@ -14,9 +14,9 @@ export interface PendingResolution {
 }
 
 export type ResolutionAnswer =
-  | { kind: 'connect'; candidateNodeId: string }
-  | { kind: 'create' }
-  | { kind: 'skip' }
+  | { queryName: string; eventName: string; resolution: 'connect'; candidateNodeId: string }
+  | { queryName: string; eventName: string; resolution: 'create' }
+  | { queryName: string; eventName: string; resolution: 'skip' }
 
 interface ResolutionFlowProps {
   pending: PendingResolution[]
@@ -49,15 +49,20 @@ export function ResolutionFlow({ pending, onDone, onFocus }: ResolutionFlowProps
 
   const handleConfirm = () => {
     if (!selectedCandidateId) return
-    advance({ kind: 'connect', candidateNodeId: selectedCandidateId })
+    advance({
+      queryName: current.queryName,
+      eventName: current.eventName,
+      resolution: 'connect',
+      candidateNodeId: selectedCandidateId,
+    })
   }
 
   const handleCreate = () => {
-    advance({ kind: 'create' })
+    advance({ queryName: current.queryName, eventName: current.eventName, resolution: 'create' })
   }
 
   const handleSkip = () => {
-    advance({ kind: 'skip' })
+    advance({ queryName: current.queryName, eventName: current.eventName, resolution: 'skip' })
   }
 
   return (

@@ -601,7 +601,7 @@ describe('Panel', () => {
           pluginMessage: {
             type: 'import-resolution-answered',
             payload: {
-              answers: [{ kind: 'create' }],
+              answers: [{ queryName: 'FindUser', eventName: 'UserFound', resolution: 'create' }],
             },
           },
         },

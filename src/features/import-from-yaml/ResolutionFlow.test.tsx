@@ -158,7 +158,7 @@ describe('ResolutionFlow', () => {
       ]} />)
       await user.click(screen.getByLabelText('RoadmapCreated (Slice A)'))
       await user.click(screen.getByRole('button', { name: 'Confirm' }))
-      expect(defaultProps.onDone).toHaveBeenCalledWith([{ kind: 'connect', candidateNodeId: 'node-456' }])
+      expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'connect', candidateNodeId: 'node-456' }])
     })
   })
 
@@ -190,7 +190,7 @@ describe('ResolutionFlow', () => {
         { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
       ]} />)
       await user.click(screen.getByRole('button', { name: 'Create' }))
-      expect(defaultProps.onDone).toHaveBeenCalledWith([{ kind: 'create' }])
+      expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'create' }])
     })
 
     it('calls onDone with skip answer when Skip is clicked', async () => {
@@ -199,7 +199,7 @@ describe('ResolutionFlow', () => {
         { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
       ]} />)
       await user.click(screen.getByRole('button', { name: 'Skip' }))
-      expect(defaultProps.onDone).toHaveBeenCalledWith([{ kind: 'skip' }])
+      expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'skip' }])
     })
   })
 
@@ -218,7 +218,7 @@ describe('ResolutionFlow', () => {
       ]} />)
       await user.click(screen.getByLabelText('E1 (Slice A)'))
       await user.keyboard('{Enter}')
-      expect(defaultProps.onDone).toHaveBeenCalledWith([{ kind: 'connect', candidateNodeId: 'n1' }])
+      expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'connect', candidateNodeId: 'n1' }])
     })
 
     it('Enter key triggers Create on no-match prompt', async () => {
@@ -228,7 +228,7 @@ describe('ResolutionFlow', () => {
       ]} />)
       await user.tab()
       await user.keyboard('{Enter}')
-      expect(defaultProps.onDone).toHaveBeenCalledWith([{ kind: 'create' }])
+      expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'create' }])
     })
   })
 
@@ -272,8 +272,8 @@ describe('ResolutionFlow', () => {
       expect(screen.getByText('Event 2 of 2')).toBeInTheDocument()
       await user.click(screen.getByRole('button', { name: 'Skip' }))
       expect(defaultProps.onDone).toHaveBeenCalledWith([
-        { kind: 'skip' },
-        { kind: 'skip' },
+        { queryName: 'Q1', eventName: 'E1', resolution: 'skip' },
+        { queryName: 'Q2', eventName: 'E2', resolution: 'skip' },
       ])
     })
 
@@ -294,8 +294,8 @@ describe('ResolutionFlow', () => {
       await user.click(screen.getByRole('button', { name: 'Confirm' }))
       await user.click(screen.getByRole('button', { name: 'Create' }))
       expect(defaultProps.onDone).toHaveBeenCalledWith([
-        { kind: 'connect', candidateNodeId: 'n1' },
-        { kind: 'create' },
+        { queryName: 'Q1', eventName: 'E1', resolution: 'connect', candidateNodeId: 'n1' },
+        { queryName: 'Q2', eventName: 'E2', resolution: 'create' },
       ])
     })
   })
