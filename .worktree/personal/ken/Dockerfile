@@ -51,5 +51,11 @@ USER vscode
 # --- Entrypoint for dotfiles setup ---
 COPY .worktree/personal/ken/entrypoint.sh /usr/local/bin/personal-entrypoint.sh
 RUN sudo chmod +x /usr/local/bin/personal-entrypoint.sh
+
+# Healthcheck: container is healthy once dotfiles install has finished.
+# Use with `docker compose up -d --wait` to block until ready.
+HEALTHCHECK --interval=2s --timeout=2s --start-period=1s --retries=120 \
+  CMD test -f /home/vscode/.dotfiles-installed || exit 1
+
 ENTRYPOINT ["/usr/local/bin/personal-entrypoint.sh"]
 CMD ["sleep", "infinity"]

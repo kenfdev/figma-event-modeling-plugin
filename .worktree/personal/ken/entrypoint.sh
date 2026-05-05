@@ -15,9 +15,12 @@ if [ ! -f "$MARKER" ] && [ -d "$DOTFILES_DIR/scripts" ]; then
     REMOTE_CONTAINERS=true bash "$DOTFILES_DIR/scripts/install.sh"
     touch "$MARKER"
     echo "[personal] Dotfiles setup complete."
+elif [ -f "$MARKER" ]; then
+    echo "[personal] Dotfiles already installed (remove $MARKER to re-run)."
 else
-    [ -f "$MARKER" ] && echo "[personal] Dotfiles already installed (remove $MARKER to re-run)."
-    [ ! -d "$DOTFILES_DIR/scripts" ] && echo "[personal] No dotfiles found at $DOTFILES_DIR — skipping."
+    echo "[personal] No dotfiles found at $DOTFILES_DIR — skipping."
+    # Mark complete so healthcheck reports healthy even without dotfiles.
+    touch "$MARKER"
 fi
 
 exec "$@"
