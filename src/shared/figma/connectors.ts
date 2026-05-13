@@ -4,6 +4,8 @@ interface FigmaCreateConnector {
     connectorStart: unknown
     connectorEnd: unknown
     connectorLineType: string
+    connectorStartStrokeCap?: string
+    connectorEndStrokeCap?: string
     strokes: readonly unknown[]
   }
 }
@@ -29,11 +31,18 @@ export interface ConnectorOptions {
 
 type ChainCategory = 'event' | 'query' | 'screen' | 'command'
 
-const CHAIN_FORWARD_PAIRS: ReadonlyArray<readonly [ChainCategory, ChainCategory]> = [
-  ['event', 'query'],
-  ['query', 'screen'],
-  ['screen', 'command'],
-  ['command', 'event'],
+interface ChainPairRecord {
+  source: ChainCategory
+  target: ChainCategory
+  magnetSource: ConnectorMagnet
+  magnetTarget: ConnectorMagnet
+}
+
+const CHAIN_FORWARD_PAIRS: ReadonlyArray<ChainPairRecord> = [
+  { source: 'command', target: 'event', magnetSource: 'BOTTOM', magnetTarget: 'TOP' },
+  { source: 'event', target: 'query', magnetSource: 'TOP', magnetTarget: 'BOTTOM' },
+  { source: 'query', target: 'screen', magnetSource: 'TOP', magnetTarget: 'BOTTOM' },
+  { source: 'screen', target: 'command', magnetSource: 'BOTTOM', magnetTarget: 'TOP' },
 ]
 
 function getChainCategory(type: string | undefined): ChainCategory | null {
@@ -51,13 +60,13 @@ function readType(node: NodeLike): string | undefined {
 function chainNeighborDirection(
   a: ChainCategory | null,
   b: ChainCategory | null
-): 'forward' | 'reverse' | 'none' {
-  if (!a || !b || a === b) return 'none'
-  for (const [src, tgt] of CHAIN_FORWARD_PAIRS) {
-    if (a === src && b === tgt) return 'forward'
-    if (a === tgt && b === src) return 'reverse'
+): { direction: 'forward' | 'reverse' | 'none'; pair: ChainPairRecord | null } {
+  if (!a || !b || a === b) return { direction: 'none', pair: null }
+  for (const pair of CHAIN_FORWARD_PAIRS) {
+    if (a === pair.source && b === pair.target) return { direction: 'forward', pair }
+    if (a === pair.target && b === pair.source) return { direction: 'reverse', pair }
   }
-  return 'none'
+  return { direction: 'none', pair: null }
 }
 
 export function createConnector(
@@ -66,20 +75,23 @@ export function createConnector(
   target: NodeLike,
   options: ConnectorOptions = {}
 ) {
-  const direction = chainNeighborDirection(
+  const { direction, pair } = chainNeighborDirection(
     getChainCategory(readType(source)),
     getChainCategory(readType(target))
   )
 
   let actualSource = source
   let actualTarget = target
-  let magnetSource = options.magnetSource ?? 'AUTO'
-  let magnetTarget = options.magnetTarget ?? 'AUTO'
+  let magnetSource: ConnectorMagnet = options.magnetSource ?? 'AUTO'
+  let magnetTarget: ConnectorMagnet = options.magnetTarget ?? 'AUTO'
 
-  if (direction === 'reverse') {
-    actualSource = target
-    actualTarget = source
-    ;[magnetSource, magnetTarget] = [magnetTarget, magnetSource]
+  if (direction !== 'none' && pair) {
+    if (direction === 'reverse') {
+      actualSource = target
+      actualTarget = source
+    }
+    magnetSource = pair.magnetSource
+    magnetTarget = pair.magnetTarget
   }
 
   const connector = figma.createConnector()
@@ -93,5 +105,11 @@ export function createConnector(
   }
   connector.connectorLineType = 'CURVED'
   connector.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }]
+
+  if (direction !== 'none') {
+    connector.connectorStartStrokeCap = 'NONE'
+    connector.connectorEndStrokeCap = 'ARROW_LINES'
+  }
+
   return connector
 }
