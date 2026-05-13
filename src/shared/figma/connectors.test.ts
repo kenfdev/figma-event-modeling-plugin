@@ -210,20 +210,33 @@ describe('createConnector', () => {
       expect((connector.connectorEnd as any).endpointNodeId).toBe('b')
     })
 
-    it('swaps magnets when reversing direction', () => {
+    it('applies canonical anchors when reversing a chain pair, ignoring caller magnets', () => {
       const source = nodeWithType('q-id', 'query')
       const target = nodeWithType('e-id', 'event')
+
+      const connector = createConnector(figmaMock, source, target, {
+        magnetSource: 'LEFT',
+        magnetTarget: 'RIGHT',
+      })
+
+      // event → query in chain direction: event is source (TOP), query is target (BOTTOM)
+      expect((connector.connectorStart as any).endpointNodeId).toBe('e-id')
+      expect((connector.connectorStart as any).magnet).toBe('TOP')
+      expect((connector.connectorEnd as any).endpointNodeId).toBe('q-id')
+      expect((connector.connectorEnd as any).magnet).toBe('BOTTOM')
+    })
+
+    it('honors caller magnet options for non-chain pairs', () => {
+      const source = nodeWithType('a-id', 'actor')
+      const target = nodeWithType('cmd-id', 'command')
 
       const connector = createConnector(figmaMock, source, target, {
         magnetSource: 'TOP',
         magnetTarget: 'BOTTOM',
       })
 
-      // event becomes the actual source
-      expect((connector.connectorStart as any).endpointNodeId).toBe('e-id')
-      expect((connector.connectorStart as any).magnet).toBe('BOTTOM')
-      expect((connector.connectorEnd as any).endpointNodeId).toBe('q-id')
-      expect((connector.connectorEnd as any).magnet).toBe('TOP')
+      expect((connector.connectorStart as any).magnet).toBe('TOP')
+      expect((connector.connectorEnd as any).magnet).toBe('BOTTOM')
     })
 
     it('treats external events the same as internal events', () => {
@@ -246,6 +259,159 @@ describe('createConnector', () => {
 
       expect((connector.connectorStart as any).endpointNodeId).toBe('a-id')
       expect((connector.connectorEnd as any).endpointNodeId).toBe('b-id')
+    })
+  })
+
+  describe('chain-direction anchors', () => {
+    function nodeWithType(id: string, type: string) {
+      return { id, getPluginData: (key: string) => (key === 'type' ? type : '') }
+    }
+
+    it.each([
+      { src: 'command', tgt: 'event', magnetSource: 'BOTTOM', magnetTarget: 'TOP' },
+      { src: 'event', tgt: 'query', magnetSource: 'TOP', magnetTarget: 'BOTTOM' },
+      { src: 'query', tgt: 'screen', magnetSource: 'TOP', magnetTarget: 'BOTTOM' },
+      { src: 'screen', tgt: 'command', magnetSource: 'BOTTOM', magnetTarget: 'TOP' },
+    ])(
+      'anchors $src→$tgt at source=$magnetSource and target=$magnetTarget',
+      ({ src, tgt, magnetSource, magnetTarget }) => {
+        const source = nodeWithType('src-id', src)
+        const target = nodeWithType('tgt-id', tgt)
+
+        const connector = createConnector(figmaMock, source, target)
+
+        expect((connector.connectorStart as any).endpointNodeId).toBe('src-id')
+        expect((connector.connectorStart as any).magnet).toBe(magnetSource)
+        expect((connector.connectorEnd as any).endpointNodeId).toBe('tgt-id')
+        expect((connector.connectorEnd as any).magnet).toBe(magnetTarget)
+      }
+    )
+
+    it.each([
+      { selSrc: 'event', selTgt: 'command', chainSrcId: 'sel-tgt', chainTgtId: 'sel-src', magnetSource: 'BOTTOM', magnetTarget: 'TOP' },
+      { selSrc: 'query', selTgt: 'event', chainSrcId: 'sel-tgt', chainTgtId: 'sel-src', magnetSource: 'TOP', magnetTarget: 'BOTTOM' },
+      { selSrc: 'screen', selTgt: 'query', chainSrcId: 'sel-tgt', chainTgtId: 'sel-src', magnetSource: 'TOP', magnetTarget: 'BOTTOM' },
+      { selSrc: 'command', selTgt: 'screen', chainSrcId: 'sel-tgt', chainTgtId: 'sel-src', magnetSource: 'BOTTOM', magnetTarget: 'TOP' },
+    ])(
+      'anchors $selSrc→$selTgt (reverse selection) with canonical magnets',
+      ({ selSrc, selTgt, chainSrcId, chainTgtId, magnetSource, magnetTarget }) => {
+        const source = nodeWithType('sel-src', selSrc)
+        const target = nodeWithType('sel-tgt', selTgt)
+
+        const connector = createConnector(figmaMock, source, target)
+
+        expect((connector.connectorStart as any).endpointNodeId).toBe(chainSrcId)
+        expect((connector.connectorStart as any).magnet).toBe(magnetSource)
+        expect((connector.connectorEnd as any).endpointNodeId).toBe(chainTgtId)
+        expect((connector.connectorEnd as any).magnet).toBe(magnetTarget)
+      }
+    )
+
+    it.each([
+      // processor substituted for screen in query→screen
+      { srcType: 'query', tgtType: 'processor', chainSrcId: 'src-id', chainTgtId: 'tgt-id', magnetSource: 'TOP', magnetTarget: 'BOTTOM' },
+      { srcType: 'processor', tgtType: 'query', chainSrcId: 'tgt-id', chainTgtId: 'src-id', magnetSource: 'TOP', magnetTarget: 'BOTTOM' },
+      // processor substituted for screen in screen→command
+      { srcType: 'processor', tgtType: 'command', chainSrcId: 'src-id', chainTgtId: 'tgt-id', magnetSource: 'BOTTOM', magnetTarget: 'TOP' },
+      { srcType: 'command', tgtType: 'processor', chainSrcId: 'tgt-id', chainTgtId: 'src-id', magnetSource: 'BOTTOM', magnetTarget: 'TOP' },
+    ])(
+      'processor parity for $srcType→$tgtType',
+      ({ srcType, tgtType, chainSrcId, chainTgtId, magnetSource, magnetTarget }) => {
+        const source = nodeWithType('src-id', srcType)
+        const target = nodeWithType('tgt-id', tgtType)
+
+        const connector = createConnector(figmaMock, source, target)
+
+        expect((connector.connectorStart as any).endpointNodeId).toBe(chainSrcId)
+        expect((connector.connectorStart as any).magnet).toBe(magnetSource)
+        expect((connector.connectorEnd as any).endpointNodeId).toBe(chainTgtId)
+        expect((connector.connectorEnd as any).magnet).toBe(magnetTarget)
+        expect((connector as any).connectorStartStrokeCap).toBe('NONE')
+        expect((connector as any).connectorEndStrokeCap).toBe('ARROW_LINES')
+      }
+    )
+  })
+
+  describe('chain-direction arrowheads', () => {
+    function nodeWithType(id: string, type: string) {
+      return { id, getPluginData: (key: string) => (key === 'type' ? type : '') }
+    }
+
+    it.each([
+      ['command', 'event'],
+      ['event', 'query'],
+      ['query', 'screen'],
+      ['screen', 'command'],
+    ])('renders a single arrowhead at the target end for %s→%s', (src, tgt) => {
+      const source = nodeWithType('src-id', src)
+      const target = nodeWithType('tgt-id', tgt)
+
+      const connector = createConnector(figmaMock, source, target)
+
+      expect((connector as any).connectorStartStrokeCap).toBe('NONE')
+      expect((connector as any).connectorEndStrokeCap).toBe('ARROW_LINES')
+    })
+
+    it.each([
+      ['screen', 'command'],
+      ['command', 'screen'],
+    ])('removes the double arrowhead on screen↔command (selection order %s→%s)', (src, tgt) => {
+      const source = nodeWithType('src-id', src)
+      const target = nodeWithType('tgt-id', tgt)
+
+      const connector = createConnector(figmaMock, source, target)
+
+      expect((connector as any).connectorStartStrokeCap).toBe('NONE')
+      expect((connector as any).connectorEndStrokeCap).toBe('ARROW_LINES')
+    })
+
+    it('leaves stroke caps untouched for actor+command (non-chain)', () => {
+      const source = nodeWithType('a-id', 'actor')
+      const target = nodeWithType('cmd-id', 'command')
+
+      const connector = createConnector(figmaMock, source, target)
+
+      expect((connector as any).connectorStartStrokeCap).toBeUndefined()
+      expect((connector as any).connectorEndStrokeCap).toBeUndefined()
+    })
+
+    it('leaves stroke caps untouched for event+screen (non-adjacent chain pair)', () => {
+      const source = nodeWithType('s-id', 'screen')
+      const target = nodeWithType('e-id', 'event')
+
+      const connector = createConnector(figmaMock, source, target)
+
+      expect((connector as any).connectorStartStrokeCap).toBeUndefined()
+      expect((connector as any).connectorEndStrokeCap).toBeUndefined()
+    })
+
+    it('leaves stroke caps untouched for event+event (same-type)', () => {
+      const source = nodeWithType('e1-id', 'event')
+      const target = nodeWithType('e2-id', 'event')
+
+      const connector = createConnector(figmaMock, source, target)
+
+      expect((connector as any).connectorStartStrokeCap).toBeUndefined()
+      expect((connector as any).connectorEndStrokeCap).toBeUndefined()
+    })
+
+    it('leaves stroke caps untouched when nodes have no getPluginData', () => {
+      const connector = createConnector(figmaMock, { id: 'a' }, { id: 'b' })
+
+      expect((connector as any).connectorStartStrokeCap).toBeUndefined()
+      expect((connector as any).connectorEndStrokeCap).toBeUndefined()
+    })
+
+    it('leaves stroke caps untouched and honors AUTO for non-chain magnets', () => {
+      const source = nodeWithType('a-id', 'actor')
+      const target = nodeWithType('cmd-id', 'command')
+
+      const connector = createConnector(figmaMock, source, target)
+
+      expect((connector.connectorStart as any).magnet).toBe('AUTO')
+      expect((connector.connectorEnd as any).magnet).toBe('AUTO')
+      expect((connector as any).connectorStartStrokeCap).toBeUndefined()
+      expect((connector as any).connectorEndStrokeCap).toBeUndefined()
     })
   })
 })
