@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { handleCopyMultiSliceToYaml } from './handlers'
 import { createFigmaMock, type FigmaMock } from '../../shared/test/mocks/figma'
 import { formatSliceAsYaml, type SliceNode } from '../export-slice-to-yaml/format'
+import { ORPHAN_EVENTS_NOTIFICATION } from '../export-slice-to-yaml/handlers'
 
 function createMockSlice(name: string, extra: Record<string, unknown> = {}) {
   const data: Record<string, string> = { type: 'slice', label: name }
@@ -21,7 +22,7 @@ function createMockSlice(name: string, extra: Record<string, unknown> = {}) {
 function createMockNode(pluginData: Record<string, string>, extra: Record<string, unknown> = {}) {
   const data = { ...pluginData }
   return {
-    id: `node-${Math.random().toString(36).slice(2)}`,
+    id: (extra.id as string) ?? `node-${Math.random().toString(36).slice(2)}`,
     type: (extra.type as string) ?? 'SHAPE_WITH_TEXT',
     name: (extra.name as string) ?? '',
     x: (extra.x as number) ?? 0,
@@ -31,6 +32,14 @@ function createMockNode(pluginData: Record<string, string>, extra: Record<string
       data[key] = value
     }),
     getPluginData: vi.fn((key: string) => data[key] || ''),
+  }
+}
+
+function createConnector(startId: string, endId: string) {
+  return {
+    type: 'CONNECTOR',
+    connectorStart: { endpointNodeId: startId },
+    connectorEnd: { endpointNodeId: endId },
   }
 }
 
@@ -174,11 +183,55 @@ describe('handleCopyMultiSliceToYaml', () => {
   })
 
   it('each slice YAML matches formatSliceAsYaml in isolation', async () => {
-    const command1 = createMockNode({ type: 'command', label: 'Cmd1' })
-    const slice1 = createMockSlice('Slice1', { x: 0, children: [command1] })
+    const command1 = createMockNode({ type: 'command', label: 'Cmd1' }, { id: 'cmd1' })
+    const event1 = createMockNode({ type: 'event', label: 'Evt1' }, { id: 'ev1' })
+    const slice1 = createMockSlice('Slice1', { x: 0, children: [command1, event1] })
 
-    const event2 = createMockNode({ type: 'event', label: 'Evt2' })
-    const slice2 = createMockSlice('Slice2', { x: 200, children: [event2] })
+    const command2 = createMockNode({ type: 'command', label: 'Cmd2' }, { id: 'cmd2' })
+    const event2 = createMockNode({ type: 'event', label: 'Evt2' }, { id: 'ev2' })
+    const slice2 = createMockSlice('Slice2', { x: 200, children: [command2, event2] })
+
+    const sectionNode = {
+      id: 'section-1',
+      type: 'SECTION',
+      name: 'Wrapper',
+      children: [slice1, slice2],
+    }
+
+    figmaMock.getNodeByIdAsync.mockResolvedValue(sectionNode)
+    figmaMock.currentPage.findAll.mockImplementation(
+      (predicate: (n: { type: string }) => boolean) =>
+        [
+          createConnector('cmd1', 'ev1'),
+          createConnector('cmd2', 'ev2'),
+        ].filter((c) => predicate(c))
+    )
+
+    await handleCopyMultiSliceToYaml({ id: 'section-1' }, { figma: figmaMock as unknown as typeof figma })
+
+    const call = figmaMock.ui.postMessage.mock.calls[0][0]
+    const yamlStr: string = call.payload.yaml
+    const parts = yamlStr.split('\n---\n')
+
+    const isolated1 = formatSliceAsYaml(
+      slice1 as unknown as SliceNode,
+      figmaMock as unknown as Parameters<typeof formatSliceAsYaml>[1]
+    ).yaml.trim()
+    const isolated2 = formatSliceAsYaml(
+      slice2 as unknown as SliceNode,
+      figmaMock as unknown as Parameters<typeof formatSliceAsYaml>[1]
+    ).yaml.trim()
+
+    expect(parts[0].trim()).toBe(isolated1)
+    expect(parts[1].trim()).toBe(isolated2)
+  })
+
+  it('emits a screen block per slice in multi-slice output', async () => {
+    const screen1 = createMockNode({ type: 'screen', label: 'ScreenA' }, { id: 'scrA' })
+    const slice1 = createMockSlice('Slice1', { x: 0, children: [screen1] })
+
+    const screen2 = createMockNode({ type: 'processor', label: 'JobB' }, { id: 'scrB' })
+    const slice2 = createMockSlice('Slice2', { x: 200, children: [screen2] })
 
     const sectionNode = {
       id: 'section-1',
@@ -189,17 +242,68 @@ describe('handleCopyMultiSliceToYaml', () => {
 
     figmaMock.getNodeByIdAsync.mockResolvedValue(sectionNode)
 
-    await handleCopyMultiSliceToYaml({ id: 'section-1' }, { figma: figmaMock as unknown as typeof figma })
+    await handleCopyMultiSliceToYaml(
+      { id: 'section-1' },
+      { figma: figmaMock as unknown as typeof figma }
+    )
 
     const call = figmaMock.ui.postMessage.mock.calls[0][0]
     const yamlStr: string = call.payload.yaml
     const parts = yamlStr.split('\n---\n')
+    expect(parts[0]).toContain('name: ScreenA')
+    expect(parts[0]).toContain('type: user')
+    expect(parts[1]).toContain('name: JobB')
+    expect(parts[1]).toContain('type: system')
+  })
 
-    const isolated1 = formatSliceAsYaml(slice1 as unknown as SliceNode).trim()
-    const isolated2 = formatSliceAsYaml(slice2 as unknown as SliceNode).trim()
+  it('fires a single notification when any slice has orphan events', async () => {
+    const orphan1 = createMockNode({ type: 'event', label: 'StrayA' }, { id: 'evA' })
+    const slice1 = createMockSlice('Slice1', { x: 0, children: [orphan1] })
+    const orphan2 = createMockNode({ type: 'event', label: 'StrayB' }, { id: 'evB' })
+    const slice2 = createMockSlice('Slice2', { x: 200, children: [orphan2] })
 
-    expect(parts[0].trim()).toBe(isolated1)
-    expect(parts[1].trim()).toBe(isolated2)
+    const sectionNode = {
+      id: 'section-1',
+      type: 'SECTION',
+      name: 'Wrapper',
+      children: [slice1, slice2],
+    }
+
+    figmaMock.getNodeByIdAsync.mockResolvedValue(sectionNode)
+
+    await handleCopyMultiSliceToYaml(
+      { id: 'section-1' },
+      { figma: figmaMock as unknown as typeof figma }
+    )
+
+    expect(figmaMock.notify).toHaveBeenCalledTimes(1)
+    expect(figmaMock.notify).toHaveBeenCalledWith(ORPHAN_EVENTS_NOTIFICATION)
+  })
+
+  it('does not notify when all slices are clean', async () => {
+    const cmd1 = createMockNode({ type: 'command', label: 'Cmd1' }, { id: 'cmd1' })
+    const ev1 = createMockNode({ type: 'event', label: 'Ev1' }, { id: 'ev1' })
+    const slice1 = createMockSlice('Slice1', { x: 0, children: [cmd1, ev1] })
+
+    const sectionNode = {
+      id: 'section-1',
+      type: 'SECTION',
+      name: 'Wrapper',
+      children: [slice1],
+    }
+
+    figmaMock.getNodeByIdAsync.mockResolvedValue(sectionNode)
+    figmaMock.currentPage.findAll.mockImplementation(
+      (predicate: (n: { type: string }) => boolean) =>
+        [createConnector('cmd1', 'ev1')].filter((c) => predicate(c))
+    )
+
+    await handleCopyMultiSliceToYaml(
+      { id: 'section-1' },
+      { figma: figmaMock as unknown as typeof figma }
+    )
+
+    expect(figmaMock.notify).not.toHaveBeenCalled()
   })
 
   describe('ids[] payload variant', () => {

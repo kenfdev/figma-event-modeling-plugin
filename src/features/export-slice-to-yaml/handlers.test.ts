@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { handleExportSliceToYaml } from './handlers'
+import { handleExportSliceToYaml, ORPHAN_EVENTS_NOTIFICATION } from './handlers'
 import { createFigmaMock, type FigmaMock } from '../../shared/test/mocks/figma'
 import { serializeFields } from '../update-custom-fields/field-utils'
 
@@ -9,7 +9,7 @@ function createMockNode(
 ) {
   const data = { ...pluginData }
   return {
-    id: `node-${Math.random().toString(36).slice(2)}`,
+    id: (extra.id as string) ?? `node-${Math.random().toString(36).slice(2)}`,
     type: (extra.type as string) ?? 'SHAPE_WITH_TEXT',
     name: (extra.name as string) ?? '',
     text: extra.text ?? { characters: data.label ?? '' },
@@ -21,10 +21,7 @@ function createMockNode(
   }
 }
 
-function createMockSlice(
-  name: string,
-  children: unknown[] = []
-) {
+function createMockSlice(name: string, children: unknown[] = []) {
   const data: Record<string, string> = { type: 'slice', label: name }
   return {
     id: 'slice-1',
@@ -35,6 +32,14 @@ function createMockSlice(
       data[key] = value
     }),
     getPluginData: vi.fn((key: string) => data[key] || ''),
+  }
+}
+
+function createConnector(startId: string, endId: string) {
+  return {
+    type: 'CONNECTOR',
+    connectorStart: { endpointNodeId: startId },
+    connectorEnd: { endpointNodeId: endId },
   }
 }
 
@@ -73,7 +78,7 @@ describe('handleExportSliceToYaml', () => {
     expect(figmaMock.ui.postMessage).not.toHaveBeenCalled()
   })
 
-  it('generates yaml with slice name for empty slice', async () => {
+  it('generates yaml with slice name and minimal screen block for empty slice', async () => {
     const slice = createMockSlice('My Slice')
     figmaMock.currentPage.selection = [slice]
 
@@ -81,14 +86,11 @@ describe('handleExportSliceToYaml', () => {
       figma: figmaMock as unknown as typeof figma,
     })
 
-    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'export-slice-to-yaml-result',
-        payload: expect.objectContaining({
-          yaml: expect.stringContaining('slice: My Slice'),
-        }),
-      })
-    )
+    const call = figmaMock.ui.postMessage.mock.calls[0][0]
+    const yamlStr: string = call.payload.yaml
+    expect(yamlStr).toContain('slice: My Slice')
+    expect(yamlStr).toContain('screen:')
+    expect(yamlStr).toContain('type: user')
   })
 
   it('exports commands with name', async () => {
@@ -104,22 +106,6 @@ describe('handleExportSliceToYaml', () => {
     const yamlStr: string = call.payload.yaml
     expect(yamlStr).toContain('commands:')
     expect(yamlStr).toContain('- name: PlaceOrder')
-  })
-
-  it('exports events with name and external flag', async () => {
-    const event = createMockNode({ type: 'event', label: 'OrderPlaced', external: 'true' })
-    const slice = createMockSlice('OrderSlice', [event])
-    figmaMock.currentPage.selection = [slice]
-
-    await handleExportSliceToYaml({}, {
-      figma: figmaMock as unknown as typeof figma,
-    })
-
-    const call = figmaMock.ui.postMessage.mock.calls[0][0]
-    const yamlStr: string = call.payload.yaml
-    expect(yamlStr).toContain('events:')
-    expect(yamlStr).toContain('- name: OrderPlaced')
-    expect(yamlStr).toContain('external: true')
   })
 
   it('exports queries with name', async () => {
@@ -223,7 +209,6 @@ describe('handleExportSliceToYaml', () => {
     expect(yamlStr).toContain('type: command')
     expect(yamlStr).toContain('then:')
     expect(yamlStr).toContain('- name: PaymentProcessed')
-    expect(yamlStr).toContain('type: event')
   })
 
   it('exports GWT items with custom fields', async () => {
@@ -298,7 +283,7 @@ describe('handleExportSliceToYaml', () => {
     expect(yamlStr).toContain('description: Roadmaps with exact same title are not allowed')
   })
 
-  it('exports empty slice without error', async () => {
+  it('exports empty slice with screen block and no element collections', async () => {
     const slice = createMockSlice('EmptySlice')
     figmaMock.currentPage.selection = [slice]
 
@@ -306,14 +291,13 @@ describe('handleExportSliceToYaml', () => {
       figma: figmaMock as unknown as typeof figma,
     })
 
-    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'export-slice-to-yaml-result',
-        payload: expect.objectContaining({
-          yaml: expect.stringContaining('slice: EmptySlice'),
-        }),
-      })
-    )
+    const call = figmaMock.ui.postMessage.mock.calls[0][0]
+    const yamlStr: string = call.payload.yaml
+    expect(yamlStr).toContain('slice: EmptySlice')
+    expect(yamlStr).toContain('screen:')
+    expect(yamlStr).toContain('type: user')
+    expect(yamlStr).not.toContain('commands:')
+    expect(yamlStr).not.toContain('queries:')
   })
 
   it('omits optional keys when empty', async () => {
@@ -329,21 +313,15 @@ describe('handleExportSliceToYaml', () => {
     const yamlStr: string = call.payload.yaml
     expect(yamlStr).not.toContain('notes:')
     expect(yamlStr).not.toContain('fields:')
+    expect(yamlStr).not.toContain('produces:')
   })
 
-  it('produces valid YAML matching import schema', async () => {
-    const command = createMockNode({
-      type: 'command',
-      label: 'PlaceOrder',
-      customFields: serializeFields([{ name: 'orderId', type: 'string' }]),
-      notes: 'Test note',
-    })
-    const event = createMockNode({
-      type: 'event',
-      label: 'OrderPlaced',
-      external: 'true',
-    })
-    const slice = createMockSlice('TestSlice', [command, event])
+  it('does not emit top-level events; events with no producing command are dropped and reported', async () => {
+    const event = createMockNode(
+      { type: 'event', label: 'OrphanEvent' },
+      { id: 'ev1' }
+    )
+    const slice = createMockSlice('TestSlice', [event])
     figmaMock.currentPage.selection = [slice]
 
     await handleExportSliceToYaml({}, {
@@ -352,10 +330,96 @@ describe('handleExportSliceToYaml', () => {
 
     const call = figmaMock.ui.postMessage.mock.calls[0][0]
     const yamlStr: string = call.payload.yaml
-    expect(yamlStr).toContain('slice: TestSlice')
-    expect(yamlStr).toContain('commands:')
-    expect(yamlStr).toContain('events:')
-    expect(yamlStr).toContain('external: true')
-    expect(yamlStr).not.toContain('external: false')
+    expect(yamlStr).not.toMatch(/^events:/m)
+    expect(yamlStr).not.toContain('OrphanEvent')
+    expect(figmaMock.notify).toHaveBeenCalledWith(ORPHAN_EVENTS_NOTIFICATION)
+  })
+
+  it('does not notify when every event is produced by a command', async () => {
+    const cmd = createMockNode(
+      { type: 'command', label: 'PlaceOrder' },
+      { id: 'cmd1' }
+    )
+    const event = createMockNode(
+      { type: 'event', label: 'OrderPlaced' },
+      { id: 'ev1' }
+    )
+    const slice = createMockSlice('TestSlice', [cmd, event])
+    figmaMock.currentPage.selection = [slice]
+    figmaMock.currentPage.findAll.mockImplementation(
+      (predicate: (n: { type: string }) => boolean) =>
+        [createConnector('cmd1', 'ev1')].filter((c) => predicate(c))
+    )
+
+    await handleExportSliceToYaml({}, {
+      figma: figmaMock as unknown as typeof figma,
+    })
+
+    expect(figmaMock.notify).not.toHaveBeenCalled()
+  })
+
+  it('strips the external marker from events on export', async () => {
+    const cmd = createMockNode(
+      { type: 'command', label: 'PlaceOrder' },
+      { id: 'cmd1' }
+    )
+    const event = createMockNode(
+      { type: 'event', label: 'OrderPlaced', external: 'true' },
+      { id: 'ev1' }
+    )
+    const slice = createMockSlice('TestSlice', [cmd, event])
+    figmaMock.currentPage.selection = [slice]
+    figmaMock.currentPage.findAll.mockImplementation(
+      (predicate: (n: { type: string }) => boolean) =>
+        [createConnector('cmd1', 'ev1')].filter((c) => predicate(c))
+    )
+
+    await handleExportSliceToYaml({}, {
+      figma: figmaMock as unknown as typeof figma,
+    })
+
+    const call = figmaMock.ui.postMessage.mock.calls[0][0]
+    const yamlStr: string = call.payload.yaml
+    expect(yamlStr).not.toContain('external:')
+    expect(yamlStr).toContain('produces:')
+    expect(yamlStr).toContain('- OrderPlaced')
+  })
+
+  it('emits screen block with reads/executes from connectors', async () => {
+    const screen = createMockNode(
+      { type: 'screen', label: 'OrderScreen' },
+      { id: 'scr1' }
+    )
+    const cmd = createMockNode(
+      { type: 'command', label: 'PlaceOrder' },
+      { id: 'cmd1' }
+    )
+    const query = createMockNode(
+      { type: 'query', label: 'GetOrder' },
+      { id: 'q1' }
+    )
+    const slice = createMockSlice('OrderSlice', [screen, cmd, query])
+    figmaMock.currentPage.selection = [slice]
+    figmaMock.currentPage.findAll.mockImplementation(
+      (predicate: (n: { type: string }) => boolean) =>
+        [
+          createConnector('scr1', 'cmd1'),
+          createConnector('q1', 'scr1'),
+        ].filter((c) => predicate(c))
+    )
+
+    await handleExportSliceToYaml({}, {
+      figma: figmaMock as unknown as typeof figma,
+    })
+
+    const call = figmaMock.ui.postMessage.mock.calls[0][0]
+    const yamlStr: string = call.payload.yaml
+    expect(yamlStr).toContain('screen:')
+    expect(yamlStr).toContain('type: user')
+    expect(yamlStr).toContain('name: OrderScreen')
+    expect(yamlStr).toContain('reads:')
+    expect(yamlStr).toContain('- GetOrder')
+    expect(yamlStr).toContain('executes:')
+    expect(yamlStr).toContain('- PlaceOrder')
   })
 })

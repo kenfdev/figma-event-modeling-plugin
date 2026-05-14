@@ -1,6 +1,9 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
 import { formatSliceAsYaml, type SliceNode } from './format'
 
+export const ORPHAN_EVENTS_NOTIFICATION =
+  'Some events were skipped because they had no producing command'
+
 export async function handleExportSliceToYaml(
   payload: { id?: string },
   { figma }: MessageHandlerContext
@@ -17,7 +20,11 @@ export async function handleExportSliceToYaml(
     slice = selection[0] as unknown as SliceNode
   }
 
-  const yamlStr = formatSliceAsYaml(slice)
+  const { yaml: yamlStr, orphanEvents } = formatSliceAsYaml(slice, figma)
+
+  if (orphanEvents.length > 0) {
+    figma.notify(ORPHAN_EVENTS_NOTIFICATION)
+  }
 
   figma.ui.postMessage({
     type: 'export-slice-to-yaml-result',

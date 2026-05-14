@@ -1,7 +1,22 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
 import { formatSliceAsYaml, type SliceNode } from '../export-slice-to-yaml/format'
+import { ORPHAN_EVENTS_NOTIFICATION } from '../export-slice-to-yaml/handlers'
 
 type CopyMultiSlicePayload = { id: string } | { ids: string[] }
+
+function formatSlices(
+  slices: SliceNode[],
+  figma: MessageHandlerContext['figma']
+): { yaml: string; orphanEvents: string[] } {
+  const orphans: string[] = []
+  const yamlParts = slices.map((slice) => {
+    const result = formatSliceAsYaml(slice, figma)
+    orphans.push(...result.orphanEvents)
+    return result.yaml.trim()
+  })
+  const yaml = yamlParts.join('\n---\n') + '\n'
+  return { yaml, orphanEvents: orphans }
+}
 
 export async function handleCopyMultiSliceToYaml(
   payload: CopyMultiSlicePayload,
@@ -30,11 +45,14 @@ export async function handleCopyMultiSliceToYaml(
       }
 
       const sortedNodes = [...nodes].sort((a, b) => a.x - b.x)
-      const yamlParts = sortedNodes.map((node) =>
-        formatSliceAsYaml(node as unknown as SliceNode).trim()
+      const { yaml, orphanEvents } = formatSlices(
+        sortedNodes as unknown as SliceNode[],
+        figma
       )
 
-      const yaml = yamlParts.join('\n---\n') + '\n'
+      if (orphanEvents.length > 0) {
+        figma.notify(ORPHAN_EVENTS_NOTIFICATION)
+      }
 
       figma.ui.postMessage({
         type: 'copy-multi-slice-to-yaml-result',
@@ -74,12 +92,14 @@ export async function handleCopyMultiSliceToYaml(
     }
 
     const sortedSlices = [...slices].sort((a, b) => a.x - b.x)
-
-    const yamlParts = sortedSlices.map(slice =>
-      formatSliceAsYaml(slice as unknown as SliceNode).trim()
+    const { yaml, orphanEvents } = formatSlices(
+      sortedSlices as unknown as SliceNode[],
+      figma
     )
 
-    const yaml = yamlParts.join('\n---\n') + '\n'
+    if (orphanEvents.length > 0) {
+      figma.notify(ORPHAN_EVENTS_NOTIFICATION)
+    }
 
     figma.ui.postMessage({
       type: 'copy-multi-slice-to-yaml-result',
