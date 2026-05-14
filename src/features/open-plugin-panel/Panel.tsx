@@ -5,6 +5,7 @@ import { useTranslation, type Locale } from '../../shared/i18n'
 import { YAML_TEMPLATE } from '../import-from-yaml/template'
 import { parseImportYaml } from '../import-from-yaml/parser'
 import { ResolutionFlow, type PendingResolution, type ResolutionAnswer } from '../import-from-yaml'
+import { MarkImageAsScreen } from '../mark-image-as-screen'
 
 type EditorType = 'figma' | 'figjam' | null
 
@@ -188,6 +189,8 @@ export function Panel({ onCreateElement }: PanelProps) {
   const [multipleSelected, setMultipleSelected] = useState(false)
   const [selectionCount, setSelectionCount] = useState(0)
   const [multiSliceIds, setMultiSliceIds] = useState<string[] | undefined>(undefined)
+  const [hasPlainImages, setHasPlainImages] = useState(false)
+  const [hasScreenImages, setHasScreenImages] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showSettings, setShowSettings] = useState(false)
@@ -213,16 +216,31 @@ export function Panel({ onCreateElement }: PanelProps) {
         setEditorType(message.payload?.editorType)
       }
       if (message?.type === 'selection-changed') {
-        if (message.payload?.multiple) {
+        const payload = message.payload
+        setHasPlainImages(payload?.hasPlainImages === true)
+        setHasScreenImages(payload?.hasScreenImages === true)
+        if (payload?.multiple) {
           setMultipleSelected(true)
           setSelectedElement(null)
-          setSelectionCount(message.payload?.count ?? 0)
-          setMultiSliceIds(message.payload?.multiSliceIds)
+          setSelectionCount(payload?.count ?? 0)
+          setMultiSliceIds(payload?.multiSliceIds)
         } else {
           setMultipleSelected(false)
-          setSelectedElement(message.payload)
+          setSelectedElement(payload && payload.id ? payload : null)
           setSelectionCount(0)
           setMultiSliceIds(undefined)
+        }
+      }
+      if (message?.type === 'mark-as-screen-success') {
+        const count = message.payload?.count ?? 0
+        if (count > 0) {
+          showToast(t('messages.markedAsScreen'))
+        }
+      }
+      if (message?.type === 'revert-screen-success') {
+        const count = message.payload?.count ?? 0
+        if (count > 0) {
+          showToast(t('messages.revertedScreen'))
         }
       }
       if (message?.type === 'export-slice-to-markdown-result') {
@@ -407,6 +425,21 @@ export function Panel({ onCreateElement }: PanelProps) {
             collapsed={!!collapsedSections['sections']}
             onToggle={() => setCollapsedSections(prev => ({ ...prev, sections: !prev.sections }))}
           />
+
+          <div className="section">
+            <h2
+              onClick={() => setCollapsedSections(prev => ({ ...prev, image: !prev.image }))}
+              style={{ cursor: 'pointer' }}
+            >
+              {collapsedSections['image'] ? '▸' : '▾'} {t('sections.image')}
+            </h2>
+            {!collapsedSections['image'] && (
+              <MarkImageAsScreen
+                hasPlainImages={hasPlainImages}
+                hasScreenImages={hasScreenImages}
+              />
+            )}
+          </div>
 
           <div className="section">
             <h2 onClick={() => setCollapsedSections(prev => ({ ...prev, other: !prev.other }))} style={{ cursor: 'pointer' }}>

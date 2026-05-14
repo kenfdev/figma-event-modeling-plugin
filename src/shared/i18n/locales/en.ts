@@ -7,6 +7,7 @@ const en = {
     coreShapes: 'Core Shapes',
     structural: 'Structural',
     sections: 'Sections',
+    image: 'Image',
     other: 'Other',
     import: 'Import',
   },
@@ -19,6 +20,8 @@ const en = {
     exportToYaml: 'Export to YAML',
     copyToYaml: 'Copy to YAML',
     connect: 'Connect',
+    markAsScreen: 'Mark as Screen',
+    revertScreen: 'Revert to Image',
   },
   editor: {
     selectedElement: 'Selected Element',
@@ -35,6 +38,8 @@ const en = {
     copiedToClipboard: 'Copied to clipboard!',
     failedToCopy: 'Failed to copy to clipboard',
     figjamOnly: 'This plugin only works in FigJam. Please open a FigJam file to use this plugin.',
+    markedAsScreen: 'Marked as Screen',
+    revertedScreen: 'Reverted to Image',
   },
   placeholders: {
     pasteYaml: 'Paste YAML here...',

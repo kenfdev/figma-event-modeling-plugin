@@ -989,6 +989,95 @@ describe('handleSelectionChange', () => {
     })
   })
 
+  describe('image selection info', () => {
+    function createPlainImageNode(id = 'img-1') {
+      return {
+        id,
+        name: 'Pasted Image',
+        type: 'RECTANGLE',
+        fills: [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: 'h1' }],
+        getPluginData: vi.fn(() => ''),
+      }
+    }
+
+    function createScreenImageNode(id = 'screen-img-1') {
+      return {
+        id,
+        name: 'Screen Image',
+        type: 'RECTANGLE',
+        fills: [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: 'h2' }],
+        getPluginData: vi.fn((key: string) => (key === 'type' ? 'screen' : '')),
+      }
+    }
+
+    it('adds hasPlainImages=true when a plain image is single-selected', () => {
+      figmaMock.currentPage.selection = [createPlainImageNode()]
+
+      handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+      const call = (figmaMock.ui.postMessage as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      expect(call.payload).toEqual(expect.objectContaining({ hasPlainImages: true }))
+      expect(call.payload).not.toHaveProperty('hasScreenImages')
+    })
+
+    it('adds hasScreenImages=true when a screen-marked image is single-selected', () => {
+      figmaMock.currentPage.selection = [createScreenImageNode()]
+
+      handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+      const call = (figmaMock.ui.postMessage as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      expect(call.payload).toEqual(
+        expect.objectContaining({ type: 'screen', hasScreenImages: true })
+      )
+      expect(call.payload).not.toHaveProperty('hasPlainImages')
+    })
+
+    it('adds both flags when a mixed multi-selection contains a plain image and a screen image', () => {
+      figmaMock.currentPage.selection = [
+        createPlainImageNode('img-1'),
+        createScreenImageNode('screen-1'),
+      ]
+
+      handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+      const call = (figmaMock.ui.postMessage as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      expect(call.payload).toEqual(
+        expect.objectContaining({
+          multiple: true,
+          count: 2,
+          hasPlainImages: true,
+          hasScreenImages: true,
+        })
+      )
+    })
+
+    it('omits both flags when no image is in the selection', () => {
+      const mockNode = {
+        id: 'node-1',
+        name: 'My Command',
+        getPluginData: vi.fn((key: string) => (key === 'type' ? 'command' : '')),
+      }
+      figmaMock.currentPage.selection = [mockNode]
+
+      handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+      const call = (figmaMock.ui.postMessage as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      expect(call.payload).not.toHaveProperty('hasPlainImages')
+      expect(call.payload).not.toHaveProperty('hasScreenImages')
+    })
+
+    it('returns image-only payload when a plain image with no plugin data is selected', () => {
+      figmaMock.currentPage.selection = [createPlainImageNode()]
+
+      handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+        type: 'selection-changed',
+        payload: { hasPlainImages: true },
+      })
+    })
+  })
+
   it('does not interfere with slice element selection (SECTION with type=slice)', () => {
     const mockNode = {
       id: 'node-1',

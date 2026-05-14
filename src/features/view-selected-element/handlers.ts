@@ -1,5 +1,6 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
+import { hasImageFill } from '../mark-image-as-screen/handlers'
 
 const CORE_ELEMENT_TYPES: readonly ElementType[] = ['command', 'event', 'query', 'actor']
 
@@ -9,12 +10,37 @@ export interface SelectionChangePayload {
   name: string
   pluginData?: Record<string, string>
   sliceCount?: number
+  hasPlainImages?: boolean
+  hasScreenImages?: boolean
+}
+
+interface ImageSelectionInfo {
+  hasPlainImages?: boolean
+  hasScreenImages?: boolean
+}
+
+function computeImageSelectionInfo(selection: readonly SceneNode[]): ImageSelectionInfo {
+  let hasPlainImages = false
+  let hasScreenImages = false
+  for (const node of selection) {
+    if (!hasImageFill(node)) continue
+    if (node.getPluginData('type') === 'screen') {
+      hasScreenImages = true
+    } else {
+      hasPlainImages = true
+    }
+  }
+  const info: ImageSelectionInfo = {}
+  if (hasPlainImages) info.hasPlainImages = true
+  if (hasScreenImages) info.hasScreenImages = true
+  return info
 }
 
 export function handleSelectionChange({
   figma,
 }: MessageHandlerContext): void {
   const selection = figma.currentPage.selection
+  const imageInfo = computeImageSelectionInfo(selection as readonly SceneNode[])
 
   if (selection.length === 0) {
     figma.ui.postMessage({
@@ -32,13 +58,18 @@ export function handleSelectionChange({
       const multiSliceIds = selection.map((node) => node.id)
       figma.ui.postMessage({
         type: 'selection-changed',
-        payload: { multiple: true, count: selection.length, multiSliceIds },
+        payload: {
+          multiple: true,
+          count: selection.length,
+          multiSliceIds,
+          ...imageInfo,
+        },
       })
       return
     }
     figma.ui.postMessage({
       type: 'selection-changed',
-      payload: { multiple: true, count: selection.length },
+      payload: { multiple: true, count: selection.length, ...imageInfo },
     })
     return
   }
@@ -55,10 +86,23 @@ export function handleSelectionChange({
       if (sliceCount >= 1) {
         figma.ui.postMessage({
           type: 'selection-changed',
-          payload: { id: node.id, type: 'wrapping-section' as const, name: node.name, sliceCount },
+          payload: {
+            id: node.id,
+            type: 'wrapping-section' as const,
+            name: node.name,
+            sliceCount,
+            ...imageInfo,
+          },
         })
         return
       }
+    }
+    if (imageInfo.hasPlainImages || imageInfo.hasScreenImages) {
+      figma.ui.postMessage({
+        type: 'selection-changed',
+        payload: { ...imageInfo },
+      })
+      return
     }
     figma.ui.postMessage({
       type: 'selection-changed',
@@ -88,6 +132,7 @@ export function handleSelectionChange({
     notes: node.getPluginData('notes') || '',
     external: node.getPluginData('external') === 'true',
     issueUrl: node.getPluginData('issueUrl') || '',
+    ...imageInfo,
   }
 
   if ('getPluginDataKeys' in node && typeof node.getPluginDataKeys === 'function') {

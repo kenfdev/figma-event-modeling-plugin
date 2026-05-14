@@ -38,6 +38,12 @@ import {
   handleFocusNode,
 } from './features/import-from-yaml/sandbox'
 import { handleChangeElementType } from './features/change-element-type/sandbox'
+import {
+  handleMarkImagesAsScreen,
+  handleRevertScreenImages,
+  MARK_AS_SCREEN_MESSAGE,
+  REVERT_SCREEN_MESSAGE,
+} from './features/mark-image-as-screen/sandbox'
 import { handleGetLocale, handleSetLocale } from './shared/i18n/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
@@ -66,6 +72,8 @@ registerHandler('import-from-yaml', handleImportFromYaml)
 registerHandler('import-resolution-answered', handleImportResolutionAnswered)
 registerHandler('focus-node', handleFocusNode)
 registerHandler('change-element-type', handleChangeElementType as MessageHandler)
+registerHandler(MARK_AS_SCREEN_MESSAGE, handleMarkImagesAsScreen)
+registerHandler(REVERT_SCREEN_MESSAGE, handleRevertScreenImages)
 registerHandler('get-locale', handleGetLocale)
 registerHandler('set-locale', handleSetLocale as MessageHandler)
 
