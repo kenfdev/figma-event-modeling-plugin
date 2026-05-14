@@ -7,6 +7,7 @@ const ja = {
     coreShapes: '基本シェイプ',
     structural: '構造',
     sections: 'セクション',
+    image: '画像',
     other: 'その他',
     import: 'インポート',
   },
@@ -19,6 +20,8 @@ const ja = {
     exportToYaml: 'YAMLにエクスポート',
     copyToYaml: 'YAMLにコピー',
     connect: '接続',
+    markAsScreen: 'スクリーンとしてマーク',
+    revertScreen: '画像に戻す',
   },
   editor: {
     selectedElement: '選択中の要素',
@@ -35,6 +38,8 @@ const ja = {
     copiedToClipboard: 'クリップボードにコピーしました！',
     failedToCopy: 'クリップボードへのコピーに失敗しました',
     figjamOnly: 'このプラグインはFigJamでのみ動作します。FigJamファイルを開いてご利用ください。',
+    markedAsScreen: 'スクリーンとしてマークしました',
+    revertedScreen: '画像に戻しました',
   },
   placeholders: {
     pasteYaml: 'YAMLをここに貼り付け...',

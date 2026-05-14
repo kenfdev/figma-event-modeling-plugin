@@ -108,6 +108,38 @@ h2 {
 
 /* Element type button classes (used by card-button for identification) */
 
+/* Mark image as screen */
+.mark-image-as-screen {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mark-image-as-screen-button {
+  flex: 1;
+  padding: 7px 12px;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  color: #555;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.mark-image-as-screen-button:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #ccc;
+  color: #333;
+}
+
+.mark-image-as-screen-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
 .help-link {
   margin-top: 24px;
   padding-top: 16px;
