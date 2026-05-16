@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export interface CandidateEvent {
   nodeId: string
@@ -24,16 +24,33 @@ interface ResolutionFlowProps {
   onFocus: (nodeId: string) => void
 }
 
+type SelectionId = string
+
+const CREATE_OPTION: SelectionId = 'create'
+const candidateOptionId = (nodeId: string): SelectionId => `candidate:${nodeId}`
+
+function defaultSelectionFor(item: PendingResolution | undefined): SelectionId | null {
+  if (!item) return null
+  if (item.candidates.length === 0) return CREATE_OPTION
+  return null
+}
+
 export function ResolutionFlow({ pending, onDone, onFocus }: ResolutionFlowProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<ResolutionAnswer[]>([])
-  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null)
+  const current = pending[currentIndex] as PendingResolution | undefined
+  const [selectionId, setSelectionId] = useState<SelectionId | null>(() =>
+    defaultSelectionFor(pending[0])
+  )
 
-  if (pending.length === 0) {
+  useEffect(() => {
+    setSelectionId(defaultSelectionFor(current))
+  }, [current])
+
+  if (pending.length === 0 || !current) {
     return null
   }
 
-  const current = pending[currentIndex]
   const isLast = currentIndex === pending.length - 1
 
   const advance = (answer: ResolutionAnswer) => {
@@ -43,158 +60,184 @@ export function ResolutionFlow({ pending, onDone, onFocus }: ResolutionFlowProps
     } else {
       setAnswers(newAnswers)
       setCurrentIndex(currentIndex + 1)
-      setSelectedCandidateId(null)
     }
   }
 
   const handleConfirm = () => {
-    if (!selectedCandidateId) return
+    if (!selectionId) return
+    if (selectionId === CREATE_OPTION) {
+      advance({
+        queryName: current.queryName,
+        eventName: current.eventName,
+        resolution: 'create',
+      })
+      return
+    }
+    const nodeId = selectionId.slice('candidate:'.length)
     advance({
       queryName: current.queryName,
       eventName: current.eventName,
       resolution: 'connect',
-      candidateNodeId: selectedCandidateId,
+      candidateNodeId: nodeId,
     })
   }
 
-  const handleCreate = () => {
-    advance({ queryName: current.queryName, eventName: current.eventName, resolution: 'create' })
+  const handleSkip = () => {
+    advance({
+      queryName: current.queryName,
+      eventName: current.eventName,
+      resolution: 'skip',
+    })
   }
 
-  const handleSkip = () => {
-    advance({ queryName: current.queryName, eventName: current.eventName, resolution: 'skip' })
-  }
+  const promptNode =
+    current.kind === 'cross-slice' ? (
+      <>
+        <strong>{current.queryName}</strong> references event <strong>{current.eventName}</strong>{' '}
+        which exists in other slices:
+      </>
+    ) : (
+      <>
+        No event named <strong>{current.eventName}</strong> exists.
+      </>
+    )
+
+  const preview = renderPreview(selectionId, current)
 
   return (
     <div className="resolution-container">
       <div className="resolution-counter">
         Event {currentIndex + 1} of {pending.length}
       </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleConfirm()
+        }}
+      >
+        <p className="resolution-prompt">{promptNode}</p>
 
-      {current.kind === 'cross-slice' ? (
-        <CrossSlicePrompt
-          queryName={current.queryName}
-          eventName={current.eventName}
-          candidates={current.candidates}
-          selectedCandidateId={selectedCandidateId}
-          onSelectCandidate={setSelectedCandidateId}
-          onConfirm={handleConfirm}
-          onSkip={handleSkip}
-          onFocus={onFocus}
-        />
-      ) : (
-        <NoMatchPrompt
-          eventName={current.eventName}
-          onCreate={handleCreate}
-          onSkip={handleSkip}
-        />
-      )}
+        <div className="resolution-candidate-list">
+          {current.candidates.map((candidate) => {
+            const id = candidateOptionId(candidate.nodeId)
+            const isSelected = selectionId === id
+            const sliceLabel = candidate.parentSliceName ?? 'no slice'
+            const rowClass = isSelected
+              ? 'resolution-candidate-row resolution-candidate-row--selected'
+              : 'resolution-candidate-row'
+            return (
+              <label key={candidate.nodeId} className={rowClass}>
+                <input
+                  type="radio"
+                  name="resolution"
+                  className="resolution-candidate-radio"
+                  checked={isSelected}
+                  onChange={() => setSelectionId(id)}
+                  aria-label={`${candidate.label} (${sliceLabel})`}
+                />
+                <span className="resolution-candidate-text">
+                  <span className="resolution-candidate-slice">{sliceLabel}</span>
+                  <span className="resolution-candidate-label">{candidate.label}</span>
+                </span>
+                <button
+                  type="button"
+                  className="resolution-secondary-btn resolution-focus-btn"
+                  onClick={() => onFocus(candidate.nodeId)}
+                  aria-label={`Focus ${candidate.label} in ${sliceLabel}`}
+                  title="Focus on canvas"
+                >
+                  <FocusIcon />
+                </button>
+              </label>
+            )
+          })}
+
+          <label
+            className={
+              selectionId === CREATE_OPTION
+                ? 'resolution-candidate-row resolution-candidate-row--create resolution-candidate-row--selected'
+                : 'resolution-candidate-row resolution-candidate-row--create'
+            }
+          >
+            <input
+              type="radio"
+              name="resolution"
+              className="resolution-candidate-radio"
+              checked={selectionId === CREATE_OPTION}
+              onChange={() => setSelectionId(CREATE_OPTION)}
+              aria-label={`Create new ${current.eventName} in this slice`}
+            />
+            <span className="resolution-candidate-text">
+              <span className="resolution-candidate-slice">+ Create new in this slice</span>
+              <span className="resolution-candidate-label">{current.eventName}</span>
+            </span>
+          </label>
+        </div>
+
+        <p className="resolution-preview" aria-live="polite">
+          {preview ?? <span className="resolution-preview--placeholder">Pick an option above</span>}
+        </p>
+
+        <div className="resolution-button-group">
+          <button
+            type="submit"
+            className="resolution-primary-btn"
+            disabled={!selectionId}
+          >
+            Confirm
+          </button>
+          <button
+            type="button"
+            className="resolution-secondary-btn"
+            onClick={handleSkip}
+          >
+            Skip
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
 
-interface CrossSlicePromptProps {
-  queryName: string
-  eventName: string
-  candidates: CandidateEvent[]
-  selectedCandidateId: string | null
-  onSelectCandidate: (id: string) => void
-  onConfirm: () => void
-  onSkip: () => void
-  onFocus: (nodeId: string) => void
-}
-
-function CrossSlicePrompt({
-  queryName,
-  eventName,
-  candidates,
-  selectedCandidateId,
-  onSelectCandidate,
-  onConfirm,
-  onSkip,
-  onFocus,
-}: CrossSlicePromptProps) {
+function renderPreview(selectionId: SelectionId | null, current: PendingResolution) {
+  if (!selectionId) return null
+  if (selectionId === CREATE_OPTION) {
+    return (
+      <>
+        → Create new <strong>{current.eventName}</strong> event in this slice
+      </>
+    )
+  }
+  const nodeId = selectionId.slice('candidate:'.length)
+  const candidate = current.candidates.find((c) => c.nodeId === nodeId)
+  if (!candidate) return null
+  const sliceLabel = candidate.parentSliceName ?? 'no slice'
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onConfirm(); }}>
-      <p className="resolution-prompt">
-        <strong>{queryName}</strong> references event <strong>{eventName}</strong> which exists in other slices:
-      </p>
-      <div className="resolution-candidate-list">
-        {candidates.map(candidate => {
-          const isSelected = selectedCandidateId === candidate.nodeId
-          const rowClass = isSelected
-            ? 'resolution-candidate-row resolution-candidate-row--selected'
-            : 'resolution-candidate-row'
-          return (
-            <label key={candidate.nodeId} className={rowClass}>
-              <input
-                type="radio"
-                name="candidate"
-                className="resolution-candidate-radio"
-                checked={isSelected}
-                onChange={() => onSelectCandidate(candidate.nodeId)}
-                aria-label={`${candidate.label} (${candidate.parentSliceName ?? 'no slice'})`}
-              />
-              <span className="resolution-candidate-label">{candidate.label}</span>
-              <span className="resolution-candidate-slice">({candidate.parentSliceName ?? 'no slice'})</span>
-              <button
-                type="button"
-                className="resolution-secondary-btn resolution-focus-btn"
-                onClick={() => onFocus(candidate.nodeId)}
-              >
-                Focus
-              </button>
-            </label>
-          )
-        })}
-      </div>
-      <div className="resolution-button-group">
-        <button
-          type="submit"
-          className="resolution-primary-btn"
-          disabled={!selectedCandidateId}
-        >
-          Confirm
-        </button>
-        <button
-          type="button"
-          className="resolution-secondary-btn"
-          onClick={onSkip}
-        >
-          Skip
-        </button>
-      </div>
-    </form>
+    <>
+      → Connect to <strong>{candidate.label}</strong> in <strong>{sliceLabel}</strong>
+    </>
   )
 }
 
-interface NoMatchPromptProps {
-  eventName: string
-  onCreate: () => void
-  onSkip: () => void
-}
-
-function NoMatchPrompt({ eventName, onCreate, onSkip }: NoMatchPromptProps) {
+function FocusIcon() {
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onCreate(); }}>
-      <p className="resolution-prompt">
-        No event named <strong>{eventName}</strong> exists. Create it in this slice?
-      </p>
-      <div className="resolution-button-group">
-        <button
-          type="submit"
-          className="resolution-primary-btn"
-        >
-          Create
-        </button>
-        <button
-          type="button"
-          className="resolution-secondary-btn"
-          onClick={onSkip}
-        >
-          Skip
-        </button>
-      </div>
-    </form>
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="7" />
+      <circle cx="12" cy="12" r="2" />
+      <line x1="12" y1="2" x2="12" y2="5" />
+      <line x1="12" y1="19" x2="12" y2="22" />
+      <line x1="2" y1="12" x2="5" y2="12" />
+      <line x1="19" y1="12" x2="22" y2="12" />
+    </svg>
   )
 }
