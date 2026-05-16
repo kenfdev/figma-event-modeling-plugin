@@ -1533,6 +1533,102 @@ describe('handleImportFromYaml', () => {
       )
     })
 
+    it('excludes events inside a Given/When/Then section from cross-slice candidates', async () => {
+      const gwtParent = {
+        getPluginData: vi.fn((key: string) => (key === 'type' ? 'gwt' : '')),
+        parent: null,
+      }
+      const gwtChild = {
+        getPluginData: vi.fn(() => ''),
+        parent: gwtParent,
+      }
+      const eventInsideGwt = {
+        id: 'event-in-gwt',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'event'
+          if (key === 'label') return 'GwtExampleEvent'
+          return ''
+        }),
+        parent: gwtChild,
+      }
+      figmaMock.currentPage.findAll = vi.fn(() => [eventInsideGwt])
+
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder' }],
+        queries: [{ name: 'GetOrderStatus', from_events: ['GwtExampleEvent'] }],
+      })
+
+      expect(figmaMock.ui.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'import-resolution-needed',
+          payload: expect.objectContaining({
+            pending: expect.arrayContaining([
+              expect.objectContaining({
+                kind: 'no-match',
+                eventName: 'GwtExampleEvent',
+                candidates: [],
+              }),
+            ]),
+          }),
+        })
+      )
+    })
+
+    it('includes only non-GWT matching events as candidates when both exist', async () => {
+      const gwtParent = {
+        getPluginData: vi.fn((key: string) => (key === 'type' ? 'gwt' : '')),
+        parent: null,
+      }
+      const gwtChild = {
+        getPluginData: vi.fn(() => ''),
+        parent: gwtParent,
+      }
+      const eventInsideGwt = {
+        id: 'event-in-gwt',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'event'
+          if (key === 'label') return 'SharedEvent'
+          return ''
+        }),
+        parent: gwtChild,
+      }
+      const sliceParent = {
+        getPluginData: vi.fn((key: string) => (key === 'type' ? 'slice' : '')),
+        name: 'Other Slice',
+        parent: null,
+      }
+      const eventOutsideGwt = {
+        id: 'event-real',
+        getPluginData: vi.fn((key: string) => {
+          if (key === 'type') return 'event'
+          if (key === 'label') return 'SharedEvent'
+          return ''
+        }),
+        parent: sliceParent,
+      }
+      figmaMock.currentPage.findAll = vi.fn(() => [eventInsideGwt, eventOutsideGwt])
+
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+        commands: [{ name: 'CreateOrder' }],
+        queries: [{ name: 'GetOrderStatus', from_events: ['SharedEvent'] }],
+      })
+
+      const call = figmaMock.ui.postMessage.mock.calls.find(
+        (c: any[]) => c[0].type === 'import-resolution-needed'
+      )
+      expect(call).toBeTruthy()
+      const pending = call![0].payload.pending
+      const entry = pending.find((p: any) => p.eventName === 'SharedEvent')
+      expect(entry).toBeTruthy()
+      expect(entry.kind).toBe('cross-slice')
+      expect(entry.candidates).toHaveLength(1)
+      expect(entry.candidates[0].nodeId).toBe('event-real')
+    })
+
     it('sorts cross-slice before no-match in pending list', async () => {
       const mockUnknownEvent1 = {
         id: 'event-1',

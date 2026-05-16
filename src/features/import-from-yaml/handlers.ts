@@ -113,6 +113,18 @@ function getParentSliceName(node: { parent?: { getPluginData: (key: string) => s
   return null
 }
 
+function isInsideGwtSection(node: { parent?: unknown }): boolean {
+  let current: unknown = (node as { parent?: unknown }).parent
+  while (current && typeof current === 'object') {
+    const n = current as { parent?: unknown; getPluginData?: (key: string) => string }
+    if (n.getPluginData && n.getPluginData('type') === 'gwt') {
+      return true
+    }
+    current = n.parent
+  }
+  return false
+}
+
 export async function handleImportFromYaml(
   payload: unknown,
   { figma }: MessageHandlerContext
@@ -514,12 +526,12 @@ export async function handleImportFromYaml(
 
             const canvasEvents = figma.currentPage.findAll(
               (n: any) => n.getPluginData && n.getPluginData('type') === 'event'
-            ) as Array<{ id: string; getPluginData: (key: string) => string }>
+            ) as Array<{ id: string; getPluginData: (key: string) => string; parent?: unknown }>
 
             const normalizedEventName = normalizeName(eventName)
-            const matchingEvents = canvasEvents.filter(e =>
-              normalizeName(e.getPluginData('label')) === normalizedEventName
-            )
+            const matchingEvents = canvasEvents
+              .filter(e => normalizeName(e.getPluginData('label')) === normalizedEventName)
+              .filter(e => !isInsideGwtSection(e))
 
             if (matchingEvents.length > 0) {
               const candidates: CandidateEvent[] = matchingEvents.map(e => ({

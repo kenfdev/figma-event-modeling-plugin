@@ -137,6 +137,7 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | F17.1 | CopyMultiSliceToYaml | Done | `src/features/copy-multi-slice-to-yaml/SPEC.md` |
 | T002 | CopyMultiSliceToYaml (multi-select) | Done | `src/features/copy-multi-slice-to-yaml/SPEC.md` |
 | T003 | MarkImageAsScreen | Done | `src/features/mark-image-as-screen/SPEC.md` |
+| T004 | ImportYamlResolutionPolish | Done | `specs/20260516091159-import-yaml-resolution-polish/spec.md` |
 
 ## Feature Backlog
 

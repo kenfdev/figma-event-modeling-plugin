@@ -260,6 +260,67 @@ describe('ResolutionFlow', () => {
     })
   })
 
+  describe('styling', () => {
+    it('Confirm button uses primary button class', () => {
+      render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      expect(screen.getByRole('button', { name: 'Confirm' })).toHaveClass('resolution-primary-btn')
+    })
+
+    it('Skip button uses secondary button class on cross-slice prompt', () => {
+      render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      expect(screen.getByRole('button', { name: 'Skip' })).toHaveClass('resolution-secondary-btn')
+    })
+
+    it('Create button uses primary button class on no-match prompt', () => {
+      render(<ResolutionFlow {...defaultProps} pending={[
+        { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
+      ]} />)
+      expect(screen.getByRole('button', { name: 'Create' })).toHaveClass('resolution-primary-btn')
+    })
+
+    it('Skip button uses secondary button class on no-match prompt', () => {
+      render(<ResolutionFlow {...defaultProps} pending={[
+        { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
+      ]} />)
+      expect(screen.getByRole('button', { name: 'Skip' })).toHaveClass('resolution-secondary-btn')
+    })
+
+    it('candidate row gets selected modifier class when chosen', async () => {
+      const user = userEvent.setup()
+      const { container } = render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      await user.click(screen.getByLabelText('E1 (Slice A)'))
+      const selectedRow = container.querySelector('.resolution-candidate-row--selected')
+      expect(selectedRow).not.toBeNull()
+    })
+  })
+
   describe('advancing through multiple pending items', () => {
     it('calls onDone after answering last item', async () => {
       const user = userEvent.setup()

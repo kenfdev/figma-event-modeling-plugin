@@ -66,8 +66,8 @@ export function ResolutionFlow({ pending, onDone, onFocus }: ResolutionFlowProps
   }
 
   return (
-    <div style={{ padding: '16px' }}>
-      <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
+    <div className="resolution-container">
+      <div className="resolution-counter">
         Event {currentIndex + 1} of {pending.length}
       </div>
 
@@ -116,43 +116,49 @@ function CrossSlicePrompt({
 }: CrossSlicePromptProps) {
   return (
     <form onSubmit={(e) => { e.preventDefault(); onConfirm(); }}>
-      <p style={{ marginBottom: '16px' }}>
+      <p className="resolution-prompt">
         <strong>{queryName}</strong> references event <strong>{eventName}</strong> which exists in other slices:
       </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-        {candidates.map(candidate => (
-          <label
-            key={candidate.nodeId}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-          >
-            <input
-              type="radio"
-              name="candidate"
-              checked={selectedCandidateId === candidate.nodeId}
-              onChange={() => onSelectCandidate(candidate.nodeId)}
-              aria-label={`${candidate.label} (${candidate.parentSliceName ?? 'no slice'})`}
-            />
-            <span>{candidate.label}</span>
-            <span style={{ color: '#888' }}>({candidate.parentSliceName ?? 'no slice'})</span>
-            <button
-              type="button"
-              onClick={() => onFocus(candidate.nodeId)}
-              style={{ marginLeft: 'auto', fontSize: '12px', padding: '2px 8px' }}
-            >
-              Focus
-            </button>
-          </label>
-        ))}
+      <div className="resolution-candidate-list">
+        {candidates.map(candidate => {
+          const isSelected = selectedCandidateId === candidate.nodeId
+          const rowClass = isSelected
+            ? 'resolution-candidate-row resolution-candidate-row--selected'
+            : 'resolution-candidate-row'
+          return (
+            <label key={candidate.nodeId} className={rowClass}>
+              <input
+                type="radio"
+                name="candidate"
+                className="resolution-candidate-radio"
+                checked={isSelected}
+                onChange={() => onSelectCandidate(candidate.nodeId)}
+                aria-label={`${candidate.label} (${candidate.parentSliceName ?? 'no slice'})`}
+              />
+              <span className="resolution-candidate-label">{candidate.label}</span>
+              <span className="resolution-candidate-slice">({candidate.parentSliceName ?? 'no slice'})</span>
+              <button
+                type="button"
+                className="resolution-secondary-btn resolution-focus-btn"
+                onClick={() => onFocus(candidate.nodeId)}
+              >
+                Focus
+              </button>
+            </label>
+          )
+        })}
       </div>
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div className="resolution-button-group">
         <button
           type="submit"
+          className="resolution-primary-btn"
           disabled={!selectedCandidateId}
         >
           Confirm
         </button>
         <button
           type="button"
+          className="resolution-secondary-btn"
           onClick={onSkip}
         >
           Skip
@@ -171,17 +177,19 @@ interface NoMatchPromptProps {
 function NoMatchPrompt({ eventName, onCreate, onSkip }: NoMatchPromptProps) {
   return (
     <form onSubmit={(e) => { e.preventDefault(); onCreate(); }}>
-      <p style={{ marginBottom: '16px' }}>
+      <p className="resolution-prompt">
         No event named <strong>{eventName}</strong> exists. Create it in this slice?
       </p>
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div className="resolution-button-group">
         <button
           type="submit"
+          className="resolution-primary-btn"
         >
           Create
         </button>
         <button
           type="button"
+          className="resolution-secondary-btn"
           onClick={onSkip}
         >
           Skip
