@@ -5,7 +5,12 @@ import { ResolutionFlow } from './ResolutionFlow'
 
 describe('ResolutionFlow', () => {
   const defaultProps = {
-    pending: [] as Array<{ queryName: string; eventName: string; kind: 'cross-slice' | 'no-match'; candidates: Array<{ nodeId: string; label: string; parentSliceName: string | null }> }>,
+    pending: [] as Array<{
+      queryName: string
+      eventName: string
+      kind: 'cross-slice' | 'no-match'
+      candidates: Array<{ nodeId: string; label: string; parentSliceName: string | null }>
+    }>,
     onDone: vi.fn(),
     onFocus: vi.fn(),
   }
@@ -48,10 +53,10 @@ describe('ResolutionFlow', () => {
         { queryName: 'GetRoadmapStatus', eventName: 'RoadmapCreated', kind: 'cross-slice', candidates: [] },
       ]} />)
       expect(screen.getByText(/GetRoadmapStatus/)).toBeInTheDocument()
-      expect(screen.getByText(/RoadmapCreated/)).toBeInTheDocument()
+      expect(screen.getAllByText(/RoadmapCreated/).length).toBeGreaterThan(0)
     })
 
-    it('shows each candidate with label and parent slice name', () => {
+    it('shows each candidate with slice name as primary and label as secondary', () => {
       render(<ResolutionFlow {...defaultProps} pending={[
         {
           queryName: 'Q1',
@@ -63,13 +68,13 @@ describe('ResolutionFlow', () => {
           ],
         },
       ]} />)
-      const candidates = screen.getAllByText(/RoadmapCreated/)
-      expect(candidates).toHaveLength(2)
-      expect(screen.getByText(/\(Slice A\)/)).toBeInTheDocument()
-      expect(screen.getByText(/\(Slice B\)/)).toBeInTheDocument()
+      expect(screen.getByText('Slice A')).toBeInTheDocument()
+      expect(screen.getByText('Slice B')).toBeInTheDocument()
+      const labels = screen.getAllByText('RoadmapCreated')
+      expect(labels.length).toBeGreaterThanOrEqual(2)
     })
 
-    it('shows "(no slice)" when parentSliceName is null', () => {
+    it('shows "no slice" when parentSliceName is null', () => {
       render(<ResolutionFlow {...defaultProps} pending={[
         {
           queryName: 'Q1',
@@ -80,7 +85,7 @@ describe('ResolutionFlow', () => {
           ],
         },
       ]} />)
-      expect(screen.getByText('(no slice)')).toBeInTheDocument()
+      expect(screen.getByText('no slice')).toBeInTheDocument()
     })
 
     it('has Focus button for each candidate', () => {
@@ -94,7 +99,7 @@ describe('ResolutionFlow', () => {
           ],
         },
       ]} />)
-      expect(screen.getByRole('button', { name: 'Focus' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Focus RoadmapCreated in Slice A/i })).toBeInTheDocument()
     })
 
     it('calls onFocus with nodeId when Focus button is clicked', async () => {
@@ -109,11 +114,11 @@ describe('ResolutionFlow', () => {
           ],
         },
       ]} />)
-      await user.click(screen.getByRole('button', { name: 'Focus' }))
+      await user.click(screen.getByRole('button', { name: /Focus RoadmapCreated in Slice A/i }))
       expect(defaultProps.onFocus).toHaveBeenCalledWith('node-123')
     })
 
-    it('has a Confirm button disabled until a candidate is selected', () => {
+    it('Confirm is disabled until an option is selected when candidates exist', () => {
       render(<ResolutionFlow {...defaultProps} pending={[
         {
           queryName: 'Q1',
@@ -124,11 +129,10 @@ describe('ResolutionFlow', () => {
           ],
         },
       ]} />)
-      const confirmButton = screen.getByRole('button', { name: 'Confirm' })
-      expect(confirmButton).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Confirm' })).toBeDisabled()
     })
 
-    it('Confirm button is enabled after selecting a candidate', async () => {
+    it('Confirm is enabled after selecting a candidate', async () => {
       const user = userEvent.setup()
       render(<ResolutionFlow {...defaultProps} pending={[
         {
@@ -144,7 +148,7 @@ describe('ResolutionFlow', () => {
       expect(screen.getByRole('button', { name: 'Confirm' })).toBeEnabled()
     })
 
-    it('calls onDone with connect answer and selected nodeId when Confirm is clicked', async () => {
+    it('emits connect answer when a candidate is selected and confirmed', async () => {
       const user = userEvent.setup()
       render(<ResolutionFlow {...defaultProps} pending={[
         {
@@ -160,6 +164,37 @@ describe('ResolutionFlow', () => {
       await user.click(screen.getByRole('button', { name: 'Confirm' }))
       expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'connect', candidateNodeId: 'node-456' }])
     })
+
+    it('always offers a "Create new in this slice" option even when candidates exist', () => {
+      render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      expect(screen.getByLabelText('Create new E1 in this slice')).toBeInTheDocument()
+    })
+
+    it('emits create answer when "Create new" option is selected and confirmed', async () => {
+      const user = userEvent.setup()
+      render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      await user.click(screen.getByLabelText('Create new E1 in this slice'))
+      await user.click(screen.getByRole('button', { name: 'Confirm' }))
+      expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'create' }])
+    })
   })
 
   describe('no-match prompt', () => {
@@ -167,39 +202,90 @@ describe('ResolutionFlow', () => {
       render(<ResolutionFlow {...defaultProps} pending={[
         { queryName: 'GetRoadmapStatus', eventName: 'NonExistentEvent', kind: 'no-match', candidates: [] },
       ]} />)
-      expect(screen.getByText(/NonExistentEvent/)).toBeInTheDocument()
+      expect(screen.getAllByText(/NonExistentEvent/).length).toBeGreaterThan(0)
     })
 
-    it('has Create button', () => {
+    it('auto-selects the create option so Confirm is immediately enabled', () => {
       render(<ResolutionFlow {...defaultProps} pending={[
         { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
       ]} />)
-      expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Confirm' })).toBeEnabled()
+      expect(screen.getByLabelText('Create new E1 in this slice')).toBeChecked()
     })
 
-    it('has Skip button', () => {
+    it('has a Skip button', () => {
       render(<ResolutionFlow {...defaultProps} pending={[
         { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
       ]} />)
       expect(screen.getByRole('button', { name: 'Skip' })).toBeInTheDocument()
     })
 
-    it('calls onDone with create answer when Create is clicked', async () => {
+    it('emits create answer when Confirm is clicked', async () => {
       const user = userEvent.setup()
       render(<ResolutionFlow {...defaultProps} pending={[
         { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
       ]} />)
-      await user.click(screen.getByRole('button', { name: 'Create' }))
+      await user.click(screen.getByRole('button', { name: 'Confirm' }))
       expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'create' }])
     })
 
-    it('calls onDone with skip answer when Skip is clicked', async () => {
+    it('emits skip answer when Skip is clicked', async () => {
       const user = userEvent.setup()
       render(<ResolutionFlow {...defaultProps} pending={[
         { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
       ]} />)
       await user.click(screen.getByRole('button', { name: 'Skip' }))
       expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'skip' }])
+    })
+  })
+
+  describe('preview', () => {
+    it('shows placeholder text when nothing is selected', () => {
+      render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      expect(screen.getByText(/Pick an option above/i)).toBeInTheDocument()
+    })
+
+    it('shows connect preview when a candidate is selected', async () => {
+      const user = userEvent.setup()
+      const { container } = render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      await user.click(screen.getByLabelText('E1 (Slice A)'))
+      const preview = container.querySelector('.resolution-preview')
+      expect(preview?.textContent).toMatch(/Connect to/i)
+    })
+
+    it('shows create preview when the create option is selected', async () => {
+      const user = userEvent.setup()
+      const { container } = render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      await user.click(screen.getByLabelText('Create new E1 in this slice'))
+      const preview = container.querySelector('.resolution-preview')
+      expect(preview?.textContent).toMatch(/→\s*Create new/i)
     })
   })
 
@@ -221,7 +307,7 @@ describe('ResolutionFlow', () => {
       expect(defaultProps.onDone).toHaveBeenCalledWith([{ queryName: 'Q1', eventName: 'E1', resolution: 'connect', candidateNodeId: 'n1' }])
     })
 
-    it('Enter key triggers Create on no-match prompt', async () => {
+    it('Enter key submits the auto-selected create option on no-match prompt', async () => {
       const user = userEvent.setup()
       render(<ResolutionFlow {...defaultProps} pending={[
         { queryName: 'Q1', eventName: 'E1', kind: 'no-match', candidates: [] },
@@ -233,7 +319,7 @@ describe('ResolutionFlow', () => {
   })
 
   describe('stale selection clearing', () => {
-    it('selected candidate is cleared after skip', async () => {
+    it('selected candidate is cleared after skip when next item has candidates', async () => {
       const user = userEvent.setup()
       render(<ResolutionFlow {...defaultProps} pending={[
         {
@@ -257,6 +343,67 @@ describe('ResolutionFlow', () => {
       expect(screen.getByRole('button', { name: 'Confirm' })).toBeEnabled()
       await user.click(screen.getByRole('button', { name: 'Skip' }))
       expect(screen.getByRole('button', { name: 'Confirm' })).toBeDisabled()
+    })
+  })
+
+  describe('styling', () => {
+    it('Confirm button uses primary button class', () => {
+      render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      expect(screen.getByRole('button', { name: 'Confirm' })).toHaveClass('resolution-primary-btn')
+    })
+
+    it('Skip button uses secondary button class', () => {
+      render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      expect(screen.getByRole('button', { name: 'Skip' })).toHaveClass('resolution-secondary-btn')
+    })
+
+    it('candidate row gets selected modifier class when chosen', async () => {
+      const user = userEvent.setup()
+      const { container } = render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      await user.click(screen.getByLabelText('E1 (Slice A)'))
+      const selectedRow = container.querySelector('.resolution-candidate-row--selected')
+      expect(selectedRow).not.toBeNull()
+    })
+
+    it('create option uses the create modifier class', () => {
+      const { container } = render(<ResolutionFlow {...defaultProps} pending={[
+        {
+          queryName: 'Q1',
+          eventName: 'E1',
+          kind: 'cross-slice',
+          candidates: [
+            { nodeId: 'n1', label: 'E1', parentSliceName: 'Slice A' },
+          ],
+        },
+      ]} />)
+      expect(container.querySelector('.resolution-candidate-row--create')).not.toBeNull()
     })
   })
 
@@ -292,7 +439,7 @@ describe('ResolutionFlow', () => {
       ]} />)
       await user.click(screen.getByLabelText('E1 (Slice A)'))
       await user.click(screen.getByRole('button', { name: 'Confirm' }))
-      await user.click(screen.getByRole('button', { name: 'Create' }))
+      await user.click(screen.getByRole('button', { name: 'Confirm' }))
       expect(defaultProps.onDone).toHaveBeenCalledWith([
         { queryName: 'Q1', eventName: 'E1', resolution: 'connect', candidateNodeId: 'n1' },
         { queryName: 'Q2', eventName: 'E2', resolution: 'create' },

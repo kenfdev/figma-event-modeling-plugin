@@ -593,8 +593,8 @@ describe('Panel', () => {
       await screen.findByText(/Event 1 of 1/i)
 
       const user = userEvent.setup()
-      const createButton = screen.getByRole('button', { name: /create/i })
-      await user.click(createButton)
+      const confirmButton = screen.getByRole('button', { name: 'Confirm' })
+      await user.click(confirmButton)
 
       expect(parent.postMessage).toHaveBeenCalledWith(
         {
@@ -670,7 +670,7 @@ describe('Panel', () => {
       await screen.findByText(/Event 1 of 1/i)
 
       const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: /create/i }))
+      await user.click(screen.getByRole('button', { name: 'Confirm' }))
 
       const successEvent = new MessageEvent('message', {
         data: {
