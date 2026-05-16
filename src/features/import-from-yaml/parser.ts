@@ -32,6 +32,7 @@ export interface ImportGwt {
 export interface ImportScreen {
   type: 'user' | 'system'
   name?: string
+  actors?: string[]
   reads?: string[]
   executes?: string[]
 }
@@ -142,6 +143,26 @@ export function parseImportYaml(input: string): ParseResult {
 
   if (screenObj.name !== undefined && typeof screenObj.name === 'string') {
     screen.name = screenObj.name
+  }
+
+  if (screenObj.actors !== undefined) {
+    if (!Array.isArray(screenObj.actors)) {
+      return { success: false, error: "'screen.actors' must be an array" }
+    }
+    for (let i = 0; i < screenObj.actors.length; i++) {
+      if (typeof screenObj.actors[i] !== 'string') {
+        return { success: false, error: `screen.actors[${i}] must be a string` }
+      }
+    }
+    if (screenType === 'system' && screenObj.actors.length > 0) {
+      return {
+        success: false,
+        error: "'screen.actors' is only valid when screen.type is 'user'",
+      }
+    }
+    if (screenObj.actors.length > 0) {
+      screen.actors = screenObj.actors as string[]
+    }
   }
 
   if (screenObj.reads !== undefined) {

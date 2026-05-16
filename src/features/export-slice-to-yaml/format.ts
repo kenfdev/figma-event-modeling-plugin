@@ -1,5 +1,9 @@
 import yaml from 'js-yaml'
 import { deserializeFields } from '../update-custom-fields/field-utils'
+import {
+  SCREEN_ACTORS_PLUGIN_DATA_KEY,
+  deserializeActors,
+} from '../screen-actors/handlers'
 
 export interface SliceNode {
   id?: string
@@ -60,6 +64,7 @@ interface ExportQuery extends ExportElement {
 interface ExportScreen {
   type: 'user' | 'system'
   name?: string
+  actors?: string[]
   reads?: string[]
   executes?: string[]
 }
@@ -167,7 +172,7 @@ export function formatSliceAsYaml(
   const commandIndexById = new Map<string, number>()
   const queryIndexById = new Map<string, number>()
   let screenInfo:
-    | { id: string; name: string; type: 'user' | 'system' }
+    | { id: string; name: string; type: 'user' | 'system'; actors?: string[] }
     | undefined
 
   for (const child of (slice.children ?? []) as SliceNode[]) {
@@ -203,10 +208,15 @@ export function formatSliceAsYaml(
     } else if (pluginType === 'screen' || pluginType === 'processor') {
       const label = child.getPluginData('label') || child.name
       if (!screenInfo) {
+        const isUser = pluginType === 'screen'
+        const actors = isUser
+          ? deserializeActors(child.getPluginData(SCREEN_ACTORS_PLUGIN_DATA_KEY))
+          : []
         screenInfo = {
           id,
           name: label,
-          type: pluginType === 'processor' ? 'system' : 'user',
+          type: isUser ? 'user' : 'system',
+          ...(actors.length > 0 ? { actors } : {}),
         }
       }
       elementsById.set(id, { id, name: label, pluginType })
@@ -293,6 +303,9 @@ export function formatSliceAsYaml(
     ? {
         type: screenInfo.type,
         ...(screenInfo.name ? { name: screenInfo.name } : {}),
+        ...(screenInfo.actors && screenInfo.actors.length > 0
+          ? { actors: screenInfo.actors }
+          : {}),
         ...(screenReads.length > 0
           ? { reads: [...screenReads].sort((a, b) => a.localeCompare(b)) }
           : {}),

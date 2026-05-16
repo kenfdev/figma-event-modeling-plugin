@@ -553,6 +553,42 @@ describe('handleImportFromYaml', () => {
 
       expect(shapes[0].shapeType).toBe('SQUARE')
     })
+
+    it('stores actors plugin data on a user-screen when actors are present', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user', actors: ['Admin', 'Customer'] },
+      })
+
+      expect(shapes[0].setPluginData).toHaveBeenCalledWith(
+        'actors',
+        JSON.stringify(['Admin', 'Customer'])
+      )
+    })
+
+    it('does not write actors plugin data when no actors are provided (legacy)', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user' },
+      })
+
+      const actorsCalls = (shapes[0].setPluginData as ReturnType<typeof vi.fn>).mock.calls.filter(
+        ([key]) => key === 'actors'
+      )
+      expect(actorsCalls).toHaveLength(0)
+    })
+
+    it('does not write actors plugin data when actors array is empty', async () => {
+      await callHandler({
+        slice: 'S',
+        screen: { type: 'user', actors: [] },
+      })
+
+      const actorsCalls = (shapes[0].setPluginData as ReturnType<typeof vi.fn>).mock.calls.filter(
+        ([key]) => key === 'actors'
+      )
+      expect(actorsCalls).toHaveLength(0)
+    })
   })
 
   describe('GWT creation', () => {

@@ -159,6 +159,69 @@ describe('formatSliceAsYaml', () => {
     expect(yamlStr).toContain('- PlaceOrder')
   })
 
+  it('emits actors on a user-screen when plugin data contains them', () => {
+    const screen = createMockNode(
+      {
+        type: 'screen',
+        label: 'OrderScreen',
+        actors: JSON.stringify(['Admin', 'Customer']),
+      },
+      { id: 'scr1' }
+    )
+    const slice = createMockSlice('OrderSlice', [screen])
+    const { yaml: yamlStr } = formatSliceAsYaml(
+      slice as unknown as SliceNode,
+      createCtx()
+    )
+    expect(yamlStr).toContain('actors:')
+    expect(yamlStr).toContain('- Admin')
+    expect(yamlStr).toContain('- Customer')
+  })
+
+  it('omits actors on a user-screen with no actors stored', () => {
+    const screen = createMockNode(
+      { type: 'screen', label: 'OrderScreen' },
+      { id: 'scr1' }
+    )
+    const slice = createMockSlice('OrderSlice', [screen])
+    const { yaml: yamlStr } = formatSliceAsYaml(
+      slice as unknown as SliceNode,
+      createCtx()
+    )
+    expect(yamlStr).not.toContain('actors:')
+  })
+
+  it('omits actors on a user-screen with an empty actors array stored', () => {
+    const screen = createMockNode(
+      { type: 'screen', label: 'OrderScreen', actors: JSON.stringify([]) },
+      { id: 'scr1' }
+    )
+    const slice = createMockSlice('OrderSlice', [screen])
+    const { yaml: yamlStr } = formatSliceAsYaml(
+      slice as unknown as SliceNode,
+      createCtx()
+    )
+    expect(yamlStr).not.toContain('actors:')
+  })
+
+  it('never emits actors for a system-screen (processor) even if metadata sneaks in', () => {
+    const processor = createMockNode(
+      {
+        type: 'processor',
+        label: 'BackgroundJob',
+        actors: JSON.stringify(['ShouldNotAppear']),
+      },
+      { id: 'p1' }
+    )
+    const slice = createMockSlice('JobSlice', [processor])
+    const { yaml: yamlStr } = formatSliceAsYaml(
+      slice as unknown as SliceNode,
+      createCtx()
+    )
+    expect(yamlStr).not.toContain('actors:')
+    expect(yamlStr).not.toContain('ShouldNotAppear')
+  })
+
   it('emits screen block with type:system for processor element', () => {
     const processor = createMockNode(
       { type: 'processor', label: 'BackgroundJob' },

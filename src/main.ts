@@ -50,6 +50,7 @@ import {
   handleNavigateToShape,
   registerConnectedNeighborsListener,
 } from './features/navigate-connected-shapes/sandbox'
+import { handleUpdateScreenActors } from './features/screen-actors/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -82,6 +83,7 @@ registerHandler(REVERT_SCREEN_MESSAGE, handleRevertScreenImages)
 registerHandler('get-locale', handleGetLocale)
 registerHandler('set-locale', handleSetLocale as MessageHandler)
 registerHandler('navigate-to-shape', handleNavigateToShape)
+registerHandler('update-screen-actors', handleUpdateScreenActors)
 
 export default async function main() {
   initializePlugin({ figma })

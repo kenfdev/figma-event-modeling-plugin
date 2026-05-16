@@ -139,6 +139,7 @@ Each feature has a detailed SPEC.md file colocated with its source code.
 | T003 | MarkImageAsScreen | Done | `src/features/mark-image-as-screen/SPEC.md` |
 | T004 | ImportYamlResolutionPolish | Done | `specs/20260516091159-import-yaml-resolution-polish/spec.md` |
 | T001 | NavigateConnectedShapes | Done | `src/features/navigate-connected-shapes/SPEC.md` |
+| T005 | ScreenActors | Done | `src/features/screen-actors/SPEC.md` |
 
 ## Feature Backlog
 

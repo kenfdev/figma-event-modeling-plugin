@@ -245,6 +245,71 @@ describe('handleSelectionChange', () => {
     })
   })
 
+  it('includes actors as an empty array on a user-screen with no actors stored', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Screen',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'screen'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        id: 'node-1',
+        type: 'screen',
+        actors: [],
+      }),
+    })
+  })
+
+  it('includes parsed actors on a user-screen with actors stored', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Screen',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'screen'
+        if (key === 'actors') return JSON.stringify(['Admin', 'Customer'])
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
+      type: 'selection-changed',
+      payload: expect.objectContaining({
+        id: 'node-1',
+        type: 'screen',
+        actors: ['Admin', 'Customer'],
+      }),
+    })
+  })
+
+  it('omits actors from the payload when the selected node is a processor', () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'My Processor',
+      getPluginData: vi.fn((key: string) => {
+        if (key === 'type') return 'processor'
+        return ''
+      }),
+    }
+    figmaMock.currentPage.selection = [mockNode]
+
+    handleSelectionChange({ figma: figmaMock as unknown as typeof figma })
+
+    const call = (figmaMock.ui.postMessage as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(call.payload.type).toBe('processor')
+    expect(call.payload).not.toHaveProperty('actors')
+  })
+
   it('sends multiple-selected payload when multiple plugin elements are selected', () => {
     const mockNode1 = {
       id: 'node-1',

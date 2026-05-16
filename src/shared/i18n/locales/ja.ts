@@ -22,6 +22,8 @@ const ja = {
     connect: '接続',
     markAsScreen: 'スクリーンとしてマーク',
     revertScreen: '画像に戻す',
+    addActor: '+ アクターを追加',
+    deleteActor: 'アクターを削除',
   },
   editor: {
     selectedElement: '選択中の要素',
@@ -32,6 +34,9 @@ const ja = {
     issueUrl: 'Issue URL',
     openInBrowser: 'ブラウザで開く',
     elementType: '要素タイプ',
+    actors: 'アクター',
+    actorName: 'アクター名',
+    actorNamePlaceholder: 'アクター名',
   },
   messages: {
     multipleSelected: '複数の要素が選択されています',

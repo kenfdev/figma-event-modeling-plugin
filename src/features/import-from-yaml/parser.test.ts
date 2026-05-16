@@ -261,6 +261,90 @@ queries:
     })
   })
 
+  describe('screen.actors', () => {
+    it('parses actors on a user-screen', () => {
+      const yaml = `
+slice: Test Slice
+screen:
+  type: user
+  actors:
+    - Admin
+    - Customer
+`
+      const result = parseImportYaml(yaml)
+      expect(result.success).toBe(true)
+      if (!result.success) return
+      expect(result.data.screen.actors).toEqual(['Admin', 'Customer'])
+    })
+
+    it('omits actors when the YAML has none (legacy)', () => {
+      const yaml = `
+slice: Test Slice
+screen:
+  type: user
+`
+      const result = parseImportYaml(yaml)
+      expect(result.success).toBe(true)
+      if (!result.success) return
+      expect(result.data.screen.actors).toBeUndefined()
+    })
+
+    it('returns error when screen.actors is not an array', () => {
+      const yaml = `
+slice: Test Slice
+screen:
+  type: user
+  actors: not-an-array
+`
+      const result = parseImportYaml(yaml)
+      expect(result.success).toBe(false)
+      if (result.success) return
+      expect(result.error).toContain('screen.actors')
+    })
+
+    it('returns error when screen.actors contains a non-string entry', () => {
+      const yaml = `
+slice: Test Slice
+screen:
+  type: user
+  actors:
+    - 42
+`
+      const result = parseImportYaml(yaml)
+      expect(result.success).toBe(false)
+      if (result.success) return
+      expect(result.error).toContain('screen.actors[0]')
+      expect(result.error).toContain('string')
+    })
+
+    it('returns error when actors are present on a system-screen', () => {
+      const yaml = `
+slice: Test Slice
+screen:
+  type: system
+  actors:
+    - Admin
+`
+      const result = parseImportYaml(yaml)
+      expect(result.success).toBe(false)
+      if (result.success) return
+      expect(result.error).toContain('actors')
+    })
+
+    it('accepts an empty actors array on a system-screen and omits the field', () => {
+      const yaml = `
+slice: Test Slice
+screen:
+  type: system
+  actors: []
+`
+      const result = parseImportYaml(yaml)
+      expect(result.success).toBe(true)
+      if (!result.success) return
+      expect(result.data.screen.actors).toBeUndefined()
+    })
+  })
+
   describe('normalized matching across cases/whitespace', () => {
     it('matches screen.executes to command by normalized name', () => {
       const yaml = `

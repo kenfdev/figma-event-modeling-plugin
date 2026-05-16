@@ -1,6 +1,10 @@
 import type { MessageHandlerContext } from '../open-plugin-panel/sandbox'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 import { hasImageFill } from '../mark-image-as-screen/handlers'
+import {
+  SCREEN_ACTORS_PLUGIN_DATA_KEY,
+  deserializeActors,
+} from '../screen-actors/handlers'
 
 const CORE_ELEMENT_TYPES: readonly ElementType[] = ['command', 'event', 'query', 'actor']
 
@@ -133,6 +137,12 @@ export function handleSelectionChange({
     external: node.getPluginData('external') === 'true',
     issueUrl: node.getPluginData('issueUrl') || '',
     ...imageInfo,
+  }
+
+  if (elementType === 'screen') {
+    payload.actors = deserializeActors(
+      node.getPluginData(SCREEN_ACTORS_PLUGIN_DATA_KEY)
+    )
   }
 
   if ('getPluginDataKeys' in node && typeof node.getPluginDataKeys === 'function') {

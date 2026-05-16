@@ -4,6 +4,10 @@ import { serializeFields, type CustomField } from '../update-custom-fields/field
 import { normalizeName } from './name-match'
 import { createConnector } from '../../shared/figma/connectors'
 import { createProcessorGroup } from '../create-processor/handlers'
+import {
+  SCREEN_ACTORS_PLUGIN_DATA_KEY,
+  serializeActors,
+} from '../screen-actors/handlers'
 
 function convertBlockStringToYaml(blockString: string): string {
   if (!blockString || !blockString.trim()) {
@@ -217,6 +221,12 @@ export async function handleImportFromYaml(
         screenShape.text.fills = [{ type: 'SOLID', color: SCREEN_TEXT_COLOR }]
         screenShape.setPluginData('type', 'screen')
         screenShape.setPluginData('label', screenLabel)
+        if (data.screen.actors && data.screen.actors.length > 0) {
+          screenShape.setPluginData(
+            SCREEN_ACTORS_PLUGIN_DATA_KEY,
+            serializeActors(data.screen.actors)
+          )
+        }
 
         screenShape.x = cmdColumnCenterX - SCREEN_WIDTH / 2
         screenShape.y = topRowY - SCREEN_HEIGHT - COLUMN_GAP

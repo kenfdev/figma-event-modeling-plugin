@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { ElementType, StructuralType, SectionType } from '../../shared/types/plugin'
 import { useTranslation } from '../../shared/i18n'
 import { CustomFieldsEditor } from '../update-custom-fields'
+import { ScreenActorsEditor } from '../screen-actors'
 
 export interface SelectedElement {
   id: string
@@ -11,6 +12,7 @@ export interface SelectedElement {
   notes?: string
   external?: boolean
   issueUrl?: string
+  actors?: string[]
   pluginData?: Record<string, string>
   sliceCount?: number
 }
@@ -47,6 +49,7 @@ export function ElementEditor({ selectedElement, multipleSelected, selectionCoun
   const [notes, setNotes] = useState('')
   const [external, setExternal] = useState(false)
   const [issueUrl, setIssueUrl] = useState('')
+  const [actors, setActors] = useState<string[]>([])
   const [mode, setMode] = useState<'visual' | 'raw'>('visual')
 
   useEffect(() => {
@@ -60,8 +63,9 @@ export function ElementEditor({ selectedElement, multipleSelected, selectionCoun
       setNotes(selectedElement.notes ?? '')
       setExternal(selectedElement.external ?? false)
       setIssueUrl(selectedElement.issueUrl ?? '')
+      setActors(selectedElement.actors ?? [])
     }
-  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external, selectedElement?.issueUrl])
+  }, [selectedElement?.id, selectedElement?.name, selectedElement?.customFields, selectedElement?.notes, selectedElement?.external, selectedElement?.issueUrl, selectedElement?.actors])
 
   if (multipleSelected) {
     return (
@@ -238,6 +242,19 @@ export function ElementEditor({ selectedElement, multipleSelected, selectionCoun
     )
   }
 
+  const handleActorsChange = (newActors: string[]) => {
+    setActors(newActors)
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'update-screen-actors',
+          payload: { id: selectedElement!.id, actors: newActors },
+        },
+      },
+      '*'
+    )
+  }
+
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = e.target.value
     parent.postMessage(
@@ -361,6 +378,17 @@ export function ElementEditor({ selectedElement, multipleSelected, selectionCoun
               value={notes}
               onChange={handleNotesChange}
               aria-label="Notes"
+            />
+          </div>
+        )}
+        {selectedElement.type === 'screen' && (
+          <div className="element-editor-row">
+            <label className="element-editor-label">
+              {t('editor.actors')}
+            </label>
+            <ScreenActorsEditor
+              actors={actors}
+              onActorsChange={handleActorsChange}
             />
           </div>
         )}

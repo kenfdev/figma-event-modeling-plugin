@@ -22,6 +22,8 @@ const en = {
     connect: 'Connect',
     markAsScreen: 'Mark as Screen',
     revertScreen: 'Revert to Image',
+    addActor: '+ Add Actor',
+    deleteActor: 'Delete actor',
   },
   editor: {
     selectedElement: 'Selected Element',
@@ -32,6 +34,9 @@ const en = {
     issueUrl: 'Issue URL',
     openInBrowser: 'Open in browser',
     elementType: 'Element type',
+    actors: 'Actors',
+    actorName: 'Actor name',
+    actorNamePlaceholder: 'Actor name',
   },
   messages: {
     multipleSelected: 'Multiple elements selected',
