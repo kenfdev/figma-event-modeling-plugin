@@ -45,6 +45,11 @@ import {
   REVERT_SCREEN_MESSAGE,
 } from './features/mark-image-as-screen/sandbox'
 import { handleGetLocale, handleSetLocale } from './shared/i18n/sandbox'
+import {
+  handleConnectedNeighborsUpdate,
+  handleNavigateToShape,
+  registerConnectedNeighborsListener,
+} from './features/navigate-connected-shapes/sandbox'
 
 registerHandler('create-command', handleCreateCommand)
 registerHandler('create-event', handleCreateEvent)
@@ -76,15 +81,19 @@ registerHandler(MARK_AS_SCREEN_MESSAGE, handleMarkImagesAsScreen)
 registerHandler(REVERT_SCREEN_MESSAGE, handleRevertScreenImages)
 registerHandler('get-locale', handleGetLocale)
 registerHandler('set-locale', handleSetLocale as MessageHandler)
+registerHandler('navigate-to-shape', handleNavigateToShape)
 
 export default async function main() {
   initializePlugin({ figma })
   registerSelectionChangeListener({ figma })
+  registerConnectedNeighborsListener({ figma })
+  handleConnectedNeighborsUpdate({ figma })
 
   // Required for documentchange handler in dynamic-page mode
   await figma.loadAllPagesAsync()
 
   figma.on('documentchange', (event: DocumentChangeEvent) => {
     handleImagePasteIntoScreen(event, { figma })
+    handleConnectedNeighborsUpdate({ figma })
   })
 }

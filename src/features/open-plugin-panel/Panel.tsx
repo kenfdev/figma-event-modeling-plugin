@@ -6,6 +6,7 @@ import { YAML_TEMPLATE } from '../import-from-yaml/template'
 import { parseImportYaml } from '../import-from-yaml/parser'
 import { ResolutionFlow, type PendingResolution, type ResolutionAnswer } from '../import-from-yaml'
 import { MarkImageAsScreen } from '../mark-image-as-screen'
+import { ConnectedNeighbors } from '../navigate-connected-shapes'
 
 type EditorType = 'figma' | 'figjam' | null
 
@@ -499,6 +500,8 @@ export function Panel({ onCreateElement }: PanelProps) {
           </div>
 
           <ElementEditor selectedElement={selectedElement} multipleSelected={multipleSelected} selectionCount={selectionCount} multiSliceIds={multiSliceIds} />
+
+          <ConnectedNeighbors />
 
           {toastMessage && (
             <div className="toast" role="status">{toastMessage}</div>

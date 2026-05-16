@@ -919,6 +919,76 @@ select.type-badge option {
   color: #333;
 }
 
+/* Connected Neighbors */
+.connected-neighbors {
+  margin-top: 12px;
+  padding: 12px;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.connected-neighbors-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.connected-neighbors-heading {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #777;
+  letter-spacing: 0.04em;
+}
+
+.connected-neighbors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.neighbor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.neighbor-row:hover {
+  background: #f0f7ff;
+  border-color: #b5d4ff;
+}
+
+.neighbor-badge {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.neighbor-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Resize handle */
 .resize-handle {
   position: fixed;

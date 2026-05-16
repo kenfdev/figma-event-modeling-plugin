@@ -11,6 +11,12 @@ export interface ElementData {
   label: string
 }
 
+export interface NeighborItem {
+  id: string
+  name: string
+  elementType: ElementType | StructuralType | SectionType | 'native'
+}
+
 export interface PluginMessage {
   type: string
   payload?: unknown
