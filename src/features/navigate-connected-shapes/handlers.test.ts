@@ -41,41 +41,41 @@ describe('computeConnectedNeighbors', () => {
     figmaMock = createFigmaMock()
   })
 
-  it('returns empty payload when selection is empty', () => {
+  it('returns empty payload when selection is empty', async () => {
     figmaMock.currentPage.selection = []
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
     expect(result).toEqual({ sourceId: null, incoming: [], outgoing: [] })
   })
 
-  it('returns empty payload when multiple nodes are selected', () => {
+  it('returns empty payload when multiple nodes are selected', async () => {
     figmaMock.currentPage.selection = [
       createNode({ id: 'a' }),
       createNode({ id: 'b' }),
     ]
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
     expect(result).toEqual({ sourceId: null, incoming: [], outgoing: [] })
   })
 
-  it('returns empty incoming/outgoing when selected node has no connectors', () => {
+  it('returns empty incoming/outgoing when selected node has no connectors', async () => {
     figmaMock.currentPage.selection = [createNode({ id: 'a' })]
     figmaMock.currentPage.findAll.mockReturnValue([])
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
     expect(result).toEqual({ sourceId: 'a', incoming: [], outgoing: [] })
   })
 
-  it('classifies incoming neighbor when connector ends at selected node', () => {
+  it('classifies incoming neighbor when connector ends at selected node', async () => {
     const source = createNode({ id: 'a' })
     const neighbor = createNode({
       id: 'b',
@@ -84,11 +84,11 @@ describe('computeConnectedNeighbors', () => {
     })
     figmaMock.currentPage.selection = [source]
     figmaMock.currentPage.findAll.mockReturnValue([createConnector('b', 'a')])
-    figmaMock.getNodeById.mockImplementation((id: string) =>
+    figmaMock.getNodeByIdAsync.mockImplementation((id: string) =>
       id === 'b' ? neighbor : null
     )
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -98,7 +98,7 @@ describe('computeConnectedNeighbors', () => {
     expect(result.outgoing).toEqual([])
   })
 
-  it('classifies outgoing neighbor when connector starts at selected node', () => {
+  it('classifies outgoing neighbor when connector starts at selected node', async () => {
     const source = createNode({ id: 'a' })
     const neighbor = createNode({
       id: 'b',
@@ -107,11 +107,11 @@ describe('computeConnectedNeighbors', () => {
     })
     figmaMock.currentPage.selection = [source]
     figmaMock.currentPage.findAll.mockReturnValue([createConnector('a', 'b')])
-    figmaMock.getNodeById.mockImplementation((id: string) =>
+    figmaMock.getNodeByIdAsync.mockImplementation((id: string) =>
       id === 'b' ? neighbor : null
     )
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -121,16 +121,16 @@ describe('computeConnectedNeighbors', () => {
     expect(result.incoming).toEqual([])
   })
 
-  it('labels native nodes (no plugin type) with elementType "native" and uses node.name', () => {
+  it('labels native nodes (no plugin type) with elementType "native" and uses node.name', async () => {
     const source = createNode({ id: 'a' })
     const native = createNode({ id: 'sticky-1', name: 'Note', pluginType: '' })
     figmaMock.currentPage.selection = [source]
     figmaMock.currentPage.findAll.mockReturnValue([
       createConnector('sticky-1', 'a'),
     ])
-    figmaMock.getNodeById.mockReturnValue(native)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(native)
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -139,7 +139,7 @@ describe('computeConnectedNeighbors', () => {
     ])
   })
 
-  it('uses node.name for non-core element types like lane', () => {
+  it('uses node.name for non-core element types like lane', async () => {
     const source = createNode({ id: 'a' })
     const lane = createNode({
       id: 'lane-1',
@@ -151,9 +151,9 @@ describe('computeConnectedNeighbors', () => {
     figmaMock.currentPage.findAll.mockReturnValue([
       createConnector('a', 'lane-1'),
     ])
-    figmaMock.getNodeById.mockReturnValue(lane)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(lane)
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -162,15 +162,15 @@ describe('computeConnectedNeighbors', () => {
     ])
   })
 
-  it('skips orphan connectors whose endpoint nodes cannot be resolved', () => {
+  it('skips orphan connectors whose endpoint nodes cannot be resolved', async () => {
     const source = createNode({ id: 'a' })
     figmaMock.currentPage.selection = [source]
     figmaMock.currentPage.findAll.mockReturnValue([
       createConnector('ghost', 'a'),
     ])
-    figmaMock.getNodeById.mockReturnValue(null)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(null)
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -178,14 +178,14 @@ describe('computeConnectedNeighbors', () => {
     expect(result.outgoing).toEqual([])
   })
 
-  it('skips connectors with missing endpoint ids', () => {
+  it('skips connectors with missing endpoint ids', async () => {
     const source = createNode({ id: 'a' })
     figmaMock.currentPage.selection = [source]
     figmaMock.currentPage.findAll.mockReturnValue([
       { type: 'CONNECTOR', connectorStart: {}, connectorEnd: {} },
     ])
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -193,12 +193,12 @@ describe('computeConnectedNeighbors', () => {
     expect(result.outgoing).toEqual([])
   })
 
-  it('ignores self-loop connectors (start and end both = selected)', () => {
+  it('ignores self-loop connectors (start and end both = selected)', async () => {
     const source = createNode({ id: 'a' })
     figmaMock.currentPage.selection = [source]
     figmaMock.currentPage.findAll.mockReturnValue([createConnector('a', 'a')])
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -206,7 +206,7 @@ describe('computeConnectedNeighbors', () => {
     expect(result.outgoing).toEqual([])
   })
 
-  it('deduplicates parallel connectors to the same neighbor in the same direction', () => {
+  it('deduplicates parallel connectors to the same neighbor in the same direction', async () => {
     const source = createNode({ id: 'a' })
     const neighbor = createNode({
       id: 'b',
@@ -218,9 +218,9 @@ describe('computeConnectedNeighbors', () => {
       createConnector('a', 'b'),
       createConnector('a', 'b'),
     ])
-    figmaMock.getNodeById.mockReturnValue(neighbor)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(neighbor)
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -228,7 +228,7 @@ describe('computeConnectedNeighbors', () => {
     expect(result.outgoing[0].id).toBe('b')
   })
 
-  it('lists a neighbor in both incoming and outgoing when connectors run both directions', () => {
+  it('lists a neighbor in both incoming and outgoing when connectors run both directions', async () => {
     const source = createNode({ id: 'a' })
     const neighbor = createNode({
       id: 'b',
@@ -240,9 +240,9 @@ describe('computeConnectedNeighbors', () => {
       createConnector('a', 'b'),
       createConnector('b', 'a'),
     ])
-    figmaMock.getNodeById.mockReturnValue(neighbor)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(neighbor)
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -250,7 +250,7 @@ describe('computeConnectedNeighbors', () => {
     expect(result.outgoing).toHaveLength(1)
   })
 
-  it('falls back to node.name when core element has no text characters', () => {
+  it('falls back to node.name when core element has no text characters', async () => {
     const source = createNode({ id: 'a' })
     const command = createNode({
       id: 'cmd-1',
@@ -261,9 +261,9 @@ describe('computeConnectedNeighbors', () => {
     figmaMock.currentPage.findAll.mockReturnValue([
       createConnector('a', 'cmd-1'),
     ])
-    figmaMock.getNodeById.mockReturnValue(command)
+    figmaMock.getNodeByIdAsync.mockResolvedValue(command)
 
-    const result = computeConnectedNeighbors({
+    const result = await computeConnectedNeighbors({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -280,11 +280,11 @@ describe('handleConnectedNeighborsUpdate', () => {
     figmaMock = createFigmaMock()
   })
 
-  it('posts a connected-neighbors message with computed payload', () => {
+  it('posts a connected-neighbors message with computed payload', async () => {
     figmaMock.currentPage.selection = [createNode({ id: 'a' })]
     figmaMock.currentPage.findAll.mockReturnValue([])
 
-    handleConnectedNeighborsUpdate({
+    await handleConnectedNeighborsUpdate({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -294,10 +294,10 @@ describe('handleConnectedNeighborsUpdate', () => {
     })
   })
 
-  it('posts an empty payload when selection is empty', () => {
+  it('posts an empty payload when selection is empty', async () => {
     figmaMock.currentPage.selection = []
 
-    handleConnectedNeighborsUpdate({
+    await handleConnectedNeighborsUpdate({
       figma: figmaMock as unknown as typeof figma,
     })
 
@@ -326,7 +326,7 @@ describe('registerConnectedNeighborsListener', () => {
     )
   })
 
-  it('invokes handleConnectedNeighborsUpdate when selectionchange fires', () => {
+  it('invokes handleConnectedNeighborsUpdate when selectionchange fires', async () => {
     let cb: (() => void) | null = null
     figmaMock.on = vi.fn((event: string, fn: () => void) => {
       if (event === 'selectionchange') cb = fn
@@ -337,6 +337,7 @@ describe('registerConnectedNeighborsListener', () => {
       figma: figmaMock as unknown as typeof figma,
     })
     cb!()
+    await Promise.resolve()
 
     expect(figmaMock.ui.postMessage).toHaveBeenCalledWith({
       type: 'connected-neighbors',

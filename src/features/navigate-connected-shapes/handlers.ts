@@ -44,9 +44,9 @@ function resolveNeighbor(node: BaseNode | null): NeighborItem | null {
   return { id: node.id, name, elementType }
 }
 
-export function computeConnectedNeighbors({
+export async function computeConnectedNeighbors({
   figma,
-}: MessageHandlerContext): ConnectedNeighborsPayload {
+}: MessageHandlerContext): Promise<ConnectedNeighborsPayload> {
   const selection = figma.currentPage.selection
   if (selection.length !== 1) {
     return { sourceId: null, incoming: [], outgoing: [] }
@@ -69,13 +69,13 @@ export function computeConnectedNeighbors({
 
     if (endId === sourceId && startId !== sourceId) {
       if (seenIncoming.has(startId)) continue
-      const neighbor = resolveNeighbor(figma.getNodeById(startId))
+      const neighbor = resolveNeighbor(await figma.getNodeByIdAsync(startId))
       if (!neighbor) continue
       seenIncoming.add(startId)
       incoming.push(neighbor)
     } else if (startId === sourceId && endId !== sourceId) {
       if (seenOutgoing.has(endId)) continue
-      const neighbor = resolveNeighbor(figma.getNodeById(endId))
+      const neighbor = resolveNeighbor(await figma.getNodeByIdAsync(endId))
       if (!neighbor) continue
       seenOutgoing.add(endId)
       outgoing.push(neighbor)
@@ -85,10 +85,10 @@ export function computeConnectedNeighbors({
   return { sourceId, incoming, outgoing }
 }
 
-export function handleConnectedNeighborsUpdate(
+export async function handleConnectedNeighborsUpdate(
   context: MessageHandlerContext
-): void {
-  const payload = computeConnectedNeighbors(context)
+): Promise<void> {
+  const payload = await computeConnectedNeighbors(context)
   context.figma.ui.postMessage({
     type: 'connected-neighbors',
     payload,
@@ -99,7 +99,7 @@ export function registerConnectedNeighborsListener(
   context: MessageHandlerContext
 ): void {
   context.figma.on('selectionchange', () => {
-    handleConnectedNeighborsUpdate(context)
+    void handleConnectedNeighborsUpdate(context)
   })
 }
 
